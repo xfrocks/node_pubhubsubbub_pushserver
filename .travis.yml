@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "node"
+services:
+  - mongodb
+cache:
+  directories:
+    - node_modules
+script: "npm run coverage"
+after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
