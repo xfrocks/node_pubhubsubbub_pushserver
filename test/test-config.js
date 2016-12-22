@@ -6,17 +6,17 @@ var chai = require('chai');
 var _ = require('lodash');
 
 chai.should();
-var env = _.merge({}, process.env);
+var expect = chai.expect;
 
 describe('config', function() {
 
     beforeEach(function(done) {
-        process.env = _.merge({}, env);
+        process.env = {};
         done();
       });
 
     afterEach(function(done) {
-        process.env = _.merge({}, env);
+        process.env = {};
         config._reload();
 
         done();
@@ -27,6 +27,14 @@ describe('config', function() {
         _.forEach(config._defaultConfig, function(value, key) {
             config[key].should.deep.equal(value);
           });
+        done();
+      });
+
+    it('should handle MONGO_URI', function(done) {
+        process.env.MONGO_URI = 'mongodb://localhost/mongo';
+        config._reload();
+        config.db.mongoUri.should.equal(process.env.MONGO_URI);
+
         done();
       });
 
@@ -42,6 +50,19 @@ describe('config', function() {
         process.env.PORT = 123456;
         config._reload();
         config.web.port.should.equal(process.env.PORT);
+
+        done();
+      });
+
+    it('should handle REDIS_URL', function(done) {
+        var port = '123456';
+        var host = 'redis.server';
+        process.env.REDISCLOUD_URL = 'redis://' + host + ':' + port;
+        config._reload();
+
+        config.redis.port.should.equal(port);
+        config.redis.host.should.equal(host);
+        expect(config.redis.auth).to.be.null;
 
         done();
       });

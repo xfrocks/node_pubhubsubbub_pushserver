@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  app:
+    build:
+      context: docker/node
+    environment:
+      - CONFIG_WEB_USERNAME=u
+      - CONFIG_WEB_PASSWORD=p
+      - DEBUG=pushserver:*
+      - MONGO_URI=mongodb://dev-mongo/pushserver
+      - REDIS_URL=http://dev-redis:6379
+    links:
+      - dev-mongo
+      - dev-redis
+    ports:
+      - "18080:18080"
+    volumes:
+      - .:/app
+
+  dev-redis:
+    image: redis:3.2.5-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - ./docker/data/redis:/data
+
+  dev-mongo:
+    image: mongo:3.4.0
+    volumes:
+      - ./docker/data/mongo:/data/db
