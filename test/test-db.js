@@ -9,6 +9,7 @@ chai.should();
 describe('db', function() {
 
     it('should have middleware', function(done) {
+      this.timeout(5000);
       var middleware = db.expressMiddleware();
       middleware.should.not.be.null;
       done();
