@@ -15,7 +15,7 @@
     "mongo-express": "^0.33.0",
     "mongo-uri": "^0.1.2",
     "mongoose": "^4.4.7",
-    "node-gcm": "~0.14.0",
+    "node-gcm": "~0.14.4",
     "pug": "^2.0.0-alpha6",
     "request": "~2.79.0",
     "string": "~3.3.1",
