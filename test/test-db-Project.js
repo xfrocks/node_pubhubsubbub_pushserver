@@ -8,11 +8,12 @@ chai.should();
 
 describe('db/Project', function() {
 
-    db.projects._model.collection.drop();
-
-    afterEach(function(done) {
-        db.projects._model.collection.drop();
-        done();
+    beforeEach(function(done) {
+        db.projects._model.collection.drop().then(function() {
+            done();
+          }).catch(function() {
+            // ignore errors
+          });
       });
 
     it('should save project', function(done) {
@@ -48,33 +49,41 @@ describe('db/Project', function() {
       });
 
     it('should save apn', function(done) {
-        var appId = 'ai';
-        var certData = 'cd';
-        var keyData = 'kd';
-        var otherOptions = {gateway: 'co.gateway'};
+        var bundleId = 'bi';
+        var tokenKey = 'tk';
+        var tokenKeyId = 'tki';
+        var tokenTeamId = 'tti';
+        var production = true;
 
         var step1 = function() {
-            db.projects.saveApn(appId, certData, keyData,
-              otherOptions, function(isSaved) {
+            db.projects.saveApn(
+              bundleId,
+              tokenKey,
+              tokenKeyId,
+              tokenTeamId,
+              production,
+              function(isSaved) {
                 isSaved.should.not.be.false;
                 step2();
-              });
+              }
+            );
           };
 
         var step2 = function() {
             db.projects._model.find({
                 project_type: 'apn',
-                project_id: appId
+                project_id: bundleId
               }, function(err, projects) {
                 projects.should.be.a('array');
                 projects.length.should.equal(1);
 
                 var project = projects[0];
                 project.configuration.should.be.a('object');
-                project.configuration.cert.should.equal(certData);
-                project.configuration.key.should.equal(keyData);
-                project.configuration.gateway.
-                  should.equal(otherOptions.gateway);
+                project.configuration.token.should.be.a('object');
+                project.configuration.token.key.should.equal(tokenKey);
+                project.configuration.token.keyId.should.equal(tokenKeyId);
+                project.configuration.token.teamId.should.equal(tokenTeamId);
+                project.configuration.production.should.equal(production);
 
                 done();
               });

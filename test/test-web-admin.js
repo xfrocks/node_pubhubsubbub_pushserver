@@ -3,6 +3,7 @@
 
 var web = require('../lib/web');
 var chai = require('chai');
+var _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
@@ -35,97 +36,150 @@ describe('web/admin', function() {
       });
 
     it('should save apn project', function(done) {
-        var appId = 'ai';
-        var certData = 'cd';
-        var keyData = 'kd';
-        var otherOptions = {gateway: 'co.gateway'};
+        var test = function(extraData, assertCallback) {
+          var bundleId = 'bi';
+          var tokenKey = 'tk';
+          var tokenKeyId = 'tki';
+          var tokenTeamId = 'tti';
 
-        var step1 = function() {
-            webApp
-                .post('/admin/projects/apn')
-                .send({
-                    app_id: appId,
-                    cert: certData,
-                    key: keyData,
-                    other_options: otherOptions
-                  })
-                .end(function(err, res) {
-                    res.should.have.status(202);
-                    step2();
-                  });
-          };
+          var step1 = function() {
+              var data = _.merge({
+                bundle_id: bundleId,
+                token: {
+                  key: tokenKey,
+                  key_id: tokenKeyId,
+                  team_id: tokenTeamId,
+                }
+              }, extraData);
+              webApp
+                  .post('/admin/projects/apn')
+                  .send(data)
+                  .end(function(err, res) {
+                      res.should.have.status(202);
+                      step2();
+                    });
+            };
 
-        var step2 = function() {
-            db.projects.findConfig('apn', appId, function(projectConfig) {
-                projectConfig.should.not.be.null;
-                projectConfig.cert.should.equal(certData);
-                projectConfig.key.should.equal(keyData);
-                projectConfig.gateway.should.equal(otherOptions.gateway);
+          var step2 = function() {
+              db.projects.findConfig('apn', bundleId, function(projectConfig) {
+                  projectConfig.should.not.be.null;
+                  projectConfig.token.should.be.a('object');
+                  projectConfig.token.key.should.equal(tokenKey);
+                  projectConfig.token.keyId.should.equal(tokenKeyId);
+                  projectConfig.token.teamId.should.equal(tokenTeamId);
 
-                done();
-              });
-          };
+                  assertCallback(projectConfig);
+                });
+            };
 
-        step1();
+          step1();
+        };
+
+        var test1 = function() {
+          test({production: 1}, function(projectConfig) {
+            projectConfig.production.should.be.true;
+
+            test2();
+          });
+        };
+
+        var test2 = function() {
+          test({production: 0}, function(projectConfig) {
+            projectConfig.production.should.be.false;
+
+            test3();
+          });
+        };
+
+        var test3 = function() {
+          test({}, function(projectConfig) {
+            projectConfig.production.should.be.true;
+
+            done();
+          });
+        };
+
+        test1();
       });
 
     it('should not save apn project', function(done) {
-        var appId = 'ai';
-        var certData = 'cd';
-        var keyData = 'kd';
+        var bundleId = 'bi';
+        var tokenKey = 'tk';
+        var tokenKeyId = 'tki';
+        var tokenTeamId = 'tti';
+
+        var test = function(data, endCallback) {
+            webApp
+                .post('/admin/projects/apn')
+                .send(data)
+                .end(endCallback);
+          };
 
         var test1 = function() {
-            webApp
-                .post('/admin/projects/apn')
-                .send({
-                    cert: certData,
-                    key: keyData
-                  })
-                .end(function(err, res) {
-                    res.should.have.status(400);
-                    test2();
-                  });
-          };
+          test({
+            token: {
+              key: tokenKey,
+              key_id: tokenKeyId,
+              team_id: tokenTeamId,
+            }
+          }, function(err, res) {
+            res.should.have.status(400);
+            test2();
+          });
+        };
 
         var test2 = function() {
-            webApp
-                .post('/admin/projects/apn')
-                .send({
-                    app_id: appId,
-                    key: keyData
-                  })
-                .end(function(err, res) {
-                    res.should.have.status(400);
-                    test3();
-                  });
-          };
+          test({
+            bundle_id: bundleId,
+            token: {
+              key_id: tokenKeyId,
+              team_id: tokenTeamId,
+            }
+          }, function(err, res) {
+            res.should.have.status(400);
+            test3();
+          });
+        };
 
         var test3 = function() {
-            webApp
-                .post('/admin/projects/apn')
-                .send({
-                    app_id: appId,
-                    cert: certData
-                  })
-                .end(function(err, res) {
-                    res.should.have.status(400);
-                    test4();
-                  });
-          };
+          test({
+            bundle_id: bundleId,
+            token: {
+              key: tokenKey,
+              team_id: tokenTeamId,
+            }
+          }, function(err, res) {
+            res.should.have.status(400);
+            test4();
+          });
+        };
 
         var test4 = function() {
-            webApp
-                .post('/admin/projects/apn')
-                .send({
-                    app_id: 'error',
-                    cert: certData,
-                    key: keyData
-                  })
-                .end(function(err, res) {
-                    res.should.have.status(500);
-                    done();
-                  });
-          };
+          test({
+            bundle_id: bundleId,
+            token: {
+              key: tokenKey,
+              key_id: tokenKeyId,
+            }
+          }, function(err, res) {
+            res.should.have.status(400);
+            test5();
+          });
+        };
+
+        var test5 = function() {
+          test({
+            bundle_id: 'error',
+            token: {
+              key: tokenKey,
+              key_id: tokenKeyId,
+              team_id: tokenTeamId,
+            }
+          }, function(err, res) {
+            res.should.have.status(500);
+            done();
+          });
+        };
 
         test1();
       });

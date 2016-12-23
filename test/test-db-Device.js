@@ -9,11 +9,12 @@ var expect = chai.expect;
 
 describe('db/Device', function() {
 
-    db.devices._model.collection.drop();
-
-    afterEach(function(done) {
-        db.devices._model.collection.drop();
-        done();
+    beforeEach(function(done) {
+        db.devices._model.collection.drop().then(function() {
+            done();
+          }).catch(function() {
+            // ignore errors
+          });
       });
 
     it('should save device', function(done) {

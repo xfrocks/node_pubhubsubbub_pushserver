@@ -222,67 +222,55 @@ describe('pushQueue', function() {
       });
 
     it('[ios] db client', function(done) {
-        var packageId = 'pi-db';
-        var certData = 'cd-db';
-        var keyData = 'kd-db';
+        var bundleId = 'bi-db';
+        var tokenKeyData = 'tk-db';
+        var tokenKeyIdData = 'tki-db';
+        var tokenTeamIdData = 'tti-db';
         var deviceType = 'ios';
         var deviceId = 'di';
         var payload = generatePayload();
-        var extraData = {package: packageId};
+        var extraData = {package: bundleId};
 
-        var init = function() {
-            db.projects.saveApn(packageId, certData, keyData, {}, function() {
-                test();
-              });
+        var test = function(production, callback) {
+            var step1 = function() {
+                db.projects.saveApn(
+                    bundleId,
+                    tokenKeyData,
+                    tokenKeyIdData,
+                    tokenTeamIdData,
+                    production,
+                    function() { step2(); }
+                );
+              };
+
+            var step2 = function() {
+                pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+                var latestPush = pusher._getLatestPush();
+                latestPush.type.should.equal('apn');
+
+                var lpco = latestPush.connectionOptions;
+                lpco.packageId.should.equal(bundleId);
+                lpco.token.key.should.equal(tokenKeyData);
+                lpco.token.keyId.should.equal(tokenKeyIdData);
+                lpco.token.teamId.should.equal(tokenTeamIdData);
+                lpco.production.should.equal(production);
+
+                callback();
+              };
+
+            step1();
           };
 
-        var test = function() {
-            pushQueue.enqueue(deviceType, deviceId, payload, extraData);
-
-            var latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('apn');
-            latestPush.connectionOptions.packageId.should.equal(packageId);
-            latestPush.connectionOptions.cert.should.equal(certData);
-            latestPush.connectionOptions.key.should.equal(keyData);
-
-            done();
+        var test1 = function() {
+            test(true, test2);
           };
 
-        init();
-      });
-
-    it('[ios] db client (sandbox)', function(done) {
-        var packageId = 'pi-db';
-        var certData = 'cd-db';
-        var keyData = 'kd-db';
-        var gateway = 'gateway.sandbox.push.apple.com';
-        var deviceType = 'ios';
-        var deviceId = 'di';
-        var payload = generatePayload();
-        var extraData = {package: packageId};
-
-        var init = function() {
-            db.projects.saveApn(packageId, certData, keyData, {
-                gateway: gateway
-              }, function() {
-                test();
-              });
+        var test2 = function() {
+            test(false, done);
           };
 
-        var test = function() {
-            pushQueue.enqueue(deviceType, deviceId, payload, extraData);
-
-            var latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('apn');
-            latestPush.connectionOptions.packageId.should.equal(packageId);
-            latestPush.connectionOptions.address.should.equal(gateway);
-            latestPush.connectionOptions.cert.should.equal(certData);
-            latestPush.connectionOptions.key.should.equal(keyData);
-
-            done();
-          };
-
-        init();
+        test1();
       });
 
     it('[ios] payload with user_unread_notification_count', function(done) {

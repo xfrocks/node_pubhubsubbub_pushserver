@@ -135,13 +135,24 @@ db.projects = {
         projects = {};
       },
 
-    saveApn: function(appId, certData, keyData, otherOptions, callback) {
-        var configuration = _.assign({}, {
-            cert: certData,
-            key: keyData
-          }, otherOptions);
+    saveApn: function(
+      bundleId,
+      tokenKey,
+      tokenKeyId,
+      tokenTeamId,
+      production,
+      callback
+    ) {
+        var configuration = {
+          token: {
+            key: tokenKey,
+            keyId: tokenKeyId,
+            teamId: tokenTeamId
+          },
+          production: production
+        };
 
-        return this.save('apn', appId, configuration, callback);
+        return this.save('apn', bundleId, configuration, callback);
       },
 
     saveGcm: function(packageId, apiKey, callback) {

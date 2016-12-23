@@ -3,13 +3,13 @@
 var apn = exports;
 var _ = require('lodash');
 
-var connections = [];
+var providers = [];
 var feedbacks = [];
 var latestPush = null;
 var pushes = [];
 
 apn._reset = function() {
-    connections = [];
+    providers = [];
     feedbacks = [];
     latestPush = null;
     pushes = [];
@@ -23,87 +23,68 @@ apn._getPushes = function() {
     return pushes;
   };
 
-apn._getConnectionCount = function() {
-    return connections.length;
+apn._getProviderCount = function() {
+    return providers.length;
   };
 
-apn._getFeedbackCount = function() {
-    return feedbacks.length;
-  };
-
-apn._getFeedbacks = function(packageId) {
-    return _.filter(feedbacks, function(feedback) {
-        return feedback.options.packageId === packageId;
-      });
-  };
-
-apn.Connection = function(options) {
-    var connection = this;
+apn.Provider = function(options) {
+    var provider = this;
     this.options = options;
-    this.terminated = false;
+    this._hasBeenShutdown = false;
 
-    this.pushNotification = function(notification, device) {
-        latestPush = {
-            connection: connection,
-            device: device,
-            notification: notification
-          };
-        pushes.push(latestPush);
+    this.send = function(notification, recipients) {
+        return new global.Promise(function(fulfill) {
+          var result = {sent: [], failed: []};
+
+          _.forEach(recipients, function(recipient) {
+            latestPush = {
+              provider: provider,
+              recipient: recipient,
+              notification: notification
+            };
+            pushes.push(latestPush);
+
+            switch (recipient) {
+              case 'fail-string':
+                result.failed.push({
+                  device: recipient,
+                  status: '400',
+                  response: {
+                    reason: 'Reason'
+                  }
+                });
+              break;
+              case 'fail-Error':
+                result.failed.push({
+                  device: recipient,
+                  error: new Error('Error')
+                });
+              break;
+              case 'fail-unknown':
+                result.failed.push({device: recipient});
+              break;
+              default:
+                result.sent.push(recipient);
+            }
+          });
+
+          fulfill(result);
+        });
       };
 
     this.shutdown = function() {
-        connection.terminated = true;
+        this._hasBeenShutdown = true;
       };
 
-    this.on = function() {
-        // NOP
-      };
-
-    connections.push(this);
-  };
-
-apn.Feedback = function(options) {
-    var feedback = this;
-    var listeners = {};
-
-    this.options = options;
-    this.interval = 1;
-
-    this.on = function(event, listener) {
-        if (_.isUndefined(listeners[event])) {
-          listeners[event] = [];
-        }
-
-        listeners[event].push(listener);
-      };
-
-    this.emit = function(event) {
-        if (_.isUndefined(listeners[event])) {
-          return;
-        }
-
-        var eventArguments = Array.prototype.slice.call(arguments, 1);
-
-        _.forEach(listeners[event], function(listener) {
-            listener.apply(feedback, eventArguments);
-          });
-      };
-
-    this.cancel = function() {
-        feedback.interval = undefined;
-      };
-
-    feedbacks.push(this);
-  };
-
-apn.Device = function(token) {
-    this.token = token;
+    providers.push(this);
   };
 
 apn.Notification = function(payload) {
     this.payload = payload;
     this.alert = '';
     this.badge = '';
-    this.expiry = null;
     this.sound = '';
+
+    this.topic = '';
+    this.expiry = null;
   };

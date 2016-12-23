@@ -8,22 +8,24 @@ block content
 
   form(action=prefix + "/projects/apn", method="POST")
     div.form-group
-      label(for="ctrl_app_id") Application ID
-      input.form-control#ctrl_app_id(type="text", name="app_id", placeholder="Identifier", value=query.app_id)
+      label(for="ctrl_app_id") Bundle ID
+      input.form-control#ctrl_app_id(type="text", name="bundle_id", placeholder="com.domain.app_name", value=query.bundle_id)
     div.form-group
-      label(for="ctrl_cert") RSA Certificate
-      textarea.form-control#ctrl_cert(name="cert", placeholder="Certificate Plaintext", rows="5")= query.cert
+      label(for="ctrl_token_key")
+        a(href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html", tabindex="-1", target="_blank")
+          | Provider Authentication Token
+        |  Key
+      textarea.form-control#ctrl_cert(name="token[key]", placeholder="Contents of APNsAuthKey_ABC123DEFG.p8", rows="5")= query["token[key]"]
     div.form-group
-      label(for="ctrl_key") RSA Key
-      textarea.form-control#ctrl_key(name="key", placeholder="Key Plaintext", rows="5")= query.key
-    div.form-group
-      label(for="ctrl_passphrase") Key Passphrase
-      input.form-control#ctrl_passphrase(type="text", name="other_options[passphrase]",
-        placeholder="Passphrase", value=query["other_options[passphrase]"])
+      label(for="ctrl_token_key_id") Key ID
+      input.form-control#ctrl_key(name="token[key_id]", placeholder="ABC123DEFG", value=query["token[key_id]"])
+      div.form-group
+        label(for="ctrl_token_team_id") Team ID
+        input.form-control#ctrl_key(name="token[team_id]", placeholder="DEF123GHIJ", value= query["token[team_id]"])
     div.checkbox
       label
-        input(type="checkbox", name="other_options[address]", value="gateway.sandbox.push.apple.com",
-          checked=(query["other_options[address]"] === "gateway.sandbox.push.apple.com") ? "checked" : undefined)
+        input(type="checkbox", name="production", value="0",
+          checked=(query["production"] === "0") ? "checked" : undefined)
         | Use Sandbox Gateway
 
     button.btn.btn-default(type="submit") Submit
