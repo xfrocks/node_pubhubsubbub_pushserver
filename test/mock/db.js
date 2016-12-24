@@ -4,6 +4,7 @@ var db = exports;
 var _ = require('lodash');
 
 var devices = {};
+var hubs = {};
 var projects = {};
 
 db.devices = {
@@ -130,6 +131,56 @@ db.devices = {
           };
 
         mock();
+      }
+  };
+
+db.hubs = {
+
+    _reset: function() {
+        hubs = {};
+      },
+
+    save: function(oauthClientId, hubUri, extraData, callback) {
+        var mock = function() {
+            if (hubUri === 'http://err.or/hub') {
+              return done(false);
+            }
+
+            var key = oauthClientId;
+
+            if (_.has(hubs, key)) {
+              var hub = hubs[key];
+              if (hub.hub_uri.indexOf(hubUri) === -1) {
+                hub.hub_uri.push(hubUri);
+              }
+              hub.extra_data = _.assign({}, hub.extra_data, extraData);
+
+              done('updated');
+            } else {
+              hubs[key] = {
+                  oauth_client_id: oauthClientId,
+                  hub_uri: [hubUri],
+                  extra_data: extraData
+                };
+
+              done('saved');
+            }
+          };
+
+        var done = function(result) {
+            if (_.isFunction(callback)) {
+              callback(result);
+            }
+          };
+
+        mock();
+      },
+
+    findHub: function(oauthClientId, callback) {
+        var hub = _.has(hubs, oauthClientId) ? hubs[oauthClientId] : null;
+        if (_.isFunction(callback)) {
+          callback(hub);
+        }
       }
   };
 

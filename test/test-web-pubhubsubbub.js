@@ -19,8 +19,13 @@ var pushQueue = require('./mock/pushQueue');
 var webApp = chai.request(web._app);
 
 var testApp = express();
+var testAppReqs = [];
 testApp.use(bodyParser.urlencoded({extended: false}));
 testApp.post('/status/:code', function(req, res) {
+    testAppReqs.push({
+      params: req.params,
+      body: req.body
+    });
     res.status(req.params.code).end();
   });
 var testServer = http.createServer(testApp).listen();
@@ -30,13 +35,15 @@ var testAppUri = 'http://localhost:' + testAppPort;
 describe('web/pubhubsubbub', function() {
 
     before(function(done) {
-        pubhubsubbub.setup(web._app, '', db.devices, pushQueue);
+        pubhubsubbub.setup(web._app, '', db, pushQueue);
         done();
       });
 
     beforeEach(function(done) {
         db.devices._reset();
+        db.hubs._reset();
         pushQueue._reset();
+        testAppReqs = [];
         done();
       });
 
@@ -147,7 +154,7 @@ describe('web/pubhubsubbub', function() {
         test();
       });
 
-    it('should not subscribe with db error', function(done) {
+    it('should not subscribe with db.devices error', function(done) {
         webApp
             .post('/subscribe')
             .send({
@@ -157,6 +164,23 @@ describe('web/pubhubsubbub', function() {
                 oauth_token: 'ot',
                 device_type: 'dt',
                 device_id: 'error'
+              })
+            .end(function(err, res) {
+                res.should.have.status(500);
+                done();
+              });
+      });
+
+    it('should not subscribe with db.hubs error', function(done) {
+        webApp
+            .post('/subscribe')
+            .send({
+                hub_uri: 'http://err.or/hub',
+                hub_topic: 'ht',
+                oauth_client_id: 'oci',
+                oauth_token: 'ot',
+                device_type: 'dt',
+                device_id: 'di'
               })
             .end(function(err, res) {
                 res.should.have.status(500);
@@ -781,6 +805,163 @@ describe('web/pubhubsubbub', function() {
 
         test1();
       });
+
+    it('should auto-unsubscribe', function(done) {
+        var oauthClientId = 'oci';
+        var hubUri = testAppUri + '/status/202';
+        var hubTopic = 'ht';
+        var payload = 'p';
+
+        var init = function() {
+          db.hubs.save(oauthClientId, hubUri, null,
+            function(isSaved) {
+              isSaved.should.equal('saved');
+              test();
+            });
+        };
+
+        var test = function() {
+            testAppReqs.length.should.equal(0);
+
+            webApp
+                .post('/callback')
+                .send([
+                    {
+                        client_id: oauthClientId,
+                        topic: hubTopic,
+                        object_data: payload
+                      }
+                ])
+                .end(function(err, res) {
+                    res.should.have.status(202);
+
+                    setTimeout(function() {
+                      testAppReqs.length.should.equal(1);
+
+                      var req = testAppReqs[0];
+                      req.body.client_id.should.equal(oauthClientId);
+                      req.body['hub.topic'].should.equal(hubTopic);
+                      req.body['hub.mode'].should.equal('unsubscribe');
+
+                      done();
+                    }, 10);
+                  });
+          };
+
+        init();
+      });
+
+    it('[auto-unsubscribe] should report hub not found', function(done) {
+      var oauthClientId = 'oci';
+      var hubTopic = 'ht';
+      var callbackUri = 'http://app/callback';
+
+      pubhubsubbub._findHubToUnsubscribe(
+        oauthClientId,
+        hubTopic,
+        db,
+        callbackUri,
+        function(err) {
+          err.should.equal('Hub not found');
+          done();
+        });
+    });
+
+    it('[auto-unsubscribe] should report unsubscribe error', function(done) {
+      var oauthClientId = 'oci';
+      var hubUri = testAppUri + '/status/403';
+      var hubTopic = 'ht';
+      var callbackUri = 'http://app/callback';
+
+      var init = function() {
+        db.hubs.save(oauthClientId, hubUri, null,
+          function(isSaved) {
+            isSaved.should.equal('saved');
+            test();
+          });
+      };
+
+      var test = function() {
+        pubhubsubbub._findHubToUnsubscribe(
+          oauthClientId,
+          hubTopic,
+          db,
+          callbackUri,
+          function(err) {
+            err.should.equal('failed');
+            done();
+          });
+      };
+
+      init();
+    });
+
+    it('[auto-unsubscribe] should report connection error', function(done) {
+      var oauthClientId = 'oci';
+      var hubUri = 'http://a.b.c/hub';
+      var hubTopic = 'ht';
+      var callbackUri = 'http://app/callback';
+
+      var init = function() {
+        db.hubs.save(oauthClientId, hubUri, null,
+          function(isSaved) {
+            isSaved.should.equal('saved');
+            test();
+          });
+      };
+
+      var test = function() {
+        pubhubsubbub._findHubToUnsubscribe(
+          oauthClientId,
+          hubTopic,
+          db,
+          callbackUri,
+          function(err) {
+            err.should.be.a('Error');
+            done();
+          });
+      };
+
+      init();
+    });
+
+    it('[auto-unsubscribe] should unsubscribe all uris', function(done) {
+      var oauthClientId = 'oci';
+      var hubUri = testAppUri + '/status/202';
+      var hubUri2 = testAppUri + '/status/203';
+      var hubTopic = 'ht';
+      var callbackUri = 'http://app/callback';
+
+      var init = function() {
+        db.hubs.save(oauthClientId, hubUri, null,
+          function(isSaved) {
+            isSaved.should.equal('saved');
+
+            db.hubs.save(oauthClientId, hubUri2, null,
+              function(isUpdated) {
+                isUpdated.should.equal('updated');
+                test();
+              });
+          });
+      };
+
+      var test = function() {
+        testAppReqs.length.should.equal(0);
+
+        pubhubsubbub._findHubToUnsubscribe(
+          oauthClientId,
+          hubTopic,
+          db,
+          callbackUri,
+          function(err) {
+            expect(err).to.be.undefined;
+            testAppReqs.length.should.equal(2);
+            done();
+          });
+      };
+
+      init();
+    });
 
     it('should not register some routes without db', function(done) {
         var pubhubsubbubPrefix = '/no-device-db';

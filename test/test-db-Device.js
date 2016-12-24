@@ -47,8 +47,7 @@ describe('db/Device', function() {
                 device.hub_topic.should.be.a('array');
                 device.hub_topic.length.should.equal(1);
                 device.hub_topic.should.include(hubTopic);
-                device.extra_data.should.be.a('object');
-                device.extra_data.foo.should.equal(extraData.foo);
+                device.extra_data.should.deep.equal(extraData);
 
                 done();
               });

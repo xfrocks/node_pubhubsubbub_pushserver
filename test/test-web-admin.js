@@ -15,7 +15,7 @@ var webApp = chai.request(web._app);
 describe('web/admin', function() {
 
     before(function(done) {
-        admin.setup(web._app, '/admin', null, null, db.projects);
+        admin.setup(web._app, '/admin', null, null, db);
         done();
       });
 

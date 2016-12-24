@@ -39,4 +39,4 @@ if (config.pushQueue.web) {
 }
 
 debug('Starting…');
-web.start(config.web.port, db.devices, db.projects, pushQueue, adminSections);
+web.start(config.web.port, db, pushQueue, adminSections);
