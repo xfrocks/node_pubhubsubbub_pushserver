@@ -59,10 +59,10 @@ pusher.apn = function(connectionOptions, token, payload, callback) {
       }, token, callback);
   };
 
-pusher.gcm = function(gcmKey, registrationId, data, callback) {
+pusher.gcm = function(senderOptions, registrationId, data, callback) {
     mock({
         type: 'gcm',
-        gcmKey: gcmKey,
+        senderOptions: senderOptions,
         registrationId: registrationId,
         data: data
       }, registrationId, callback);

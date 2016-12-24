@@ -4,13 +4,20 @@
 var config = require('../lib/config');
 var pusher = require('../lib/pusher/gcm');
 var chai = require('chai');
+var _ = require('lodash');
 
 chai.should();
 var expect = chai.expect;
 
 var lib = require('./mock/_modules-gcm');
+var senderOptions = {
+  packageId: 'pi',
+  gcmKey: 'gk'
+};
+var registrationToken = 'rt';
+var data = {foo: 'bar'};
 
-describe('gcm-pusher', function() {
+describe('pusher/gcm', function() {
 
     beforeEach(function(done) {
         config.gcm.messageOptions = {};
@@ -20,22 +27,18 @@ describe('gcm-pusher', function() {
 
     it('should guard against missing lib', function(done) {
       pusher.setup(config, null);
-      pusher.send('', '', {}, function(err) {
+      pusher.send(senderOptions, registrationToken, data, function(err) {
         err.should.equal('lib missing');
         done();
       });
     });
 
     it('should push', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'rt';
-        var data = {foo: 'bar'};
-
-        pusher.send(gcmKey, registrationToken, data, function(err) {
+        pusher.send(senderOptions, registrationToken, data, function(err) {
             expect(err).to.be.null;
 
             var push = lib._getLatestPush();
-            push.sender._getGcmKey().should.equal(gcmKey);
+            push.sender._getGcmKey().should.equal(senderOptions.gcmKey);
             push.message._getData().should.deep.equal(data);
             push.recipient.to.should.equal(registrationToken);
 
@@ -44,24 +47,21 @@ describe('gcm-pusher', function() {
       });
 
     it('should fail', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar', error: 'something'};
-
-        pusher.send(gcmKey, registrationToken, data, function(err) {
-            err.should.equal(data.error);
+        var dataWithError = _.merge({error: 'something'}, data);
+        pusher.send(
+          senderOptions,
+          registrationToken,
+          dataWithError,
+          function(err) {
+            err.should.equal(dataWithError.error);
             done();
           });
       });
 
     it('should fail with status 4xx, retry=false', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar'};
-
         var test = function(status, callback) {
-            data.error = status;
-            pusher.send(gcmKey, registrationToken, data,
+            var dataWithError = _.merge({error: status}, data);
+            pusher.send(senderOptions, registrationToken, dataWithError,
               function(err, result) {
                 err.should.equal(status);
                 result.retry.should.be.false;
@@ -87,18 +87,14 @@ describe('gcm-pusher', function() {
       });
 
     it('should fail with status 3xx, 5xx, retry unset', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar'};
-
         var test = function(status, callback) {
-            data.error = status;
-            pusher.send(gcmKey, registrationToken, data,
-              function(err, result) {
-                err.should.equal(status);
-                result.should.not.have.ownProperty('retry');
-                callback(status);
-              });
+            var dataWithError = _.merge({error: status}, data);
+            pusher.send(senderOptions, registrationToken, dataWithError,
+                function(err, result) {
+                  err.should.equal(status);
+                  result.should.not.have.ownProperty('retry');
+                  callback(status);
+                });
           };
 
         var testRange = function(start, end, testRangeCallback) {
@@ -121,13 +117,10 @@ describe('gcm-pusher', function() {
       });
 
     it('should fail with response error, retry=false', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar'};
-
         var test = function(error, callback) {
-            data.responseErrorResult = {error: error};
-            pusher.send(gcmKey, registrationToken, data,
+            var dataWithError = _.merge({}, data);
+            dataWithError.responseErrorResult = {error: error};
+            pusher.send(senderOptions, registrationToken, dataWithError,
               function(err, result) {
                 err.should.equal(error);
                 result.retry.should.be.false;
@@ -139,13 +132,10 @@ describe('gcm-pusher', function() {
       });
 
     it('should fail with response error, retry unset', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar'};
-
         var test = function(error, callback) {
-            data.responseErrorResult = {error: error};
-            pusher.send(gcmKey, registrationToken, data,
+            var dataWithError = _.merge({}, data);
+            dataWithError.responseErrorResult = {error: error};
+            pusher.send(senderOptions, registrationToken, dataWithError,
               function(err, result) {
                 err.should.equal(error);
                 result.should.not.have.ownProperty('retry');
@@ -162,13 +152,10 @@ describe('gcm-pusher', function() {
       });
 
     it('should fail with deleteDevice=true', function(done) {
-        var gcmKey = 'gk';
-        var registrationToken = 'gt';
-        var data = {foo: 'bar'};
-
         var test = function(error, callback) {
-            data.responseErrorResult = {error: error};
-            pusher.send(gcmKey, registrationToken, data,
+            var dataWithError = _.merge({}, data);
+            dataWithError.responseErrorResult = {error: error};
+            pusher.send(senderOptions, registrationToken, dataWithError,
               function(err, result) {
                 err.should.equal(error);
                 result.deleteDevice.should.be.true;
@@ -184,4 +171,54 @@ describe('gcm-pusher', function() {
 
         test1();
       });
+
+    it('should do stats', function(done) {
+        pusher.send(senderOptions, registrationToken, data, function(err) {
+            expect(err).to.be.null;
+
+            var stats = pusher.stats();
+            stats.should.have.ownProperty(senderOptions.packageId);
+            var thisStats = stats[senderOptions.packageId];
+            thisStats.sent.should.equal(1);
+            thisStats.failed.should.equal(0);
+            thisStats.invalid.should.equal(0);
+
+            done();
+          });
+      });
+
+    it('should do stats (failed)', function(done) {
+        var dataWithError = _.merge({error: 'something'}, data);
+        pusher.send(
+          senderOptions,
+          registrationToken,
+          dataWithError,
+          function(err) {
+            err.should.equal(dataWithError.error);
+
+            var stats = pusher.stats();
+            stats[senderOptions.packageId].failed.should.equal(1);
+
+            done();
+          });
+      });
+
+    it('should do stats (invalid)', function(done) {
+        var dataWithError = _.merge({}, data);
+        dataWithError.responseErrorResult = {error: 'MissingRegistration'};
+
+        pusher.send(
+          senderOptions,
+          registrationToken,
+          dataWithError,
+          function(err) {
+            err.should.equal(dataWithError.responseErrorResult.error);
+
+            var stats = pusher.stats();
+            stats[senderOptions.packageId].invalid.should.equal(1);
+
+            done();
+          });
+      });
+
   });

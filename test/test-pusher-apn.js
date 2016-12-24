@@ -4,150 +4,108 @@
 var config = require('../lib/config');
 var pusher = require('../lib/pusher/apn');
 var chai = require('chai');
+var _ = require('lodash');
 
 chai.should();
 var expect = chai.expect;
 
-var apn = require('./mock/_modules-apn');
+var lib = require('./mock/_modules-apn');
+var connectionOptionsCert = {
+  packageId: 'pi',
+  cert: 'c',
+  key: 'k'
+};
+var connectionOptions = {
+  packageId: 'pi',
+  token: {
+    key: 'k',
+    keyId: 'ki',
+    teamId: 'ti'
+  }
+};
+var token = 't';
+var payload = {aps: {alert: 'foo'}};
 
-describe('apn-pusher', function() {
+describe('pusher/apn', function() {
 
     beforeEach(function(done) {
-        apn._reset();
+        lib._reset();
         config.apn.notificationOptions = {};
-        pusher.setup(config, apn);
-        pusher._resetConnections();
+        pusher.setup(config, lib);
         done();
       });
 
     it('should guard against missing lib', function(done) {
       pusher.setup(config, null);
-      pusher.send({}, '', {}, function(err) {
+      pusher.send(connectionOptions, token, payload, function(err) {
         err.should.equal('lib missing');
         done();
       });
     });
 
     it('should push with cert', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
-        var payload = {aps: {alert: 'foo'}};
-
-        pusher.send(connectionOptions, token, payload, function(err) {
+        pusher.send(connectionOptionsCert, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = apn._getLatestPush();
-            push.provider.options.should.deep.equal(connectionOptions);
+            var push = lib._getLatestPush();
+            push.provider.options.should.deep.equal(connectionOptionsCert);
             push.recipient.should.equal(token);
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.expiry.should.equal(0);
 
-            apn._getProviderCount().should.equal(1);
+            lib._getProviderCount().should.equal(1);
 
             done();
           });
       });
 
     it('should push with token', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 't';
-        var payload = {aps: {alert: 'foo'}};
-
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = apn._getLatestPush();
+            var push = lib._getLatestPush();
             push.provider.options.should.deep.equal(connectionOptions);
             push.recipient.should.equal(token);
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.expiry.should.equal(0);
 
-            apn._getProviderCount().should.equal(1);
+            lib._getProviderCount().should.equal(1);
 
             done();
           });
       });
 
     it('should fail with string', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-string';
-        var payload = {aps: {alert: 'foo'}};
-
-        pusher.send(connectionOptions, token, payload, function(err) {
+        pusher.send(connectionOptions, 'fail-string', payload, function(err) {
             err.should.be.a('string');
             done();
           });
       });
 
     it('should fail with Error', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-Error';
-        var payload = {aps: {alert: 'foo'}};
-
-        pusher.send(connectionOptions, token, payload, function(err) {
+        pusher.send(connectionOptions, 'fail-Error', payload, function(err) {
             err.should.be.a('Error');
             done();
           });
       });
 
     it('should fail with unknown error', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-unknown';
-        var payload = {aps: {alert: 'foo'}};
-
-        pusher.send(connectionOptions, token, payload, function(err) {
+        pusher.send(connectionOptions, 'fail-unknown', payload, function(err) {
             err.should.equal('Unknown error');
             done();
           });
       });
 
     it('should fail with retry=false', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-string';
-        var payload = {aps: {alert: 'foo'}};
-
         var test = function(status, callback) {
-            payload.failed_status = status;
-            pusher.send(connectionOptions, token, payload,
+            var payloadWithFailedStatus = _.merge(
+              {failed_status: status},
+              payload
+            );
+
+            pusher.send(connectionOptions,
+              'fail-string',
+              payloadWithFailedStatus,
               function(err, result) {
                 err.should.be.a('string');
                 result.retry.should.be.false;
@@ -173,20 +131,15 @@ describe('apn-pusher', function() {
       });
 
     it('should fail without retry', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-string';
-        var payload = {aps: {alert: 'foo'}};
-
         var test = function(status, callback) {
-            payload.failed_status = status;
-            pusher.send(connectionOptions, token, payload,
+            var payloadWithFailedStatus = _.merge(
+              {failed_status: status},
+              payload
+            );
+
+            pusher.send(connectionOptions,
+              'fail-string',
+              payloadWithFailedStatus,
               function(err, result) {
                 err.should.be.a('string');
                 result.should.not.have.ownProperty('retry');
@@ -214,18 +167,10 @@ describe('apn-pusher', function() {
       });
 
     it('should fail with deleteDevice=true', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 'fail-string';
-        var payload = {aps: {alert: 'foo'}, failed_status: 410};
-
-        pusher.send(connectionOptions, token, payload,
+        var payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+        pusher.send(connectionOptions,
+          'fail-string',
+          payloadWithFailedStatus,
           function(err, result) {
             err.should.be.a('string');
             result.deleteDevice.should.be.true;
@@ -239,19 +184,17 @@ describe('apn-pusher', function() {
               packageId: 'pi',
               cert: 'cd',
               key: 'kd'
-            }, 't', {}, function(err) {
+            }, token, {}, function(err) {
               err.should.be.string;
               certTest1();
             });
         };
 
-        var payload = {aps: {alert: 'foo'}};
-
         var certTest1 = function() {
           pusher.send({
               cert: 'cd',
               key: 'kd'
-            }, 't', payload, function(err) {
+            }, token, payload, function(err) {
               err.should.be.string;
               certTest2();
             });
@@ -261,7 +204,7 @@ describe('apn-pusher', function() {
           pusher.send({
               packageId: 'pi',
               key: 'kd'
-            }, 't', payload, function(err) {
+            }, token, payload, function(err) {
               err.should.be.string;
               certDone();
             });
@@ -278,7 +221,7 @@ describe('apn-pusher', function() {
                 keyId: 'ki',
                 teamId: 'ti'
               }
-            }, 't', payload, function(err) {
+            }, token, payload, function(err) {
               err.should.be.string;
               tokenTest2();
             });
@@ -291,7 +234,7 @@ describe('apn-pusher', function() {
                 keyId: 'ki',
                 teamId: 'ti'
               }
-            }, 't', payload, function(err) {
+            }, token, payload, function(err) {
               err.should.be.string;
               tokenDone();
             });
@@ -311,7 +254,7 @@ describe('apn-pusher', function() {
                 keyId: 'ki',
                 teamId: 'ti'
               }
-            }, 't', payload, function(err) {
+            }, token, payload, function(err) {
               err.should.be.string;
               done();
             });
@@ -321,12 +264,6 @@ describe('apn-pusher', function() {
       });
 
     it('should configure notification directly', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
         var payload = {
             aps: {
                 alert: 'foo',
@@ -340,7 +277,7 @@ describe('apn-pusher', function() {
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = apn._getLatestPush();
+            var push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.should.equal(payload.aps.badge);
             push.notification.sound.should.equal(payload.aps.sound);
@@ -360,16 +297,14 @@ describe('apn-pusher', function() {
           expiry: 123
         };
 
-        var payload = {aps: {alert: 'foo'}};
-
         pusher.send({
             packageId: 'pi',
             cert: 'cd',
             key: 'kd'
-          }, 't', payload, function(err) {
+          }, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = apn._getLatestPush();
+            var push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.
               should.equal(config.apn.notificationOptions.badge);
@@ -383,15 +318,6 @@ describe('apn-pusher', function() {
       });
 
     it('should reuse cert connection', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
-
         var test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 test2();
@@ -399,8 +325,8 @@ describe('apn-pusher', function() {
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions, token2, payload, function() {
-                apn._getProviderCount().should.equal(1);
+            pusher.send(connectionOptions, 't2', payload, function() {
+                lib._getProviderCount().should.equal(1);
 
                 done();
               });
@@ -410,18 +336,6 @@ describe('apn-pusher', function() {
       });
 
     it('should reuse token connection', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 't';
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
-
         var test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 test2();
@@ -429,8 +343,8 @@ describe('apn-pusher', function() {
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions, token2, payload, function() {
-                apn._getProviderCount().should.equal(1);
+            pusher.send(connectionOptions, 't2', payload, function() {
+                lib._getProviderCount().should.equal(1);
 
                 done();
               });
@@ -440,31 +354,20 @@ describe('apn-pusher', function() {
       });
 
     it('should create connections (diff packageIds)', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
-        var connectionOptions2 = {
-            packageId: 'pi2',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
+        var connectionOptions2 = _.merge({}, connectionOptions);
+        connectionOptions2.packageId = 'pi2';
 
         var test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
-                apn._getProviderCount().should.equal(1);
+                lib._getProviderCount().should.equal(1);
 
                 test2();
               });
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions2, token2, payload, function() {
-                apn._getProviderCount().should.equal(2);
+            pusher.send(connectionOptions2, 't2', payload, function() {
+                lib._getProviderCount().should.equal(2);
 
                 done();
               });
@@ -474,31 +377,20 @@ describe('apn-pusher', function() {
       });
 
     it('should create connections (diff certs)', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
-        var connectionOptions2 = {
-            packageId: 'pi',
-            cert: 'cd2',
-            key: 'kd2'
-          };
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
+        var connectionOptions2 = _.merge({}, connectionOptionsCert);
+        connectionOptions2.cert = 'c2';
 
         var test1 = function() {
-            pusher.send(connectionOptions, token, payload, function() {
-                apn._getProviderCount().should.equal(1);
+            pusher.send(connectionOptionsCert, token, payload, function() {
+                lib._getProviderCount().should.equal(1);
 
                 test2();
               });
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions2, token2, payload, function() {
-                apn._getProviderCount().should.equal(2);
+            pusher.send(connectionOptions2, 't2', payload, function() {
+                lib._getProviderCount().should.equal(2);
 
                 done();
               });
@@ -508,37 +400,20 @@ describe('apn-pusher', function() {
       });
 
     it('should create connections (diff tokens)', function(done) {
-        var connectionOptions = {
-            packageId: 'pi',
-            token: {
-              key: 'k',
-              keyId: 'ki',
-              teamId: 'ti'
-            }
-          };
-        var token = 't';
-        var connectionOptions2 = {
-            packageId: 'pi',
-            token: {
-              key: 'k2',
-              keyId: 'ki2',
-              teamId: 'ti2'
-            }
-          };
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
+        var connectionOptions2 = _.merge({}, connectionOptions);
+        connectionOptions2.token.key = 'k2';
 
         var test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
-                apn._getProviderCount().should.equal(1);
+                lib._getProviderCount().should.equal(1);
 
                 test2();
               });
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions2, token2, payload, function() {
-                apn._getProviderCount().should.equal(2);
+            pusher.send(connectionOptions2, 't2', payload, function() {
+                lib._getProviderCount().should.equal(2);
 
                 done();
               });
@@ -550,33 +425,20 @@ describe('apn-pusher', function() {
     it('should clean up connections', function(done) {
         this.timeout(100);
 
-        var connectionOptions = {
-            packageId: 'pi',
-            cert: 'cd',
-            key: 'kd'
-          };
-        var token = 't';
-        var connectionOptions2 = {
-            packageId: 'pi2',
-            cert: 'cd2',
-            key: 'kd2'
-          };
-        var token2 = 't2';
-        var payload = {aps: {alert: 'foo'}};
         var push1 = null;
         var push2 = null;
 
         var test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
-                push1 = apn._getLatestPush();
+                push1 = lib._getLatestPush();
 
                 setTimeout(test2, 20);
               });
           };
 
         var test2 = function() {
-            pusher.send(connectionOptions2, token2, payload, function() {
-                push2 = apn._getLatestPush();
+            pusher.send(connectionOptionsCert, 't2', payload, function() {
+                push2 = lib._getLatestPush();
                 setTimeout(test3, 20);
               });
           };
@@ -591,6 +453,51 @@ describe('apn-pusher', function() {
           };
 
         test1();
+      });
+
+    it('should do stats', function(done) {
+        pusher.send(connectionOptions, token, payload, function(err) {
+            expect(err).to.be.null;
+
+            var stats = pusher.stats();
+            stats.total.should.equal(1);
+
+            stats.should.have.ownProperty(connectionOptions.packageId);
+            var thisStats = stats[connectionOptions.packageId];
+            thisStats.sent.should.equal(1);
+            thisStats.failed.should.equal(0);
+            thisStats.invalid.should.equal(0);
+
+            done();
+          });
+      });
+
+    it('should do stats (failed)', function(done) {
+        var payloadWithFailedStatus = _.merge({failed_status: 500}, payload);
+        pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
+          function(err) {
+            err.should.be.a('string');
+
+            var stats = pusher.stats();
+            stats.total.should.equal(1);
+            stats[connectionOptions.packageId].failed.should.equal(1);
+
+            done();
+          });
+      });
+
+    it('should do stats (invalid)', function(done) {
+        var payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+        pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
+          function(err) {
+            err.should.be.a('string');
+
+            var stats = pusher.stats();
+            stats.total.should.equal(1);
+            stats[connectionOptions.packageId].invalid.should.equal(1);
+
+            done();
+          });
       });
 
   });

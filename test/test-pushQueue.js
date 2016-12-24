@@ -70,7 +70,7 @@ describe('pushQueue', function() {
 
         var latestPush = pusher._getLatestPush();
         latestPush.type.should.equal('gcm');
-        latestPush.gcmKey.
+        latestPush.senderOptions.gcmKey.
             should.equal(config.gcm.keys[config.gcm.defaultKeyId]);
 
         done();
@@ -88,7 +88,8 @@ describe('pushQueue', function() {
 
             var latestPush = pusher._getLatestPush();
             latestPush.type.should.equal('gcm');
-            latestPush.gcmKey.should.equal(config.gcm.keys[extraData.package]);
+            latestPush.senderOptions.gcmKey.
+                should.equal(config.gcm.keys[extraData.package]);
 
             test2();
           };
@@ -98,7 +99,8 @@ describe('pushQueue', function() {
 
             var latestPush = pusher._getLatestPush();
             latestPush.type.should.equal('gcm');
-            latestPush.gcmKey.should.equal(config.gcm.keys[extraData2.package]);
+            latestPush.senderOptions.gcmKey.
+                should.equal(config.gcm.keys[extraData2.package]);
 
             done();
           };
@@ -125,7 +127,7 @@ describe('pushQueue', function() {
 
             var latestPush = pusher._getLatestPush();
             latestPush.type.should.equal('gcm');
-            latestPush.gcmKey.should.equal(apiKey);
+            latestPush.senderOptions.gcmKey.should.equal(apiKey);
 
             done();
           };

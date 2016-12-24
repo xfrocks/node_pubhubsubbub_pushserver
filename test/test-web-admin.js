@@ -15,7 +15,7 @@ var webApp = chai.request(web._app);
 describe('web/admin', function() {
 
     before(function(done) {
-        admin.setup(web._app, '/admin', null, null, db);
+        admin.setup(web._app, '/admin', null, null, null, db);
         done();
       });
 
@@ -450,7 +450,10 @@ describe('web/admin', function() {
             five: null
           };
 
-        admin.setup(web._app, adminPrefix, null, null, null, sections);
+        admin.setup(web._app,
+          adminPrefix, null, null,
+          null, null, null, sections
+        );
 
         var test0 = function() {
             webApp
