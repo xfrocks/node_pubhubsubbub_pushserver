@@ -12,15 +12,32 @@ gcm._getLatestPush = function() {
 gcm.Sender = function(gcmKey) {
     var sender = this;
 
-    this.send = function(message, recipient, options, callback) {
+    this.sendNoRetry = function(message, recipient, callback) {
         latestPush = {
           sender: sender,
           message: message,
-          recipient: recipient,
-          options: options
+          recipient: recipient
         };
 
-        callback(null, {response: {foo: 'bar'}});
+        var error = null;
+        var response = {
+          multicast_id: 123,
+          success: 1,
+          failure: 0,
+          canonical_ids: 0,
+          results: [{message_id: 'mi'}]
+        };
+        var messageData = message._getData();
+        if (_.has(messageData, 'error')) {
+          error = messageData.error;
+        }
+        if (_.has(messageData, 'responseErrorResult')) {
+          response.success = 0;
+          response.failure = 1;
+          response.results[0] = messageData.responseErrorResult;
+        }
+
+        callback(error, response);
       };
 
     this._getGcmKey = function() {

@@ -133,6 +133,86 @@ describe('apn-pusher', function() {
           });
       });
 
+    it('should fail with retry=false', function(done) {
+        var connectionOptions = {
+            packageId: 'pi',
+            token: {
+              key: 'k',
+              keyId: 'ki',
+              teamId: 'ti'
+            }
+          };
+        var token = 'fail-string';
+        var payload = {aps: {alert: 'foo'}};
+
+        var test = function(status, callback) {
+            payload.failed_status = status;
+            pusher.send(connectionOptions, token, payload,
+              function(err, result) {
+                err.should.be.a('string');
+                result.retry.should.be.false;
+                callback(status);
+              });
+          };
+
+        var testRange = function(start, end, testRangeCallback) {
+          var testCallback = function(i) {
+            i++;
+            if (i === end) {
+              testRangeCallback();
+              return;
+            }
+
+            test(i, testCallback);
+          };
+
+          test(start, testCallback);
+        };
+
+        testRange(400, 500, done);
+      });
+
+    it('should fail without retry', function(done) {
+        var connectionOptions = {
+            packageId: 'pi',
+            token: {
+              key: 'k',
+              keyId: 'ki',
+              teamId: 'ti'
+            }
+          };
+        var token = 'fail-string';
+        var payload = {aps: {alert: 'foo'}};
+
+        var test = function(status, callback) {
+            payload.failed_status = status;
+            pusher.send(connectionOptions, token, payload,
+              function(err, result) {
+                err.should.be.a('string');
+                result.should.not.have.ownProperty('retry');
+                callback(status);
+              });
+          };
+
+        var testRange = function(start, end, testRangeCallback) {
+          var testCallback = function(i) {
+            i++;
+            if (i === end) {
+              testRangeCallback();
+              return;
+            }
+
+            test(i, testCallback);
+          };
+
+          test(start, testCallback);
+        };
+
+        testRange(300, 400, function() {
+          testRange(500, 600, done);
+        });
+      });
+
     it('should guard against missing data', function(done) {
         var payloadTest = function() {
           pusher.send({

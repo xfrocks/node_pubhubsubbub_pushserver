@@ -48,7 +48,8 @@ apn.Provider = function(options) {
               case 'fail-string':
                 result.failed.push({
                   device: recipient,
-                  status: '400',
+                  status: _.has(notification.payload, 'failed_status') ?
+                    notification.payload.failed_status : 500,
                   response: {
                     reason: 'Reason'
                   }

@@ -23,18 +23,24 @@ var mock = function(push, hint, callback) {
     pushes.push(push);
 
     var err = null;
+    var info = {};
 
     switch (hint) {
-    case 'error':
-      err = 'Error';
-    break;
-    case 'Error':
-      err = new Error('Message');
-    break;
-  }
+      case 'error':
+        err = 'Error';
+      break;
+      case 'Error':
+        err = new Error('Message');
+      break;
+      case 'retry1':
+        err = 'retry1-Error';
+        if (pushes.length > 1) {
+          info.retry = false;
+        }
+      break;
 
     if (_.isFunction(callback)) {
-      callback(err);
+      callback(err, info);
     }
   };
 

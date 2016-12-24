@@ -34,6 +34,7 @@ describe('pushQueue', function() {
           };
         config.wns.client_id = 'wns_ci';
         config.wns.client_secret = 'wns_cs';
+        config.pushQueue.attempts = 3;
 
         pushKue._reset();
         pusher._reset();
@@ -447,6 +448,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         var pushes = pusher._getPushes();
+        config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(config.pushQueue.attempts);
 
         done();
@@ -460,7 +462,22 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         var pushes = pusher._getPushes();
+        config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(config.pushQueue.attempts);
+
+        done();
+      });
+
+    it('should retry only once', function(done) {
+        var deviceType = 'android';
+        var deviceId = 'retry1';
+        var payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        var pushes = pusher._getPushes();
+        config.pushQueue.attempts.should.be.above(2);
+        pushes.length.should.equal(2);
 
         done();
       });
