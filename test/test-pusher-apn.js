@@ -213,6 +213,26 @@ describe('apn-pusher', function() {
         });
       });
 
+    it('should fail with deleteDevice=true', function(done) {
+        var connectionOptions = {
+            packageId: 'pi',
+            token: {
+              key: 'k',
+              keyId: 'ki',
+              teamId: 'ti'
+            }
+          };
+        var token = 'fail-string';
+        var payload = {aps: {alert: 'foo'}, failed_status: 410};
+
+        pusher.send(connectionOptions, token, payload,
+          function(err, result) {
+            err.should.be.a('string');
+            result.deleteDevice.should.be.true;
+            done();
+          });
+      });
+
     it('should guard against missing data', function(done) {
         var payloadTest = function() {
           pusher.send({

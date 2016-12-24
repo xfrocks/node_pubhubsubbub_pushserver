@@ -38,6 +38,12 @@ var mock = function(push, hint, callback) {
           info.retry = false;
         }
       break;
+      case 'invalid':
+        err = 'invalid';
+        info.retry = false;
+        info.deleteDevice = true;
+      break;
+    }
 
     if (_.isFunction(callback)) {
       callback(err, info);

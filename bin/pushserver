@@ -24,8 +24,16 @@ var pushKue = kue.createQueue({
     redis: config.redis
 });
 pushKue.watchStuckJobs(1000);
-pushQueue.setup(pushKue, require('../lib/pusher').setup(
-    require('apn'), require('node-gcm'), require('wns')), db.projects);
+pushQueue.setup(
+  pushKue,
+  require('../lib/pusher').setup(
+    require('apn'),
+    require('node-gcm'),
+    require('wns')
+  ),
+  db.projects,
+  db.devices
+);
 if (config.pushQueue.web) {
     adminSections.queue = kue.app;
 }

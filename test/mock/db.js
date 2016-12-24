@@ -12,6 +12,10 @@ db.devices = {
         devices = {};
       },
 
+    _devicesLength: function() {
+        return _.keys(devices).length;
+      },
+
     save: function(deviceType, deviceId, oauthClientId,
       hubTopic, extraData, callback) {
         var mock = function() {
@@ -80,7 +84,7 @@ db.devices = {
 
             if (!oauthClientId || !hubTopic) {
               // delete device
-              updatedDevices = _.filter(devices, function(device) {
+              updatedDevices = _.pickBy(devices, function(device) {
                 if (device.device_type !== deviceType) {
                   // keep this device
                   return true;

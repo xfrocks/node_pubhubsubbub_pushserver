@@ -11,7 +11,7 @@ chai.should();
 var pushKue = require('./mock/pushKue');
 var pusher = require('./mock/pusher');
 var db = require('./mock/db');
-pushQueue.setup(pushKue, pusher, db.projects);
+pushQueue.setup(pushKue, pusher, db.projects, db.devices);
 
 var notificationId = 0;
 var generatePayload = function() {
@@ -39,6 +39,7 @@ describe('pushQueue', function() {
         pushKue._reset();
         pusher._reset();
         db.projects._reset();
+        db.devices._reset();
 
         done();
       });
@@ -480,6 +481,45 @@ describe('pushQueue', function() {
         pushes.length.should.equal(2);
 
         done();
+      });
+
+    it('should delete device', function(done) {
+        var deviceType = 'android';
+        var deviceId = 'invalid';
+        var oauthClientId = 'oci';
+        var hubTopic = 'ht';
+        var payload = generatePayload();
+
+        var step1 = function() {
+          db.devices.save(
+            deviceType,
+            deviceId,
+            oauthClientId,
+            hubTopic,
+            {},
+            function() {
+              db.devices._devicesLength().should.equal(1);
+              step2();
+            }
+          );
+        };
+
+        var step2 = function() {
+          pushQueue.enqueue(deviceType, deviceId, payload);
+
+          var pushes = pusher._getPushes();
+          config.pushQueue.attempts.should.be.above(1);
+          pushes.length.should.equal(1);
+
+          step3();
+        };
+
+        var step3 = function() {
+          db.devices._devicesLength().should.equal(0);
+          done();
+        };
+
+        step1();
       });
 
     it('should encounter job.save error', function(done) {

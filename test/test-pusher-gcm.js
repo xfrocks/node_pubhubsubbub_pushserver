@@ -161,4 +161,27 @@ describe('gcm-pusher', function() {
         test1();
       });
 
+    it('should fail with deleteDevice=true', function(done) {
+        var gcmKey = 'gk';
+        var registrationToken = 'gt';
+        var data = {foo: 'bar'};
+
+        var test = function(error, callback) {
+            data.responseErrorResult = {error: error};
+            pusher.send(gcmKey, registrationToken, data,
+              function(err, result) {
+                err.should.equal(error);
+                result.deleteDevice.should.be.true;
+                callback();
+              });
+          };
+
+        var test1 = function() { test('MissingRegistration', test2); };
+        var test2 = function() { test('InvalidRegistration', test3); };
+        var test3 = function() { test('NotRegistered', test4); };
+        var test4 = function() { test('MismatchSenderId', test5); };
+        var test5 = function() { test('InvalidPackageName', done); };
+
+        test1();
+      });
   });
