@@ -29,6 +29,7 @@ describe('web/admin', function() {
             .get('/admin')
             .end(function(err, res) {
                 res.should.have.status(200);
+                res.should.not.have.header('x-powered-by');
                 res.body.should.have.all.keys('projects');
 
                 done();
