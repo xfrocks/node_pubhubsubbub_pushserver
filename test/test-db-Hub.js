@@ -31,7 +31,7 @@ describe('db/Hub', function() {
         const step1 = function() {
             db.hubs.save(oauthClientId, hubUri, extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('inserted');
                 step2();
               });
           };
@@ -74,7 +74,7 @@ describe('db/Hub', function() {
         const step1 = function() {
             db.hubs.save(oauthClientId, 'hu2', extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('updated');
                 step2();
               });
           };
@@ -108,7 +108,7 @@ describe('db/Hub', function() {
         const step1 = function() {
             db.hubs.save(oauthClientId, hubUri, extraData2,
                 function(isSaved) {
-                    isSaved.should.not.be.false;
+                    isSaved.should.equal('updated');
                     step2();
                   });
           };
@@ -121,6 +121,29 @@ describe('db/Hub', function() {
 
                 done();
               });
+          };
+
+        init();
+      });
+
+    it('should do no op', function(done) {
+        const init = function() {
+            db.hubs._model.create({
+                oauth_client_id: oauthClientId,
+                hub_uri: [hubUri],
+                extra_data: extraData,
+              }, function(err, hub) {
+                hub.should.not.be.null;
+                test();
+              });
+          };
+
+        const test = function() {
+            db.hubs.save(oauthClientId, hubUri, extraData,
+                function(isSaved) {
+                    isSaved.should.equal('nop');
+                    done();
+                  });
           };
 
         init();

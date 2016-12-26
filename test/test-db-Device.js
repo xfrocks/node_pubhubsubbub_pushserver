@@ -34,7 +34,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('inserted');
                 step2();
               });
           };
@@ -83,7 +83,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, 'ht2', extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('updated');
                 step2();
               });
           };
@@ -120,7 +120,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, extraData2,
                 function(isSaved) {
-                    isSaved.should.not.be.false;
+                    isSaved.should.equal('updated');
                     step2();
                   });
           };
@@ -133,6 +133,32 @@ describe('db/Device', function() {
 
                 done();
               });
+          };
+
+        init();
+      });
+
+    it('should do no op', function(done) {
+        const init = function() {
+            db.devices._model.create({
+                device_type: deviceType,
+                device_id: deviceId,
+                oauth_client_id: oauthClientId,
+                hub_topic: [hubTopic],
+                extra_data: extraData,
+              }, function(err, device) {
+                device.should.not.be.null;
+                test();
+              });
+          };
+
+        const test = function() {
+            db.devices.save(deviceType, deviceId,
+                oauthClientId, hubTopic, extraData,
+                function(isSaved) {
+                    isSaved.should.equal('nop');
+                    done();
+                  });
           };
 
         init();
