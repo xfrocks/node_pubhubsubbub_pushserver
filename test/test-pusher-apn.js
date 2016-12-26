@@ -164,8 +164,40 @@ describe('pusher/apn', function() {
         });
       });
 
-    it('should fail with deleteDevice=true', function(done) {
-        const payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+    it('should fail with deleteDevice=true status 400', function(done) {
+        const test = function(reason, callback) {
+            const payloadWithFailedStatus = _.merge({
+              failed_status: 400,
+              failed_reason: reason,
+            }, payload);
+            pusher.send(connectionOptions,
+              'fail-string',
+              payloadWithFailedStatus,
+              function(err, result) {
+                err.should.be.a('string');
+                result.deleteDevice.should.be.true;
+                callback();
+              });
+          };
+
+        const test1 = function() {
+          test('BadDeviceToken', test2);
+        };
+        const test2 = function() {
+          test('DeviceTokenNotForTopic', test3);
+        };
+        const test3 = function() {
+          test('TopicDisallowed', done);
+        };
+
+        test1();
+      });
+
+    it('should fail with deleteDevice=true status 410', function(done) {
+        const payloadWithFailedStatus = _.merge({
+          failed_status: 410,
+          failed_reason: 'Unregistered',
+        }, payload);
         pusher.send(connectionOptions,
           'fail-string',
           payloadWithFailedStatus,
@@ -483,7 +515,10 @@ describe('pusher/apn', function() {
       });
 
     it('should do stats (invalid)', function(done) {
-        const payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+        const payloadWithFailedStatus = _.merge({
+          failed_status: 410,
+          failed_reason: 'Unregistered',
+        }, payload);
         pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
           function(err) {
             err.should.be.a('string');

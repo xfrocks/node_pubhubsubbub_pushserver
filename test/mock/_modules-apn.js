@@ -48,7 +48,8 @@ apn.Provider = function(options) {
                   status: _.has(notification.payload, 'failed_status') ?
                     notification.payload.failed_status : 500,
                   response: {
-                    reason: 'Reason',
+                    reason: _.has(notification.payload, 'failed_reason') ?
+                      notification.payload.failed_reason : 'Reason',
                   },
                 });
               break;
