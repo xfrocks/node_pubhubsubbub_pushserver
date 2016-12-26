@@ -5,6 +5,7 @@ const pushQueue = require('../lib/pushQueue');
 const chai = require('chai');
 
 chai.should();
+const expect = chai.expect;
 
 // setup push queue
 const pushKue = require('./mock/pushKue');
@@ -134,25 +135,41 @@ describe('pushQueue', function() {
         init();
       });
 
-    it('[android] no key', function(done) {
-        const packageId = 'pi-db-no-client';
+    it('[android] extra_data.package missing', function(done) {
         const deviceType = 'android';
-        const deviceId = 'di-no-client';
+        const deviceId = 'di-package-missing';
+        const payload = generatePayload();
+        const extraData = {};
+
+        config.gcm.defaultKeyId = '';
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.should.not.be.null;
+        expect(job.error).to.be.null;
+        job.result.deleteDevice.should.be.true;
+        job.attempts.should.equal(1);
+
+        const pushes = pusher._getPushes();
+        pushes.length.should.equal(0);
+
+        done();
+      });
+
+    it('[android] no key', function(done) {
+        const packageId = 'pi-db-no-key';
+        const deviceType = 'android';
+        const deviceId = 'di-no-key';
         const payload = generatePayload();
         const extraData = {package: packageId};
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
         job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
+        expect(job.error).to.be.null;
+        job.result.deleteDevice.should.be.true;
+        job.attempts.should.equal(1);
 
         const pushes = pusher._getPushes();
         pushes.length.should.equal(0);
@@ -307,12 +324,32 @@ describe('pushQueue', function() {
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
         job.should.not.be.null;
-        job.error.should.be.a('Error');
-        job.error.message.should.equal('payload.notification_html is missing');
+        expect(job.error).to.be.null;
+        job.result.retry.should.be.false;
         job.data.device_type.should.equal(deviceType);
         job.data.device_id.should.equal(deviceId);
         job.data.payload.should.deep.equal(payload);
-        job.attempts.should.equal(config.pushQueue.attempts);
+        job.attempts.should.equal(1);
+
+        const pushes = pusher._getPushes();
+        pushes.length.should.equal(0);
+
+        done();
+      });
+
+    it('[ios] extra_data.package missing', function(done) {
+        const deviceType = 'ios';
+        const deviceId = 'di-package-missing';
+        const payload = generatePayload();
+        const extraData = {package: ''};
+
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.should.not.be.null;
+        expect(job.error).to.be.null;
+        job.result.deleteDevice.should.be.true;
+        job.attempts.should.equal(1);
 
         const pushes = pusher._getPushes();
         pushes.length.should.equal(0);
@@ -329,16 +366,11 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
         job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
+        expect(job.error).to.be.null;
+        job.result.deleteDevice.should.be.true;
+        job.attempts.should.equal(1);
 
         const pushes = pusher._getPushes();
         pushes.length.should.equal(0);
