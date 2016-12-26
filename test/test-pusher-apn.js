@@ -487,16 +487,15 @@ describe('pusher/apn', function() {
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
+            pusher.stats().then((stats) => {
+                stats.apn.should.have.ownProperty(connectionOptions.packageId);
+                const thisStats = stats.apn[connectionOptions.packageId];
+                thisStats.sent.should.equal(1);
+                thisStats.failed.should.equal(0);
+                thisStats.invalid.should.equal(0);
 
-            stats.should.have.ownProperty(connectionOptions.packageId);
-            const thisStats = stats[connectionOptions.packageId];
-            thisStats.sent.should.equal(1);
-            thisStats.failed.should.equal(0);
-            thisStats.invalid.should.equal(0);
-
-            done();
+                done();
+              });
           });
       });
 
@@ -506,11 +505,11 @@ describe('pusher/apn', function() {
           function(err) {
             err.should.be.a('string');
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
-            stats[connectionOptions.packageId].failed.should.equal(1);
+            pusher.stats().then((stats) => {
+                stats.apn[connectionOptions.packageId].failed.should.equal(1);
 
-            done();
+                done();
+              });
           });
       });
 
@@ -523,11 +522,11 @@ describe('pusher/apn', function() {
           function(err) {
             err.should.be.a('string');
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
-            stats[connectionOptions.packageId].invalid.should.equal(1);
+            pusher.stats().then((stats) => {
+                stats.apn[connectionOptions.packageId].invalid.should.equal(1);
 
-            done();
+                done();
+              });
           });
       });
   });

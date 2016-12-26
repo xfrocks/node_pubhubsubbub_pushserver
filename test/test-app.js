@@ -149,17 +149,20 @@ describe('app', function() {
                 });
           };
 
-        const statsBefore = pushQueue.stats();
-        const queuedBefore = statsBefore.pushQueue.queued;
-        const processedBefore = statsBefore.pushQueue.processed;
+        let queuedBefore = 0;
+        let processedBefore = 0;
         const verifyPushQueueStats = function() {
-            const stats = pushQueue.stats();
-            stats.pushQueue.queued.should.equal(queuedBefore + 1);
-            stats.pushQueue.processed.should.equal(processedBefore + 1);
-            done();
+            pushQueue.stats().then(function(stats) {
+                stats.pushQueue.queued.should.equal(queuedBefore + 1);
+                stats.pushQueue.processed.should.equal(processedBefore + 1);
+                done();
+              });
           };
-
-        setup();
+        pushQueue.stats().then(function(statsBefore) {
+            queuedBefore = statsBefore.pushQueue.queued;
+            processedBefore = statsBefore.pushQueue.processed;
+            setup();
+          });
       });
 
     it('should works with gcm', function(done) {
@@ -221,17 +224,20 @@ describe('app', function() {
                 });
           };
 
-        const statsBefore = pushQueue.stats();
-        const queuedBefore = statsBefore.pushQueue.queued;
-        const processedBefore = statsBefore.pushQueue.processed;
+        let queuedBefore = 0;
+        let processedBefore = 0;
         const verifyPushQueueStats = function() {
-            const stats = pushQueue.stats();
-            stats.pushQueue.queued.should.equal(queuedBefore + 1);
-            stats.pushQueue.processed.should.equal(processedBefore + 1);
-            done();
+            pushQueue.stats().then(function(stats) {
+                stats.pushQueue.queued.should.equal(queuedBefore + 1);
+                stats.pushQueue.processed.should.equal(processedBefore + 1);
+                done();
+              });
           };
-
-        setup();
+        pushQueue.stats().then(function(statsBefore) {
+            queuedBefore = statsBefore.pushQueue.queued;
+            processedBefore = statsBefore.pushQueue.processed;
+            setup();
+          });
       });
 
     it('should works with wns', function(done) {
@@ -304,16 +310,19 @@ describe('app', function() {
                 });
           };
 
-        const statsBefore = pushQueue.stats();
-        const queuedBefore = statsBefore.pushQueue.queued;
-        const processedBefore = statsBefore.pushQueue.processed;
+        let queuedBefore = 0;
+        let processedBefore = 0;
         const verifyPushQueueStats = function() {
-            const stats = pushQueue.stats();
-            stats.pushQueue.queued.should.equal(queuedBefore + 1);
-            stats.pushQueue.processed.should.equal(processedBefore + 1);
-            done();
+            pushQueue.stats().then(function(stats) {
+                stats.pushQueue.queued.should.equal(queuedBefore + 1);
+                stats.pushQueue.processed.should.equal(processedBefore + 1);
+                done();
+              });
           };
-
-        setup();
+        pushQueue.stats().then(function(statsBefore) {
+            queuedBefore = statsBefore.pushQueue.queued;
+            processedBefore = statsBefore.pushQueue.processed;
+            setup();
+          });
       });
   });

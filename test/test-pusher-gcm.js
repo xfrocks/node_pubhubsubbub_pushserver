@@ -192,14 +192,15 @@ describe('pusher/gcm', function() {
         pusher.send(senderOptions, registrationToken, data, function(err) {
             expect(err).to.be.null;
 
-            const stats = pusher.stats();
-            stats.should.have.ownProperty(senderOptions.packageId);
-            const thisStats = stats[senderOptions.packageId];
-            thisStats.sent.should.equal(1);
-            thisStats.failed.should.equal(0);
-            thisStats.invalid.should.equal(0);
+            pusher.stats().then((stats) => {
+                stats.gcm.should.have.ownProperty(senderOptions.packageId);
+                const thisStats = stats.gcm[senderOptions.packageId];
+                thisStats.sent.should.equal(1);
+                thisStats.failed.should.equal(0);
+                thisStats.invalid.should.equal(0);
 
-            done();
+                done();
+              });
           });
       });
 
@@ -212,10 +213,11 @@ describe('pusher/gcm', function() {
           function(err) {
             err.should.equal(dataWithError.error);
 
-            const stats = pusher.stats();
-            stats[senderOptions.packageId].failed.should.equal(1);
+            pusher.stats().then((stats) => {
+                stats.gcm[senderOptions.packageId].failed.should.equal(1);
 
-            done();
+                done();
+              });
           });
       });
 
@@ -230,10 +232,11 @@ describe('pusher/gcm', function() {
           function(err) {
             err.should.equal(dataWithError.responseErrorResult.error);
 
-            const stats = pusher.stats();
-            stats[senderOptions.packageId].invalid.should.equal(1);
+            pusher.stats().then((stats) => {
+                stats.gcm[senderOptions.packageId].invalid.should.equal(1);
 
-            done();
+                done();
+              });
           });
       });
   });
