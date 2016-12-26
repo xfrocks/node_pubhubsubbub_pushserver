@@ -1,10 +1,9 @@
 'use strict';
 
-var pushQueue = exports;
+const pushQueue = exports;
 
-var latestJob = null;
-var jobs = [];
-
+let latestJob = null;
+let jobs = [];
 pushQueue._reset = function() {
     latestJob = null;
     jobs = [];
@@ -23,7 +22,7 @@ pushQueue.enqueue = function(deviceType, deviceId, payload, extraData) {
         device_type: deviceType,
         device_id: deviceId,
         payload: payload,
-        extra_data: extraData
+        extra_data: extraData,
       };
 
     jobs.push(latestJob);

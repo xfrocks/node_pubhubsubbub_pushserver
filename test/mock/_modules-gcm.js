@@ -1,33 +1,33 @@
 'use strict';
 
-var gcm = exports;
-var _ = require('lodash');
+const gcm = exports;
+const _ = require('lodash');
 
-var latestPush = null;
+let latestPush = null;
 
 gcm._getLatestPush = function() {
     return latestPush;
   };
 
 gcm.Sender = function(gcmKey) {
-    var sender = this;
+    const sender = this;
 
     this.sendNoRetry = function(message, recipient, callback) {
         latestPush = {
           sender: sender,
           message: message,
-          recipient: recipient
+          recipient: recipient,
         };
 
-        var error = null;
-        var response = {
+        let error = null;
+        const response = {
           multicast_id: 123,
           success: 1,
           failure: 0,
           canonical_ids: 0,
-          results: [{message_id: 'mi'}]
+          results: [{message_id: 'mi'}],
         };
-        var messageData = message._getData();
+        const messageData = message._getData();
         if (_.has(messageData, 'error')) {
           error = messageData.error;
         }
@@ -47,7 +47,7 @@ gcm.Sender = function(gcmKey) {
 
 gcm.Message = function(options) {
     this.options = options;
-    var data = {};
+    const data = {};
 
     this.addData = function(newData) {
       _.merge(data, newData);

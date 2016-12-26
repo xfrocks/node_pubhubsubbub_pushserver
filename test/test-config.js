@@ -1,15 +1,13 @@
-/*jshint expr: true*/
 'use strict';
 
-var config = require('../lib/config');
-var chai = require('chai');
-var _ = require('lodash');
+const config = require('../lib/config');
+const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
-var expect = chai.expect;
+const expect = chai.expect;
 
 describe('config', function() {
-
     beforeEach(function(done) {
         process.env = {};
         done();
@@ -55,8 +53,8 @@ describe('config', function() {
       });
 
     it('should handle REDIS_URL', function(done) {
-        var port = '123456';
-        var host = 'redis.server';
+        const port = '123456';
+        const host = 'redis.server';
         process.env.REDISCLOUD_URL = 'redis://' + host + ':' + port;
         config._reload();
 
@@ -68,9 +66,9 @@ describe('config', function() {
       });
 
     it('should handle REDISCLOUD_URL', function(done) {
-        var port = '123456';
-        var host = 'rediscloud.server';
-        var auth = 'rediscloud';
+        const port = '123456';
+        const host = 'rediscloud.server';
+        const auth = 'rediscloud';
         process.env.REDISCLOUD_URL = 'redis://rediscloud:' +
             auth + '@' + host + ':' + port;
         config._reload();
@@ -83,9 +81,9 @@ describe('config', function() {
       });
 
     it('should handle REDISTOGO_URL', function(done) {
-        var port = '123457';
-        var host = 'redistogo.server';
-        var auth = 'redistogo';
+        const port = '123457';
+        const host = 'redistogo.server';
+        const auth = 'redistogo';
         process.env.REDISTOGO_URL = 'redis://redistogo:' +
             auth + '@' + host + ':' + port;
         config._reload();
@@ -207,10 +205,8 @@ describe('config', function() {
       });
 
     it('should handle CONFIG_GCM_KEYS', function(done) {
-        var i;
-
         process.env.CONFIG_GCM_KEYS = 10;
-        for (i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
+        for (let i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
           process.env['CONFIG_GCM_KEYS_' + i] = 'app_' + i + ',key_' + i;
         }
         config._reload();
@@ -218,7 +214,7 @@ describe('config', function() {
         config.gcm.defaultKeyId.should.equal('app_0');
         _.keys(config.gcm.keys).length.
             should.equal(process.env.CONFIG_GCM_KEYS);
-        for (i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
+        for (let i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
           config.gcm.keys['app_' + i].should.equal('key_' + i);
         }
 
@@ -226,8 +222,8 @@ describe('config', function() {
       });
 
     it('should handle incomplete CONFIG_GCM_KEYS', function(done) {
-        var appId = 'appId';
-        var appKey = 'appKey';
+        const appId = 'appId';
+        const appKey = 'appKey';
 
         process.env.CONFIG_GCM_KEYS = 3;
         // no process.env.CONFIG_GCM_KEYS_0
@@ -243,11 +239,9 @@ describe('config', function() {
       });
 
     it('should handle CONFIG_GCM_KEY & CONFIG_GCM_KEYS', function(done) {
-        var i;
-
         process.env.CONFIG_GCM_KEY = 'cgk';
         process.env.CONFIG_GCM_KEYS = 10;
-        for (i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
+        for (let i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
           process.env['CONFIG_GCM_KEYS_' + i] = 'app_' + i + ',key_' + i;
         }
         config._reload();
@@ -256,7 +250,7 @@ describe('config', function() {
             should.equal(process.env.CONFIG_GCM_KEY);
         _.keys(config.gcm.keys).length.
             should.equal(process.env.CONFIG_GCM_KEYS + 1);
-        for (i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
+        for (let i = 0; i < process.env.CONFIG_GCM_KEYS; i += 1) {
           config.gcm.keys['app_' + i].should.equal('key_' + i);
         }
 

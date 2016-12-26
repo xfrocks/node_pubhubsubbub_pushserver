@@ -1,28 +1,34 @@
-/*jshint expr: true*/
 'use strict';
 
-var db = require('../lib/db');
-var chai = require('chai');
+const db = require('../lib/db');
+const chai = require('chai');
 
 chai.should();
-var expect = chai.expect;
+const expect = chai.expect;
+
+const oauthClientId = 'oci';
+const hubUri = 'hu';
+const extraData = {foo: 'bar'};
 
 describe('db/Hub', function() {
-
     beforeEach(function(done) {
-        db.hubs._model.collection.drop().then(function() {
-            done();
-          }).catch(function() {
-            // ignore errors
-          });
+        const checkForDb = function() {
+          if (!db.isConnected()) {
+            return setTimeout(checkForDb, 100);
+          }
+
+          db.hubs._model.collection.drop().then(function() {
+              done();
+            }).catch(function() {
+              done();
+            });
+          };
+
+        checkForDb();
       });
 
     it('should save hub', function(done) {
-        var oauthClientId = 'oci';
-        var hubUri = 'hu';
-        var extraData = {foo: 'bar'};
-
-        var step1 = function() {
+        const step1 = function() {
             db.hubs.save(oauthClientId, hubUri, extraData,
               function(isSaved) {
                 isSaved.should.not.be.false;
@@ -30,14 +36,14 @@ describe('db/Hub', function() {
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.hubs._model.find({
-                oauth_client_id: oauthClientId
+                oauth_client_id: oauthClientId,
               }, function(err, hubs) {
                 hubs.should.be.a('array');
                 hubs.length.should.equal(1);
 
-                var hub = hubs[0];
+                const hub = hubs[0];
                 hub.oauth_client_id.should.equal(oauthClientId);
                 hub.hub_uri.should.be.a('array');
                 hub.hub_uri.length.should.equal(1);
@@ -52,34 +58,30 @@ describe('db/Hub', function() {
       });
 
     it('should update hub uri', function(done) {
-        var oauthClientId = 'oci';
-        var hubUri = 'hu';
-        var hubUri2 = 'hu2';
-        var extraData = {foo: 'bar'};
-        var theHub = null;
-
-        var init = function() {
+        let theHub = null;
+        const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,
                 hub_uri: [hubUri],
-                extra_data: extraData
+                extra_data: extraData,
               }, function(err, hub) {
+                hub.should.not.be.null;
                 theHub = hub;
                 step1();
               });
           };
 
-        var step1 = function() {
-            db.hubs.save(oauthClientId, hubUri2, extraData,
+        const step1 = function() {
+            db.hubs.save(oauthClientId, 'hu2', extraData,
               function(isSaved) {
                 isSaved.should.not.be.false;
                 step2();
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.hubs._model.findById(theHub._id, function(err, hub) {
-                hub.hub_uri.should.have.members([hubUri, hubUri2]);
+                hub.hub_uri.should.have.members([hubUri, 'hu2']);
                 done();
               });
           };
@@ -88,24 +90,22 @@ describe('db/Hub', function() {
       });
 
     it('should update hub extra data', function(done) {
-        var oauthClientId = 'oci';
-        var hubUri = 'hu';
-        var extraData = {foo: 'bar'};
-        var extraData2 = {bar: 'foo'};
-        var theHub = null;
+        const extraData2 = {bar: 'foo'};
+        let theHub = null;
 
-        var init = function() {
+        const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,
                 hub_uri: [hubUri],
-                extra_data: extraData
+                extra_data: extraData,
               }, function(err, hub) {
+                hub.should.not.be.null;
                 theHub = hub;
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.hubs.save(oauthClientId, hubUri, extraData2,
                 function(isSaved) {
                     isSaved.should.not.be.false;
@@ -113,7 +113,7 @@ describe('db/Hub', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.hubs._model.findById(theHub._id, function(err, hub) {
                 hub.extra_data.should.has.all.keys('foo', 'bar');
                 hub.extra_data.foo.should.equal(extraData.foo);
@@ -127,26 +127,23 @@ describe('db/Hub', function() {
       });
 
     it('should return hub', function(done) {
-        var oauthClientId = 'oci';
-        var hubUri = 'hu';
-
-        var init = function() {
+        const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,
-                hub_uri: [hubUri]
+                hub_uri: [hubUri],
               }, function() {
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.hubs.findHub(oauthClientId, function(hub) {
                 hub.should.not.be.null;
                 step2();
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.hubs.findHub(oauthClientId + '2', function(hub) {
                 expect(hub).to.be.null;
                 done();

@@ -1,39 +1,47 @@
-/*jshint expr: true*/
 'use strict';
 
-var config = require('../lib/config');
-var web = require('../lib/web');
-var pubhubsubbub = require('../lib/web/pubhubsubbub');
-var chai = require('chai');
-var express = require('express');
-var bodyParser = require('body-parser');
-var http = require('http');
-var _ = require('lodash');
+const config = require('../lib/config');
+const web = require('../lib/web');
+const pubhubsubbub = require('../lib/web/pubhubsubbub');
+const chai = require('chai');
+const express = require('express');
+const bodyParser = require('body-parser');
+const http = require('http');
+const _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
-var expect = chai.expect;
+const expect = chai.expect;
 
-var db = require('./mock/db');
-var pushQueue = require('./mock/pushQueue');
-var webApp = chai.request(web._app);
+const db = require('./mock/db');
+const pushQueue = require('./mock/pushQueue');
+const webApp = chai.request(web._app);
 
-var testApp = express();
-var testAppReqs = [];
+const testApp = express();
+let testAppReqs = [];
 testApp.use(bodyParser.urlencoded({extended: false}));
 testApp.post('/status/:code', function(req, res) {
     testAppReqs.push({
       params: req.params,
-      body: req.body
+      body: req.body,
     });
     res.status(req.params.code).end();
   });
-var testServer = http.createServer(testApp).listen();
-var testAppPort = testServer.address().port;
-var testAppUri = 'http://localhost:' + testAppPort;
+const testServer = http.createServer(testApp).listen();
+const testAppPort = testServer.address().port;
+const testAppUri = 'http://localhost:' + testAppPort;
+const testAppUriStatus202 = testAppUri + '/status/202';
+
+const callbackUri = 'http://push.server/callback';
+const hubTopic = 'ht';
+const oauthClientId = 'oci';
+const oauthToken = 'ot';
+const deviceType = 'dt';
+const deviceId = 'di';
+const extraData = {foo: 'bar'};
+const payload = 'p';
 
 describe('web/pubhubsubbub', function() {
-
     before(function(done) {
         pubhubsubbub.setup(web._app, '', db, pushQueue);
         done();
@@ -59,14 +67,13 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should say hi with config.web.callback', function(done) {
-        var callback = 'http://push.server/callback';
-        config.web.callback = callback;
+        config.web.callback = callbackUri;
 
         webApp
             .get('/')
             .end(function(err, res) {
                 res.should.have.status(200);
-                res.text.should.have.string('Hi, I am ' + callback);
+                res.text.should.have.string('Hi, I am ' + callbackUri);
                 config._reload();
 
                 done();
@@ -74,24 +81,17 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should subscribe', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var oauthToken = 'ot';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var extraData = {foo: 'bar'};
-
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/subscribe')
                 .send({
-                    hub_uri: testAppUri + '/status/202',
+                    hub_uri: testAppUriStatus202,
                     hub_topic: hubTopic,
                     oauth_client_id: oauthClientId,
                     oauth_token: oauthToken,
                     device_type: deviceType,
                     device_id: deviceId,
-                    extra_data: extraData
+                    extra_data: extraData,
                   })
                 .end(function(err, res) {
                     res.should.have.status(202);
@@ -100,11 +100,11 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices.findDevices(oauthClientId, hubTopic, function(devices) {
                 devices.length.should.equal(1);
 
-                var device = devices[0];
+                const device = devices[0];
                 device.device_type.should.equal(deviceType);
                 device.device_id.should.equal(deviceId);
                 device.extra_data.foo.should.equal(extraData.foo);
@@ -117,25 +117,25 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not subscribe with missing data', function(done) {
-        var seed = [
+        const seed = [
             {},
-            {oauth_client_id: 'oci'},
-            {oauth_token: 'ot'},
-            {device_type: 'dt'},
-            {device_id: 'di'}
+            {oauth_client_id: oauthClientId},
+            {oauth_token: oauthToken},
+            {device_type: deviceType},
+            {device_id: deviceId},
         ];
 
-        var data = [];
+        const data = [];
         _.forEach(seed, function(dataPiece) {
-            var prevData = {};
+            let prevData = {};
             if (data.length > 0) {
               prevData = _.last(data);
             }
             data.push(_.assign({}, prevData, dataPiece));
           });
 
-        var test = function() {
-            var testData = data.shift();
+        const test = function() {
+            const testData = data.shift();
 
             webApp
                 .post('/subscribe')
@@ -158,12 +158,12 @@ describe('web/pubhubsubbub', function() {
         webApp
             .post('/subscribe')
             .send({
-                hub_uri: testAppUri + '/status/202',
-                hub_topic: 'ht',
-                oauth_client_id: 'oci',
-                oauth_token: 'ot',
-                device_type: 'dt',
-                device_id: 'error'
+                hub_uri: testAppUriStatus202,
+                hub_topic: hubTopic,
+                oauth_client_id: oauthClientId,
+                oauth_token: oauthToken,
+                device_type: deviceType,
+                device_id: 'error',
               })
             .end(function(err, res) {
                 res.should.have.status(500);
@@ -176,11 +176,11 @@ describe('web/pubhubsubbub', function() {
             .post('/subscribe')
             .send({
                 hub_uri: 'http://err.or/hub',
-                hub_topic: 'ht',
-                oauth_client_id: 'oci',
-                oauth_token: 'ot',
-                device_type: 'dt',
-                device_id: 'di'
+                hub_topic: hubTopic,
+                oauth_client_id: oauthClientId,
+                oauth_token: oauthToken,
+                device_type: deviceType,
+                device_id: deviceId,
               })
             .end(function(err, res) {
                 res.should.have.status(500);
@@ -193,10 +193,10 @@ describe('web/pubhubsubbub', function() {
             .post('/subscribe')
             .send({
                 hub_uri: testAppUri + '/status/403',
-                oauth_client_id: 'oci',
-                oauth_token: 'ot',
-                device_type: 'dt',
-                device_id: 'di'
+                oauth_client_id: oauthClientId,
+                oauth_token: oauthToken,
+                device_type: deviceType,
+                device_id: deviceId,
               })
             .end(function(err, res) {
                 res.should.have.status(403);
@@ -210,10 +210,10 @@ describe('web/pubhubsubbub', function() {
             .post('/subscribe')
             .send({
                 hub_uri: 'http://a.b.c/hub',
-                oauth_client_id: 'oci',
-                oauth_token: 'ot',
-                device_type: 'dt',
-                device_id: 'di'
+                oauth_client_id: oauthClientId,
+                oauth_token: oauthToken,
+                device_type: deviceType,
+                device_id: deviceId,
               })
             .end(function(err, res) {
                 res.should.have.status(503);
@@ -222,12 +222,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should unsubscribe', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, null,
               function(isSaved) {
@@ -236,15 +231,15 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/unsubscribe')
                 .send({
-                    hub_uri: testAppUri + '/status/202',
+                    hub_uri: testAppUriStatus202,
                     hub_topic: hubTopic,
                     oauth_client_id: oauthClientId,
                     device_type: deviceType,
-                    device_id: deviceId
+                    device_id: deviceId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(202);
@@ -253,11 +248,11 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices.findDevices(oauthClientId, null, function(devices) {
                 devices.length.should.equal(1);
 
-                var device = devices[0];
+                const device = devices[0];
                 device.device_type.should.equal(deviceType);
                 device.device_id.should.equal(deviceId);
                 device.hub_topic.length.should.equal(0);
@@ -270,25 +265,25 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not unsubscribe with missing data', function(done) {
-        var seed = [
+        const seed = [
             {},
-            {hub_topic: 'ht'},
-            {oauth_client_id: 'oci'},
-            {device_type: 'dt'},
-            {device_id: 'di'}
+            {hub_topic: hubTopic},
+            {oauth_client_id: oauthClientId},
+            {device_type: deviceType},
+            {device_id: deviceId},
         ];
 
-        var data = [];
+        const data = [];
         _.forEach(seed, function(dataPiece) {
-            var prevData = {};
+            let prevData = {};
             if (data.length > 0) {
               prevData = _.last(data);
             }
             data.push(_.assign({}, prevData, dataPiece));
           });
 
-        var test = function() {
-            var testData = data.shift();
+        const test = function() {
+            const testData = data.shift();
 
             webApp
                 .post('/unsubscribe')
@@ -311,11 +306,11 @@ describe('web/pubhubsubbub', function() {
         webApp
             .post('/unsubscribe')
             .send({
-                hub_uri: testAppUri + '/status/202',
-                hub_topic: 'ht',
-                oauth_client_id: 'oci',
-                device_type: 'dt',
-                device_id: 'di'
+                hub_uri: testAppUriStatus202,
+                hub_topic: hubTopic,
+                oauth_client_id: oauthClientId,
+                device_type: deviceType,
+                device_id: deviceId,
               })
             .end(function(err, res) {
                 res.should.have.status(500);
@@ -324,12 +319,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not unsubscribe with hub error', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, null,
               function(isSaved) {
@@ -338,7 +328,7 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/unsubscribe')
                 .send({
@@ -346,7 +336,7 @@ describe('web/pubhubsubbub', function() {
                     hub_topic: hubTopic,
                     oauth_client_id: oauthClientId,
                     device_type: deviceType,
-                    device_id: deviceId
+                    device_id: deviceId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(403);
@@ -359,12 +349,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not unsubscribe with invalid hub', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, null,
                 function(isSaved) {
@@ -373,7 +358,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/unsubscribe')
                 .send({
@@ -381,7 +366,7 @@ describe('web/pubhubsubbub', function() {
                     hub_topic: hubTopic,
                     oauth_client_id: oauthClientId,
                     device_type: deviceType,
-                    device_id: deviceId
+                    device_id: deviceId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(503);
@@ -393,11 +378,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should unregister', function(done) {
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId, oauthClientId,
               null, null, function(isSaved) {
                 isSaved.should.equal('saved');
@@ -405,13 +386,13 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/unregister')
                 .send({
                     oauth_client_id: oauthClientId,
                     device_type: deviceType,
-                    device_id: deviceId
+                    device_id: deviceId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(200);
@@ -420,7 +401,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices.findDevices(oauthClientId, null, function(devices) {
                 devices.length.should.equal(0);
               });
@@ -432,23 +413,23 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not unregister with missing data', function(done) {
-        var seed = [
+        const seed = [
             {},
-            {device_type: 'dt'},
-            {device_id: 'di'}
+            {device_type: deviceType},
+            {device_id: deviceId},
         ];
 
-        var data = [];
+        const data = [];
         _.forEach(seed, function(dataPiece) {
-            var prevData = {};
+            let prevData = {};
             if (data.length > 0) {
               prevData = _.last(data);
             }
             data.push(_.assign({}, prevData, dataPiece));
           });
 
-        var test = function() {
-            var testData = data.shift();
+        const test = function() {
+            const testData = data.shift();
 
             webApp
                 .post('/unregister')
@@ -471,9 +452,9 @@ describe('web/pubhubsubbub', function() {
             webApp
                 .post('/unregister')
                 .send({
-                    oauth_client_id: 'oci',
-                    device_type: 'dt',
-                    device_id: 'error'
+                    oauth_client_id: oauthClientId,
+                    device_type: deviceType,
+                    device_id: 'error',
                   })
                 .end(function(err, res) {
                     res.should.have.status(500);
@@ -482,13 +463,9 @@ describe('web/pubhubsubbub', function() {
           });
 
     it('should answer subscribe challenge', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var challenge = '' + Math.random();
+        const challenge = Math.random().toString();
 
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, null,
               function(isSaved) {
@@ -497,14 +474,14 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var test = function() {
+        const test = function() {
             webApp
                 .get('/callback')
                 .query({
-                    client_id: oauthClientId,
+                    'client_id': oauthClientId,
                     'hub.challenge': challenge,
                     'hub.mode': 'subscribe',
-                    'hub.topic': hubTopic
+                    'hub.topic': hubTopic,
                   })
                 .send()
                 .end(function(err, res) {
@@ -519,15 +496,15 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should answer unsubscribe challenge', function(done) {
-        var challenge = '' + Math.random();
+        const challenge = Math.random().toString();
 
         webApp
             .get('/callback')
             .query({
-                client_id: 'oci-unsubscribe',
+                'client_id': oauthClientId,
                 'hub.challenge': challenge,
                 'hub.mode': 'unsubscribe',
-                'hub.topic': 'ht-unsubscribe'
+                'hub.topic': hubTopic,
               })
             .send()
             .end(function(err, res) {
@@ -539,25 +516,25 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not answer challenge with missing data', function(done) {
-        var seed = [
+        const seed = [
             {},
-            {'hub.topic': 'ht'},
-            {client_id: 'ci'},
-            {'hub.challenge': '' + Math.random()},
-            {'hub.mode': 'subscribe'}
+            {'hub.topic': hubTopic},
+            {'client_id': oauthClientId},
+            {'hub.challenge': Math.random().toString()},
+            {'hub.mode': 'subscribe'},
         ];
 
-        var data = [];
+        const data = [];
         _.forEach(seed, function(dataPiece) {
-            var prevData = {};
+            let prevData = {};
             if (data.length > 0) {
               prevData = _.last(data);
             }
             data.push(_.assign({}, prevData, dataPiece));
           });
 
-        var test = function() {
-            var testData = data.shift();
+        const test = function() {
+            const testData = data.shift();
 
             webApp
                 .get('/callback')
@@ -578,15 +555,15 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not answer subscribe challenge without device', function(done) {
-        var challenge = '' + Math.random();
+        const challenge = Math.random().toString();
 
         webApp
             .get('/callback')
             .query({
-                client_id: 'oci-unknown-device',
+                'client_id': oauthClientId,
                 'hub.challenge': challenge,
                 'hub.mode': 'subscribe',
-                'hub.topic': 'ht-unknown-device'
+                'hub.topic': hubTopic,
               })
             .send()
             .end(function(err, res) {
@@ -596,14 +573,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should enqueue push', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var extraData = {foo: 'bar'};
-        var payload = 'p';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, extraData,
               function(isSaved) {
@@ -612,20 +582,20 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var test = function() {
+        const test = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         client_id: oauthClientId,
                         topic: hubTopic,
-                        object_data: payload
-                      }
+                        object_data: payload,
+                      },
                 ])
                 .end(function(err, res) {
                     res.should.have.status(202);
 
-                    var job = pushQueue._getLatestJob();
+                    const job = pushQueue._getLatestJob();
                     job.should.not.be.null;
                     job.device_type.should.equal(deviceType);
                     job.device_id.should.equal(deviceId);
@@ -640,19 +610,13 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should enqueue pushes for all devices', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var deviceId2 = 'di2';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, null,
                 function(isSaved) {
                 isSaved.should.equal('saved');
 
-                db.devices.save(deviceType, deviceId2,
+                db.devices.save('dt2', 'di2',
                     oauthClientId, hubTopic, null,
                     function(isSaved) {
                     isSaved.should.equal('saved');
@@ -661,23 +625,23 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var test = function() {
+        const test = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         client_id: oauthClientId,
                         topic: hubTopic,
-                        object_data: 'od'
-                      }
+                        object_data: payload,
+                      },
                 ])
                 .end(function() {
-                    var jobs = pushQueue._getJobs();
+                    const jobs = pushQueue._getJobs();
                     jobs.length.should.equal(2);
                     jobs[0].device_type.should.equal(deviceType);
                     jobs[0].device_id.should.equal(deviceId);
-                    jobs[1].device_type.should.equal(deviceType);
-                    jobs[1].device_id.should.equal(deviceId2);
+                    jobs[1].device_type.should.equal('dt2');
+                    jobs[1].device_id.should.equal('di2');
 
                     done();
                   });
@@ -687,14 +651,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should enqueue pushes for all pings', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var payload = 'p';
-        var payload2 = 'p2';
-
-        var init = function() {
+        const init = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, null,
               function(isSaved) {
@@ -703,26 +660,26 @@ describe('web/pubhubsubbub', function() {
               });
           };
 
-        var test = function() {
+        const test = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         client_id: oauthClientId,
                         topic: hubTopic,
-                        object_data: payload
+                        object_data: payload,
                       },
                     {
                         client_id: oauthClientId,
                         topic: hubTopic,
-                        object_data: payload2
-                      }
+                        object_data: 'p2',
+                      },
                 ])
                 .end(function() {
-                    var jobs = pushQueue._getJobs();
+                    const jobs = pushQueue._getJobs();
                     jobs.length.should.equal(2);
                     jobs[0].payload.should.equal(payload);
-                    jobs[1].payload.should.equal(payload2);
+                    jobs[1].payload.should.equal('p2');
 
                     done();
                   });
@@ -732,71 +689,67 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not enqueue invalid data', function(done) {
-        var hubTopic = 'ht';
-        var oauthClientId = 'oci';
-        var payload = 'p';
-
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .post('/callback')
                 .send('text')
                 .end(function(err, res) {
                     res.should.have.status(200);
-                    var job = pushQueue._getLatestJob();
+                    const job = pushQueue._getLatestJob();
                     expect(job).to.be.null;
 
                     test2();
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         topic: hubTopic,
-                        object_data: payload
-                      }
+                        object_data: payload,
+                      },
                 ])
                 .end(function(err, res) {
                     res.should.have.status(200);
-                    var job = pushQueue._getLatestJob();
+                    const job = pushQueue._getLatestJob();
                     expect(job).to.be.null;
 
                     test3();
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         client_id: oauthClientId,
-                        object_data: payload
-                      }
+                        object_data: payload,
+                      },
                 ])
                 .end(function(err, res) {
                     res.should.have.status(200);
-                    var job = pushQueue._getLatestJob();
+                    const job = pushQueue._getLatestJob();
                     expect(job).to.be.null;
 
                     test4();
                   });
           };
 
-        var test4 = function() {
+        const test4 = function() {
             webApp
                 .post('/callback')
                 .send([
                     {
                         client_id: oauthClientId,
-                        topic: hubTopic
-                      }
+                        topic: hubTopic,
+                      },
                 ])
                 .end(function(err, res) {
                     res.should.have.status(200);
-                    var job = pushQueue._getLatestJob();
+                    const job = pushQueue._getLatestJob();
                     expect(job).to.be.null;
 
                     done();
@@ -807,12 +760,9 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should auto-unsubscribe', function(done) {
-        var oauthClientId = 'oci';
-        var hubUri = testAppUri + '/status/202';
-        var hubTopic = 'ht';
-        var payload = 'p';
+        const hubUri = testAppUriStatus202;
 
-        var init = function() {
+        const init = function() {
           db.hubs.save(oauthClientId, hubUri, null,
             function(isSaved) {
               isSaved.should.equal('saved');
@@ -820,7 +770,7 @@ describe('web/pubhubsubbub', function() {
             });
         };
 
-        var test = function() {
+        const test = function() {
             testAppReqs.length.should.equal(0);
 
             webApp
@@ -829,8 +779,8 @@ describe('web/pubhubsubbub', function() {
                     {
                         client_id: oauthClientId,
                         topic: hubTopic,
-                        object_data: payload
-                      }
+                        object_data: payload,
+                      },
                 ])
                 .end(function(err, res) {
                     res.should.have.status(202);
@@ -838,7 +788,7 @@ describe('web/pubhubsubbub', function() {
                     setTimeout(function() {
                       testAppReqs.length.should.equal(1);
 
-                      var req = testAppReqs[0];
+                      const req = testAppReqs[0];
                       req.body.client_id.should.equal(oauthClientId);
                       req.body['hub.topic'].should.equal(hubTopic);
                       req.body['hub.mode'].should.equal('unsubscribe');
@@ -852,10 +802,6 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('[auto-unsubscribe] should report hub not found', function(done) {
-      var oauthClientId = 'oci';
-      var hubTopic = 'ht';
-      var callbackUri = 'http://app/callback';
-
       pubhubsubbub._findHubToUnsubscribe(
         oauthClientId,
         hubTopic,
@@ -868,12 +814,9 @@ describe('web/pubhubsubbub', function() {
     });
 
     it('[auto-unsubscribe] should report unsubscribe error', function(done) {
-      var oauthClientId = 'oci';
-      var hubUri = testAppUri + '/status/403';
-      var hubTopic = 'ht';
-      var callbackUri = 'http://app/callback';
+      const hubUri = testAppUri + '/status/403';
 
-      var init = function() {
+      const init = function() {
         db.hubs.save(oauthClientId, hubUri, null,
           function(isSaved) {
             isSaved.should.equal('saved');
@@ -881,7 +824,7 @@ describe('web/pubhubsubbub', function() {
           });
       };
 
-      var test = function() {
+      const test = function() {
         pubhubsubbub._findHubToUnsubscribe(
           oauthClientId,
           hubTopic,
@@ -897,12 +840,9 @@ describe('web/pubhubsubbub', function() {
     });
 
     it('[auto-unsubscribe] should report connection error', function(done) {
-      var oauthClientId = 'oci';
-      var hubUri = 'http://a.b.c/hub';
-      var hubTopic = 'ht';
-      var callbackUri = 'http://app/callback';
+      const hubUri = 'http://a.b.c/hub';
 
-      var init = function() {
+      const init = function() {
         db.hubs.save(oauthClientId, hubUri, null,
           function(isSaved) {
             isSaved.should.equal('saved');
@@ -910,7 +850,7 @@ describe('web/pubhubsubbub', function() {
           });
       };
 
-      var test = function() {
+      const test = function() {
         pubhubsubbub._findHubToUnsubscribe(
           oauthClientId,
           hubTopic,
@@ -926,13 +866,10 @@ describe('web/pubhubsubbub', function() {
     });
 
     it('[auto-unsubscribe] should unsubscribe all uris', function(done) {
-      var oauthClientId = 'oci';
-      var hubUri = testAppUri + '/status/202';
-      var hubUri2 = testAppUri + '/status/203';
-      var hubTopic = 'ht';
-      var callbackUri = 'http://app/callback';
+      const hubUri = testAppUriStatus202;
+      const hubUri2 = testAppUri + '/status/203';
 
-      var init = function() {
+      const init = function() {
         db.hubs.save(oauthClientId, hubUri, null,
           function(isSaved) {
             isSaved.should.equal('saved');
@@ -945,7 +882,7 @@ describe('web/pubhubsubbub', function() {
           });
       };
 
-      var test = function() {
+      const test = function() {
         testAppReqs.length.should.equal(0);
 
         pubhubsubbub._findHubToUnsubscribe(
@@ -964,10 +901,10 @@ describe('web/pubhubsubbub', function() {
     });
 
     it('should not register some routes without db', function(done) {
-        var pubhubsubbubPrefix = '/no-device-db';
+        const pubhubsubbubPrefix = '/no-device-db';
         pubhubsubbub.setup(web._app, pubhubsubbubPrefix);
 
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .post(pubhubsubbubPrefix + '/subscribe')
                 .end(function(err, res) {
@@ -976,7 +913,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .post(pubhubsubbubPrefix + '/unsubscribe')
                 .end(function(err, res) {
@@ -985,7 +922,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .post(pubhubsubbubPrefix + '/unregister')
                 .end(function(err, res) {
@@ -994,7 +931,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var test4 = function() {
+        const test4 = function() {
             webApp
                 .get(pubhubsubbubPrefix + '/callback')
                 .end(function(err, res) {
@@ -1003,7 +940,7 @@ describe('web/pubhubsubbub', function() {
                   });
           };
 
-        var test5 = function() {
+        const test5 = function() {
             webApp
                 .post(pubhubsubbubPrefix + '/callback')
                 .end(function(err, res) {
@@ -1016,7 +953,7 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not register /callback without queue', function(done) {
-        var pubhubsubbubPrefix = '/no-device-db';
+        const pubhubsubbubPrefix = '/no-device-db';
         pubhubsubbub.setup(web._app, pubhubsubbubPrefix, db.devices);
 
         webApp
@@ -1026,5 +963,4 @@ describe('web/pubhubsubbub', function() {
                 done();
               });
       });
-
   });

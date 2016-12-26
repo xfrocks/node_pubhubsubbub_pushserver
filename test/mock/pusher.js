@@ -1,11 +1,10 @@
 'use strict';
 
-var pusher = exports;
-var _ = require('lodash');
+const pusher = exports;
+const _ = require('lodash');
 
-var latestPush = null;
-var pushes = [];
-
+let latestPush = null;
+let pushes = [];
 pusher._reset = function() {
     pushes = [];
   };
@@ -18,12 +17,12 @@ pusher._getPushes = function() {
     return pushes;
   };
 
-var mock = function(push, hint, callback) {
+const mock = function(push, hint, callback) {
     latestPush = push;
     pushes.push(push);
 
-    var err = null;
-    var info = {};
+    let err = null;
+    const info = {};
 
     switch (hint) {
       case 'error':
@@ -55,7 +54,7 @@ pusher.apn = function(connectionOptions, token, payload, callback) {
         type: 'apn',
         connectionOptions: connectionOptions,
         token: token,
-        payload: payload
+        payload: payload,
       }, token, callback);
   };
 
@@ -64,7 +63,7 @@ pusher.gcm = function(senderOptions, registrationId, data, callback) {
         type: 'gcm',
         senderOptions: senderOptions,
         registrationId: registrationId,
-        data: data
+        data: data,
       }, registrationId, callback);
   };
 
@@ -74,6 +73,6 @@ pusher.wns = function(clientId, clientSecret, channelUri, dataRaw, callback) {
         clientId: clientId,
         clientSecret: clientSecret,
         channelUri: channelUri,
-        dataRaw: dataRaw
+        dataRaw: dataRaw,
       }, channelUri, callback);
   };

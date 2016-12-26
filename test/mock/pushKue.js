@@ -1,13 +1,13 @@
 'use strict';
 
-var pushKue = exports;
-var _ = require('lodash');
+const pushKue = exports;
+const _ = require('lodash');
 
-var queues = {};
-var processCallbacks = {};
-
+let queues = {};
+let processCallbacks = {};
 pushKue._reset = function() {
     queues = {};
+    processCallbacks = {};
   };
 
 pushKue._getLatestJob = function(queueId) {
@@ -27,26 +27,26 @@ pushKue._getJobs = function(queueId) {
   };
 
 pushKue.create = function(queueId, jobData) {
-    var remainingAttempts = 1;
-    var backOff = null;
-    var ttl = 1000;
-    var removeOnComplete = false;
+    let remainingAttempts = 1;
 
-    var job = {
+    const job = {
         data: jobData,
         error: null,
         result: null,
-        attempts: 0,
-        logs: [],
 
-        log: function() {
-            job.logs.push(arguments);
-          }
+        attempts: 0,
+        backOff: null,
+        ttl: 1000,
+        remoteOnComplete: false,
+
+        logs: [],
+        log: function(...args) {
+            job.logs.push(args);
+          },
       };
 
-    var attempt = function() {
+    const attempt = function() {
         if (!_.isFunction(processCallbacks[queueId])) {
-          console.log('what', processCallbacks);
           return;
         }
 
@@ -74,19 +74,19 @@ pushKue.create = function(queueId, jobData) {
             remainingAttempts = n;
           },
         backoff: function(o) {
-            backOff = o;
+            job.backOff = o;
           },
         ttl: function(n) {
-            ttl = n;
+            job.ttl = n;
           },
         removeOnComplete: function(b) {
-            removeOnComplete = b;
+            job.removeOnComplete = b;
           },
 
         save: function(callback) {
             if (job.data.device_type === 'save' &&
                 job.data.device_id === 'error'
-            )  {
+            ) {
               return callback('job.save error');
             }
 
@@ -100,7 +100,7 @@ pushKue.create = function(queueId, jobData) {
             }
 
             attempt();
-          }
+          },
       };
   };
 

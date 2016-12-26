@@ -1,30 +1,36 @@
-/*jshint expr: true*/
 'use strict';
 
-var db = require('../lib/db');
-var chai = require('chai');
+const db = require('../lib/db');
+const chai = require('chai');
 
 chai.should();
-var expect = chai.expect;
+const expect = chai.expect;
+
+const deviceType = 'dt';
+const deviceId = 'di';
+const oauthClientId = 'oci';
+const hubTopic = 'ht';
+const extraData = {foo: 'bar'};
 
 describe('db/Device', function() {
-
     beforeEach(function(done) {
-        db.devices._model.collection.drop().then(function() {
-            done();
-          }).catch(function() {
-            // ignore errors
-          });
+        const checkForDb = function() {
+          if (!db.isConnected()) {
+            return setTimeout(checkForDb, 100);
+          }
+
+          db.devices._model.collection.drop().then(function() {
+              done();
+            }).catch(function() {
+              done();
+            });
+          };
+
+        checkForDb();
       });
 
     it('should save device', function(done) {
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var oauthClientId = 'oci';
-        var hubTopic = 'ht';
-        var extraData = {foo: 'bar'};
-
-        var step1 = function() {
+        const step1 = function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, extraData,
               function(isSaved) {
@@ -33,16 +39,16 @@ describe('db/Device', function() {
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices._model.find({
                 device_type: deviceType,
                 device_id: deviceId,
-                oauth_client_id: oauthClientId
+                oauth_client_id: oauthClientId,
               }, function(err, devices) {
                 devices.should.be.a('array');
                 devices.length.should.equal(1);
 
-                var device = devices[0];
+                const device = devices[0];
                 device.oauth_client_id.should.equal(oauthClientId);
                 device.hub_topic.should.be.a('array');
                 device.hub_topic.length.should.equal(1);
@@ -57,39 +63,34 @@ describe('db/Device', function() {
       });
 
     it('should update device hub topic', function(done) {
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var oauthClientId = 'oci';
-        var hubTopic = 'ht';
-        var hubTopic2 = 'ht2';
-        var extraData = {foo: 'bar'};
-        var theDevice = null;
+        let theDevice = null;
 
-        var init = function() {
+        const init = function() {
             db.devices._model.create({
                 device_type: deviceType,
                 device_id: deviceId,
                 oauth_client_id: oauthClientId,
                 hub_topic: [hubTopic],
-                extra_data: extraData
+                extra_data: extraData,
               }, function(err, device) {
+                device.should.not.be.null;
                 theDevice = device;
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.devices.save(deviceType, deviceId,
-              oauthClientId, hubTopic2, extraData,
+              oauthClientId, 'ht2', extraData,
               function(isSaved) {
                 isSaved.should.not.be.false;
                 step2();
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices._model.findById(theDevice._id, function(err, device) {
-                device.hub_topic.should.have.members([hubTopic, hubTopic2]);
+                device.hub_topic.should.have.members([hubTopic, 'ht2']);
                 done();
               });
           };
@@ -98,28 +99,24 @@ describe('db/Device', function() {
       });
 
     it('should update device extra data', function(done) {
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var oauthClientId = 'oci';
-        var hubTopic = 'ht';
-        var extraData = {foo: 'bar'};
-        var extraData2 = {bar: 'foo'};
-        var theDevice = null;
+        const extraData2 = {bar: 'foo'};
+        let theDevice = null;
 
-        var init = function() {
+        const init = function() {
             db.devices._model.create({
                 device_type: deviceType,
                 device_id: deviceId,
                 oauth_client_id: oauthClientId,
                 hub_topic: [hubTopic],
-                extra_data: extraData
+                extra_data: extraData,
               }, function(err, device) {
+                device.should.not.be.null;
                 theDevice = device;
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, extraData2,
                 function(isSaved) {
@@ -128,7 +125,7 @@ describe('db/Device', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices._model.findById(theDevice._id, function(err, device) {
                 device.extra_data.should.has.all.keys('foo', 'bar');
                 device.extra_data.foo.should.equal(extraData.foo);
@@ -142,25 +139,22 @@ describe('db/Device', function() {
       });
 
     it('should return saved devices', function(done) {
-        var oauthClientId = 'oci';
-        var hubTopic = 'ht';
-
-        var init = function() {
+        const init = function() {
             db.devices._model.create({
-                device_type: 'dt',
-                device_id: 'di1',
+                device_type: deviceType,
+                device_id: deviceId,
                 oauth_client_id: oauthClientId,
-                hub_topic: [hubTopic]
+                hub_topic: [hubTopic],
               }, {
-                device_type: 'dt',
+                device_type: deviceType,
                 device_id: 'di2',
-                oauth_client_id: oauthClientId
+                oauth_client_id: oauthClientId,
               }, function() {
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.devices.findDevices(oauthClientId, null, function(devices) {
                 devices.should.be.a('array');
                 devices.length.should.equal(2);
@@ -169,7 +163,7 @@ describe('db/Device', function() {
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices.findDevices(oauthClientId, hubTopic, function(devices) {
                 devices.should.be.a('array');
                 devices.length.should.equal(1);
@@ -182,32 +176,31 @@ describe('db/Device', function() {
       });
 
     it('should delete device', function(done) {
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var deviceId2 = 'di2';
-        var oauthClientId = 'oci';
-        var hubTopic = 'ht';
-        var theDevice = null;
-        var theDevice2 = null;
+        let theDevice = null;
+        let theDevice2 = null;
 
-        var init = function() {
+        const init = function() {
             db.devices._model.create({
                 device_type: deviceType,
                 device_id: deviceId,
                 oauth_client_id: oauthClientId,
-                hub_topic: [hubTopic]
+                hub_topic: [hubTopic],
               }, {
                 device_type: deviceType,
-                device_id: deviceId2,
-                oauth_client_id: oauthClientId
+                device_id: 'di2',
+                oauth_client_id: oauthClientId,
               }, function(err, device, device2) {
+                device.should.not.be.null;
                 theDevice = device;
+
+                device2.should.not.be.null;
                 theDevice2 = device2;
+
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.devices.delete(deviceType, deviceId,
               oauthClientId, hubTopic,
               function(isDeleted) {
@@ -216,7 +209,7 @@ describe('db/Device', function() {
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices._model.findById(theDevice._id, function(err, device) {
                 device.device_id.should.equal(deviceId);
                 device.hub_topic.length.should.equal(0);
@@ -225,7 +218,7 @@ describe('db/Device', function() {
               });
           };
 
-        var step3 = function() {
+        const step3 = function() {
             db.devices.delete(deviceType, deviceId,
               oauthClientId, null,
               function(isDeleted) {
@@ -234,17 +227,17 @@ describe('db/Device', function() {
               });
           };
 
-        var step4 = function() {
+        const step4 = function() {
             db.devices._model.findById(theDevice._id, function(err, device) {
                 expect(device).to.be.null;
                 step5();
               });
           };
 
-        var step5 = function() {
+        const step5 = function() {
             db.devices._model.findById(theDevice2._id, function(err, device) {
                 device.should.not.be.null;
-                device.device_id.should.equal(deviceId2);
+                device.device_id.should.equal('di2');
 
                 done();
               });
@@ -254,30 +247,30 @@ describe('db/Device', function() {
       });
 
     it('should delete devices', function(done) {
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var oauthClientId = 'oci';
-        var oauthClientId2 = 'oci2';
-        var theDevice = null;
-        var theDevice2 = null;
+        let theDevice = null;
+        let theDevice2 = null;
 
-        var init = function() {
+        const init = function() {
             db.devices._model.create({
                 device_type: deviceType,
                 device_id: deviceId,
-                oauth_client_id: oauthClientId
+                oauth_client_id: oauthClientId,
               }, {
                 device_type: deviceType,
                 device_id: deviceId,
-                oauth_client_id: oauthClientId2
+                oauth_client_id: 'oci2',
               }, function(err, device, device2) {
+                device.should.not.be.null;
                 theDevice = device;
+
+                device2.should.not.be.null;
                 theDevice2 = device2;
+
                 step1();
               });
           };
 
-        var step1 = function() {
+        const step1 = function() {
             db.devices.delete(deviceType, deviceId,
               null, null, function(isDeleted) {
                 isDeleted.should.not.be.false;
@@ -285,14 +278,14 @@ describe('db/Device', function() {
               });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.devices._model.findById(theDevice._id, function(err, device) {
                 expect(device).to.be.null;
                 step3();
               });
           };
 
-        var step3 = function() {
+        const step3 = function() {
             db.devices._model.findById(theDevice2._id, function(err, device) {
                 expect(device).to.be.null;
                 done();

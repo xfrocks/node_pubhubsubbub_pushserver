@@ -1,16 +1,13 @@
 'use strict';
 
-var apn = exports;
-var _ = require('lodash');
+const apn = exports;
+const _ = require('lodash');
 
-var providers = [];
-var feedbacks = [];
-var latestPush = null;
-var pushes = [];
-
+let providers = [];
+let latestPush = null;
+let pushes = [];
 apn._reset = function() {
     providers = [];
-    feedbacks = [];
     latestPush = null;
     pushes = [];
   };
@@ -28,19 +25,19 @@ apn._getProviderCount = function() {
   };
 
 apn.Provider = function(options) {
-    var provider = this;
+    const provider = this;
     this.options = options;
     this._hasBeenShutdown = false;
 
     this.send = function(notification, recipients) {
         return new global.Promise(function(fulfill) {
-          var result = {sent: [], failed: []};
+          const result = {sent: [], failed: []};
 
           _.forEach(recipients, function(recipient) {
             latestPush = {
               provider: provider,
               recipient: recipient,
-              notification: notification
+              notification: notification,
             };
             pushes.push(latestPush);
 
@@ -51,14 +48,14 @@ apn.Provider = function(options) {
                   status: _.has(notification.payload, 'failed_status') ?
                     notification.payload.failed_status : 500,
                   response: {
-                    reason: 'Reason'
-                  }
+                    reason: 'Reason',
+                  },
                 });
               break;
               case 'fail-Error':
                 result.failed.push({
                   device: recipient,
-                  error: new Error('Error')
+                  error: new Error('Error'),
                 });
               break;
               case 'fail-unknown':

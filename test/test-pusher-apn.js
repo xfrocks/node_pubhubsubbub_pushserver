@@ -1,33 +1,31 @@
-/*jshint expr: true*/
 'use strict';
 
-var config = require('../lib/config');
-var pusher = require('../lib/pusher/apn');
-var chai = require('chai');
-var _ = require('lodash');
+const config = require('../lib/config');
+const pusher = require('../lib/pusher/apn');
+const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
-var expect = chai.expect;
+const expect = chai.expect;
 
-var lib = require('./mock/_modules-apn');
-var connectionOptionsCert = {
+const lib = require('./mock/_modules-apn');
+const connectionOptionsCert = {
   packageId: 'pi',
   cert: 'c',
-  key: 'k'
+  key: 'k',
 };
-var connectionOptions = {
+const connectionOptions = {
   packageId: 'pi',
   token: {
     key: 'k',
     keyId: 'ki',
-    teamId: 'ti'
-  }
+    teamId: 'ti',
+  },
 };
-var token = 't';
-var payload = {aps: {alert: 'foo'}};
+const token = 't';
+const payload = {aps: {alert: 'foo'}};
 
 describe('pusher/apn', function() {
-
     beforeEach(function(done) {
         lib._reset();
         config.apn.notificationOptions = {};
@@ -47,7 +45,7 @@ describe('pusher/apn', function() {
         pusher.send(connectionOptionsCert, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = lib._getLatestPush();
+            const push = lib._getLatestPush();
             push.provider.options.should.deep.equal(connectionOptionsCert);
             push.recipient.should.equal(token);
             push.notification.alert.should.equal(payload.aps.alert);
@@ -63,7 +61,7 @@ describe('pusher/apn', function() {
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = lib._getLatestPush();
+            const push = lib._getLatestPush();
             push.provider.options.should.deep.equal(connectionOptions);
             push.recipient.should.equal(token);
             push.notification.alert.should.equal(payload.aps.alert);
@@ -97,8 +95,8 @@ describe('pusher/apn', function() {
       });
 
     it('should fail with retry=false', function(done) {
-        var test = function(status, callback) {
-            var payloadWithFailedStatus = _.merge(
+        const test = function(status, callback) {
+            const payloadWithFailedStatus = _.merge(
               {failed_status: status},
               payload
             );
@@ -113,8 +111,8 @@ describe('pusher/apn', function() {
               });
           };
 
-        var testRange = function(start, end, testRangeCallback) {
-          var testCallback = function(i) {
+        const testRange = function(start, end, testRangeCallback) {
+          const testCallback = function(i) {
             i++;
             if (i === end) {
               testRangeCallback();
@@ -131,8 +129,8 @@ describe('pusher/apn', function() {
       });
 
     it('should fail without retry', function(done) {
-        var test = function(status, callback) {
-            var payloadWithFailedStatus = _.merge(
+        const test = function(status, callback) {
+            const payloadWithFailedStatus = _.merge(
               {failed_status: status},
               payload
             );
@@ -147,8 +145,8 @@ describe('pusher/apn', function() {
               });
           };
 
-        var testRange = function(start, end, testRangeCallback) {
-          var testCallback = function(i) {
+        const testRange = function(start, end, testRangeCallback) {
+          const testCallback = function(i) {
             i++;
             if (i === end) {
               testRangeCallback();
@@ -167,7 +165,7 @@ describe('pusher/apn', function() {
       });
 
     it('should fail with deleteDevice=true', function(done) {
-        var payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+        const payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
         pusher.send(connectionOptions,
           'fail-string',
           payloadWithFailedStatus,
@@ -179,72 +177,72 @@ describe('pusher/apn', function() {
       });
 
     it('should guard against missing data', function(done) {
-        var payloadTest = function() {
+        const payloadTest = function() {
           pusher.send({
               packageId: 'pi',
               cert: 'cd',
-              key: 'kd'
+              key: 'kd',
             }, token, {}, function(err) {
               err.should.be.string;
               certTest1();
             });
         };
 
-        var certTest1 = function() {
+        const certTest1 = function() {
           pusher.send({
               cert: 'cd',
-              key: 'kd'
+              key: 'kd',
             }, token, payload, function(err) {
               err.should.be.string;
               certTest2();
             });
         };
 
-        var certTest2 = function() {
+        const certTest2 = function() {
           pusher.send({
               packageId: 'pi',
-              key: 'kd'
+              key: 'kd',
             }, token, payload, function(err) {
               err.should.be.string;
               certDone();
             });
         };
 
-        var certDone = function() {
+        const certDone = function() {
           tokenTest1();
         };
 
-        var tokenTest1 = function() {
+        const tokenTest1 = function() {
           pusher.send({
               token: {
                 key: '',
                 keyId: 'ki',
-                teamId: 'ti'
-              }
+                teamId: 'ti',
+              },
             }, token, payload, function(err) {
               err.should.be.string;
               tokenTest2();
             });
         };
 
-        var tokenTest2 = function() {
+        const tokenTest2 = function() {
           pusher.send({
               packageId: 'pi',
               token: {
                 keyId: 'ki',
-                teamId: 'ti'
-              }
+                teamId: 'ti',
+              },
             }, token, payload, function(err) {
               err.should.be.string;
               tokenDone();
             });
         };
 
-        var tokenDone = function() {
+        const tokenDone = function() {
           bothTest();
         };
 
-        var bothTest = function() {
+        const bothTest = function() {
           pusher.send({
               packageId: 'pi',
               cert: 'cd',
@@ -252,8 +250,8 @@ describe('pusher/apn', function() {
               token: {
                 key: 'k',
                 keyId: 'ki',
-                teamId: 'ti'
-              }
+                teamId: 'ti',
+              },
             }, token, payload, function(err) {
               err.should.be.string;
               done();
@@ -264,26 +262,26 @@ describe('pusher/apn', function() {
       });
 
     it('should configure notification directly', function(done) {
-        var payload = {
-            aps: {
+        const payload = {
+            'aps': {
                 alert: 'foo',
                 badge: 'b',
-                sound: 's'
+                sound: 's',
               },
-            expiry: 123,
-            'content-available': 1
+            'expiry': 123,
+            'content-available': 1,
           };
 
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = lib._getLatestPush();
+            const push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.should.equal(payload.aps.badge);
             push.notification.sound.should.equal(payload.aps.sound);
             push.notification.expiry.should.equal(payload.expiry);
             push.notification.payload.should.deep.equal({
-                'content-available': payload['content-available']
+                'content-available': payload['content-available'],
               });
 
             done();
@@ -294,17 +292,17 @@ describe('pusher/apn', function() {
         config.apn.notificationOptions = {
           badge: 'b',
           sound: 's',
-          expiry: 123
+          expiry: 123,
         };
 
         pusher.send({
             packageId: 'pi',
             cert: 'cd',
-            key: 'kd'
+            key: 'kd',
           }, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var push = lib._getLatestPush();
+            const push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.
               should.equal(config.apn.notificationOptions.badge);
@@ -318,13 +316,13 @@ describe('pusher/apn', function() {
       });
 
     it('should reuse cert connection', function(done) {
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 test2();
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptions, 't2', payload, function() {
                 lib._getProviderCount().should.equal(1);
 
@@ -336,13 +334,13 @@ describe('pusher/apn', function() {
       });
 
     it('should reuse token connection', function(done) {
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 test2();
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptions, 't2', payload, function() {
                 lib._getProviderCount().should.equal(1);
 
@@ -354,10 +352,10 @@ describe('pusher/apn', function() {
       });
 
     it('should create connections (diff packageIds)', function(done) {
-        var connectionOptions2 = _.merge({}, connectionOptions);
+        const connectionOptions2 = _.merge({}, connectionOptions);
         connectionOptions2.packageId = 'pi2';
 
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 lib._getProviderCount().should.equal(1);
 
@@ -365,7 +363,7 @@ describe('pusher/apn', function() {
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptions2, 't2', payload, function() {
                 lib._getProviderCount().should.equal(2);
 
@@ -377,10 +375,10 @@ describe('pusher/apn', function() {
       });
 
     it('should create connections (diff certs)', function(done) {
-        var connectionOptions2 = _.merge({}, connectionOptionsCert);
+        const connectionOptions2 = _.merge({}, connectionOptionsCert);
         connectionOptions2.cert = 'c2';
 
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptionsCert, token, payload, function() {
                 lib._getProviderCount().should.equal(1);
 
@@ -388,7 +386,7 @@ describe('pusher/apn', function() {
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptions2, 't2', payload, function() {
                 lib._getProviderCount().should.equal(2);
 
@@ -400,10 +398,10 @@ describe('pusher/apn', function() {
       });
 
     it('should create connections (diff tokens)', function(done) {
-        var connectionOptions2 = _.merge({}, connectionOptions);
+        const connectionOptions2 = _.merge({}, connectionOptions);
         connectionOptions2.token.key = 'k2';
 
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 lib._getProviderCount().should.equal(1);
 
@@ -411,7 +409,7 @@ describe('pusher/apn', function() {
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptions2, 't2', payload, function() {
                 lib._getProviderCount().should.equal(2);
 
@@ -423,12 +421,10 @@ describe('pusher/apn', function() {
       });
 
     it('should clean up connections', function(done) {
-        this.timeout(100);
+        let push1 = null;
+        let push2 = null;
 
-        var push1 = null;
-        var push2 = null;
-
-        var test1 = function() {
+        const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 push1 = lib._getLatestPush();
 
@@ -436,14 +432,14 @@ describe('pusher/apn', function() {
               });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             pusher.send(connectionOptionsCert, 't2', payload, function() {
                 push2 = lib._getLatestPush();
                 setTimeout(test3, 20);
               });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             pusher._cleanUpConnections(30);
 
             push1.provider._hasBeenShutdown.should.be.true;
@@ -453,17 +449,17 @@ describe('pusher/apn', function() {
           };
 
         test1();
-      });
+      }).timeout(100);
 
     it('should do stats', function(done) {
         pusher.send(connectionOptions, token, payload, function(err) {
             expect(err).to.be.null;
 
-            var stats = pusher.stats();
+            const stats = pusher.stats();
             stats.total.should.equal(1);
 
             stats.should.have.ownProperty(connectionOptions.packageId);
-            var thisStats = stats[connectionOptions.packageId];
+            const thisStats = stats[connectionOptions.packageId];
             thisStats.sent.should.equal(1);
             thisStats.failed.should.equal(0);
             thisStats.invalid.should.equal(0);
@@ -473,12 +469,12 @@ describe('pusher/apn', function() {
       });
 
     it('should do stats (failed)', function(done) {
-        var payloadWithFailedStatus = _.merge({failed_status: 500}, payload);
+        const payloadWithFailedStatus = _.merge({failed_status: 500}, payload);
         pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
           function(err) {
             err.should.be.a('string');
 
-            var stats = pusher.stats();
+            const stats = pusher.stats();
             stats.total.should.equal(1);
             stats[connectionOptions.packageId].failed.should.equal(1);
 
@@ -487,17 +483,16 @@ describe('pusher/apn', function() {
       });
 
     it('should do stats (invalid)', function(done) {
-        var payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
+        const payloadWithFailedStatus = _.merge({failed_status: 410}, payload);
         pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
           function(err) {
             err.should.be.a('string');
 
-            var stats = pusher.stats();
+            const stats = pusher.stats();
             stats.total.should.equal(1);
             stats[connectionOptions.packageId].invalid.should.equal(1);
 
             done();
           });
       });
-
   });

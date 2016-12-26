@@ -25,41 +25,24 @@
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "coveralls": "^2.11.9",
+    "eslint": "^3.12.2",
+    "eslint-config-google": "^0.7.1",
     "istanbul": "^0.4.3",
-    "jscs": "^3.0.3",
-    "jshint": "^2.9.1",
     "mocha": "^3.2.0"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.9.0",
+    "npm": ">=3.0.0"
   },
   "scripts": {
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
-    "jscs": "./node_modules/jscs/bin/jscs --fix -- lib test",
+    "lint": "./node_modules/.bin/eslint --fix -- bin/pushserver lib test",
     "start": "node bin/pushserver",
-    "test": "./node_modules/jshint/bin/jshint -- lib/*.js lib/*/*.js test/*.js test/*/*.js && ./node_modules/mocha/bin/mocha"
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/xfrocks/node_pubhubsubbub_pushserver.git"
   },
-  "license": "MIT",
-  "jshintConfig": {
-    "bitwise": true,
-    "curly": true,
-    "eqeqeq": true,
-    "forin": true,
-    "freeze": true,
-    "latedef": false,
-    "maxdepth": 3,
-    "noarg": true,
-    "noempty": true,
-    "nonbsp": true,
-    "notypeof": true,
-    "strict": true,
-    "undef": true,
-    "unused": true,
-    "mocha": true,
-    "node": true
-  }
+  "license": "MIT"
 }

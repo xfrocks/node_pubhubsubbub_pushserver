@@ -1,42 +1,41 @@
-/*jshint expr: true*/
 'use strict';
 
-var helper = require('../lib/helper.js');
-var chai = require('chai');
-var _ = require('lodash');
+const helper = require('../lib/helper.js');
+const chai = require('chai');
+const _ = require('lodash');
 
-var expect = chai.expect;
+const expect = chai.expect;
 
 describe('helper', function() {
-
     it('should strip html', function(done) {
-        expect(helper.stripHtml('\t<b>Hello</b> ' +
-            '<em>World</em>!\r\n')).to.equal('Hello World!');
+        const html = '\t<b>Hello</b> <em>World</em>!\r\n';
+        const result = helper.stripHtml(html);
+        result.should.equal('Hello World!');
         done();
       });
 
     it('should prepare apn message', function(done) {
-        var string229 = _.repeat('a', 229);
-        expect(helper.prepareApnMessage(string229)).to.equal(string229);
+        const string229 = _.repeat('a', 229);
+        helper.prepareApnMessage(string229).should.equal(string229);
 
-        var string230 = _.repeat('a', 230);
-        expect(helper.prepareApnMessage(string230)).to.equal(string230);
+        const string230 = _.repeat('a', 230);
+        helper.prepareApnMessage(string230).should.equal(string230);
 
-        var string231 = _.repeat('a', 231);
-        expect(helper.prepareApnMessage(string231)).to.equal(string229 + '…');
+        const string231 = _.repeat('a', 231);
+        helper.prepareApnMessage(string231).should.equal(string229 + '…');
 
         done();
       });
 
     it('should prepare subscribe data', function(done) {
-        var hubTopic = 'ht';
-        var hubUri = 'http://domain.com/hub';
-        var hubUriWithTopic = hubUri + '?hub.topic=' + hubTopic;
-        var oauthClientId = 'oci';
-        var oauthToken = 'ot';
-        var deviceType = 'dt';
-        var deviceId = 'di';
-        var extraData = {foo: 'bar'};
+        const hubTopic = 'ht';
+        const hubUri = 'http://domain.com/hub';
+        const hubUriWithTopic = hubUri + '?hub.topic=' + hubTopic;
+        const oauthClientId = 'oci';
+        const oauthToken = 'ot';
+        const deviceType = 'dt';
+        const deviceId = 'di';
+        const extraData = {foo: 'bar'};
 
         expect(helper.prepareSubscribeData({
             hub_uri: hubUri,
@@ -46,7 +45,7 @@ describe('helper', function() {
 
             device_type: deviceType,
             device_id: deviceId,
-            extra_data: extraData
+            extra_data: extraData,
           })).to.deep.equal({
             hub_uri: hubUri,
             hub_topic: hubTopic,
@@ -57,7 +56,7 @@ describe('helper', function() {
             device_id: deviceId,
             extra_data: extraData,
 
-            has_all_required_keys: true
+            has_all_required_keys: true,
           });
 
         expect(helper.prepareSubscribeData({})).to.deep.equal({
@@ -70,11 +69,11 @@ describe('helper', function() {
             device_id: '',
             extra_data: null,
 
-            has_all_required_keys: true
+            has_all_required_keys: true,
           });
 
         expect(helper.prepareSubscribeData({
-            hub_uri: hubUriWithTopic
+            hub_uri: hubUriWithTopic,
           })).to.deep.equal({
             hub_uri: hubUriWithTopic,
             hub_topic: hubTopic,
@@ -85,7 +84,7 @@ describe('helper', function() {
             device_id: '',
             extra_data: null,
 
-            has_all_required_keys: true
+            has_all_required_keys: true,
           });
 
         expect(helper.prepareSubscribeData({}, ['hub_uri']))
@@ -98,5 +97,4 @@ describe('helper', function() {
 
         done();
       });
-
   });

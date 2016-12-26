@@ -1,11 +1,11 @@
 'use strict';
 
-var db = exports;
-var _ = require('lodash');
+const db = exports;
+const _ = require('lodash');
 
-var devices = {};
-var hubs = {};
-var projects = {};
+let devices = {};
+let hubs = {};
+let projects = {};
 
 db.devices = {
 
@@ -19,15 +19,14 @@ db.devices = {
 
     save: function(deviceType, deviceId, oauthClientId,
       hubTopic, extraData, callback) {
-        var mock = function() {
+        const mock = function() {
             if (deviceId === 'error') {
               done(false);
             }
 
-            var key = deviceType + deviceId + oauthClientId;
-
+            const key = deviceType + deviceId + oauthClientId;
             if (_.has(devices, key)) {
-              var device = devices[key];
+              const device = devices[key];
               if (device.hub_topic.indexOf(hubTopic) === -1) {
                 device.hub_topic.push(hubTopic);
               }
@@ -40,14 +39,14 @@ db.devices = {
                   device_id: deviceId,
                   oauth_client_id: oauthClientId,
                   hub_topic: [hubTopic],
-                  extra_data: extraData
+                  extra_data: extraData,
                 };
 
               done('saved');
             }
           };
 
-        var done = function(result) {
+        const done = function(result) {
             if (_.isFunction(callback)) {
               callback(result);
             }
@@ -57,7 +56,7 @@ db.devices = {
       },
 
     findDevices: function(oauthClientId, hubTopic, callback) {
-        var results = _.filter(devices, function(device) {
+        const results = _.filter(devices, function(device) {
             if (device.oauth_client_id !== oauthClientId) {
               return false;
             }
@@ -75,13 +74,13 @@ db.devices = {
       },
 
     delete: function(deviceType, deviceId, oauthClientId, hubTopic, callback) {
-        var mock = function() {
+        const mock = function() {
             if (deviceId === 'error') {
               return done(false);
             }
 
-            var result = false;
-            var updatedDevices = {};
+            let result = false;
+            let updatedDevices = {};
 
             if (!oauthClientId || !hubTopic) {
               // delete device
@@ -124,14 +123,14 @@ db.devices = {
             return done(result);
           };
 
-        var done = function(result) {
+        const done = function(result) {
             if (_.isFunction(callback)) {
               callback(result);
             }
           };
 
         mock();
-      }
+      },
   };
 
 db.hubs = {
@@ -141,15 +140,14 @@ db.hubs = {
       },
 
     save: function(oauthClientId, hubUri, extraData, callback) {
-        var mock = function() {
+        const mock = function() {
             if (hubUri === 'http://err.or/hub') {
               return done(false);
             }
 
-            var key = oauthClientId;
-
+            const key = oauthClientId;
             if (_.has(hubs, key)) {
-              var hub = hubs[key];
+              const hub = hubs[key];
               if (hub.hub_uri.indexOf(hubUri) === -1) {
                 hub.hub_uri.push(hubUri);
               }
@@ -160,14 +158,14 @@ db.hubs = {
               hubs[key] = {
                   oauth_client_id: oauthClientId,
                   hub_uri: [hubUri],
-                  extra_data: extraData
+                  extra_data: extraData,
                 };
 
               done('saved');
             }
           };
 
-        var done = function(result) {
+        const done = function(result) {
             if (_.isFunction(callback)) {
               callback(result);
             }
@@ -177,11 +175,11 @@ db.hubs = {
       },
 
     findHub: function(oauthClientId, callback) {
-        var hub = _.has(hubs, oauthClientId) ? hubs[oauthClientId] : null;
+        const hub = _.has(hubs, oauthClientId) ? hubs[oauthClientId] : null;
         if (_.isFunction(callback)) {
           callback(hub);
         }
-      }
+      },
   };
 
 db.projects = {
@@ -198,13 +196,13 @@ db.projects = {
       production,
       callback
     ) {
-        var configuration = {
+        const configuration = {
           token: {
             key: tokenKey,
             keyId: tokenKeyId,
-            teamId: tokenTeamId
+            teamId: tokenTeamId,
           },
-          production: production
+          production: production,
         };
 
         return this.save('apn', bundleId, configuration, callback);
@@ -217,20 +215,19 @@ db.projects = {
     saveWns: function(packageId, clientId, clientSecret, callback) {
         return this.save('wns', packageId, {
             client_id: clientId,
-            client_secret: clientSecret
+            client_secret: clientSecret,
           }, callback);
       },
 
     save: function(projectType, projectId, configuration, callback) {
-        var mock = function() {
+        const mock = function() {
             if (projectId === 'error') {
               return done(false);
             }
 
-            var key = projectType + projectId;
-
+            const key = projectType + projectId;
             if (_.has(projects, key)) {
-              var project = projects[key];
+              const project = projects[key];
               project.configuration = _.assign({},
                 project.configuration, configuration);
               project.last_updated = Date.now();
@@ -243,14 +240,14 @@ db.projects = {
                   project_id: projectId,
                   configuration: configuration,
                   created: new Date(),
-                  last_updated: new Date()
+                  last_updated: new Date(),
                 };
 
               return done('saved');
             }
           };
 
-        var done = function(result) {
+        const done = function(result) {
             if (_.isFunction(callback)) {
               callback(result);
             }
@@ -260,7 +257,7 @@ db.projects = {
       },
 
     findProject: function(projectType, projectId, callback) {
-        var found = null;
+        let found = null;
 
         _.forEach(projects, function(project) {
             if (project.project_type === projectType &&
@@ -283,8 +280,7 @@ db.projects = {
               } else {
                 callback(null);
               }
-
             }
           });
-      }
+      },
   };

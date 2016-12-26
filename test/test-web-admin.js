@@ -1,19 +1,17 @@
-/*jshint expr: true*/
 'use strict';
 
-var web = require('../lib/web');
-var chai = require('chai');
-var _ = require('lodash');
+const web = require('../lib/web');
+const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
 
-var db = require('./mock/db');
-var admin = require('../lib/web/admin');
-var webApp = chai.request(web._app);
+const db = require('./mock/db');
+const admin = require('../lib/web/admin');
+const webApp = chai.request(web._app);
 
 describe('web/admin', function() {
-
     before(function(done) {
         admin.setup(web._app, '/admin', null, null, null, db);
         done();
@@ -37,20 +35,20 @@ describe('web/admin', function() {
       });
 
     it('should save apn project', function(done) {
-        var test = function(extraData, assertCallback) {
-          var bundleId = 'bi';
-          var tokenKey = 'tk';
-          var tokenKeyId = 'tki';
-          var tokenTeamId = 'tti';
+        const test = function(extraData, assertCallback) {
+          const bundleId = 'bi';
+          const tokenKey = 'tk';
+          const tokenKeyId = 'tki';
+          const tokenTeamId = 'tti';
 
-          var step1 = function() {
-              var data = _.merge({
+          const step1 = function() {
+              const data = _.merge({
                 bundle_id: bundleId,
                 token: {
                   key: tokenKey,
                   key_id: tokenKeyId,
                   team_id: tokenTeamId,
-                }
+                },
               }, extraData);
               webApp
                   .post('/admin/projects/apn')
@@ -61,7 +59,7 @@ describe('web/admin', function() {
                     });
             };
 
-          var step2 = function() {
+          const step2 = function() {
               db.projects.findConfig('apn', bundleId, function(projectConfig) {
                   projectConfig.should.not.be.null;
                   projectConfig.token.should.be.a('object');
@@ -76,7 +74,7 @@ describe('web/admin', function() {
           step1();
         };
 
-        var test1 = function() {
+        const test1 = function() {
           test({production: 1}, function(projectConfig) {
             projectConfig.production.should.be.true;
 
@@ -84,7 +82,7 @@ describe('web/admin', function() {
           });
         };
 
-        var test2 = function() {
+        const test2 = function() {
           test({production: 0}, function(projectConfig) {
             projectConfig.production.should.be.false;
 
@@ -92,7 +90,7 @@ describe('web/admin', function() {
           });
         };
 
-        var test3 = function() {
+        const test3 = function() {
           test({}, function(projectConfig) {
             projectConfig.production.should.be.true;
 
@@ -104,78 +102,78 @@ describe('web/admin', function() {
       });
 
     it('should not save apn project', function(done) {
-        var bundleId = 'bi';
-        var tokenKey = 'tk';
-        var tokenKeyId = 'tki';
-        var tokenTeamId = 'tti';
+        const bundleId = 'bi';
+        const tokenKey = 'tk';
+        const tokenKeyId = 'tki';
+        const tokenTeamId = 'tti';
 
-        var test = function(data, endCallback) {
+        const test = function(data, endCallback) {
             webApp
                 .post('/admin/projects/apn')
                 .send(data)
                 .end(endCallback);
           };
 
-        var test1 = function() {
+        const test1 = function() {
           test({
             token: {
               key: tokenKey,
               key_id: tokenKeyId,
               team_id: tokenTeamId,
-            }
+            },
           }, function(err, res) {
             res.should.have.status(400);
             test2();
           });
         };
 
-        var test2 = function() {
+        const test2 = function() {
           test({
             bundle_id: bundleId,
             token: {
               key_id: tokenKeyId,
               team_id: tokenTeamId,
-            }
+            },
           }, function(err, res) {
             res.should.have.status(400);
             test3();
           });
         };
 
-        var test3 = function() {
+        const test3 = function() {
           test({
             bundle_id: bundleId,
             token: {
               key: tokenKey,
               team_id: tokenTeamId,
-            }
+            },
           }, function(err, res) {
             res.should.have.status(400);
             test4();
           });
         };
 
-        var test4 = function() {
+        const test4 = function() {
           test({
             bundle_id: bundleId,
             token: {
               key: tokenKey,
               key_id: tokenKeyId,
-            }
+            },
           }, function(err, res) {
             res.should.have.status(400);
             test5();
           });
         };
 
-        var test5 = function() {
+        const test5 = function() {
           test({
             bundle_id: 'error',
             token: {
               key: tokenKey,
               key_id: tokenKeyId,
               team_id: tokenTeamId,
-            }
+            },
           }, function(err, res) {
             res.should.have.status(500);
             done();
@@ -186,15 +184,15 @@ describe('web/admin', function() {
       });
 
     it('should save gcm project', function(done) {
-        var packageId = 'pi';
-        var apiKey = 'ak';
+        const packageId = 'pi';
+        const apiKey = 'ak';
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/admin/projects/gcm')
                 .send({
                     package_id: packageId,
-                    api_key: apiKey
+                    api_key: apiKey,
                   })
                 .end(function(err, res) {
                     res.should.have.status(202);
@@ -202,7 +200,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.projects.findConfig('gcm', packageId, function(projectConfig) {
                 projectConfig.should.not.be.null;
                 projectConfig.api_key.should.equal(apiKey);
@@ -215,14 +213,14 @@ describe('web/admin', function() {
       });
 
     it('should not save gcm project', function(done) {
-        var packageId = 'pi';
-        var apiKey = 'ak';
+        const packageId = 'pi';
+        const apiKey = 'ak';
 
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .post('/admin/projects/gcm')
                 .send({
-                    api_key: apiKey
+                    api_key: apiKey,
                   })
                 .end(function(err, res) {
                     res.should.have.status(400);
@@ -230,11 +228,11 @@ describe('web/admin', function() {
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .post('/admin/projects/gcm')
                 .send({
-                    package_id: packageId
+                    package_id: packageId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(400);
@@ -242,12 +240,12 @@ describe('web/admin', function() {
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .post('/admin/projects/gcm')
                 .send({
                     package_id: 'error',
-                    api_key: apiKey
+                    api_key: apiKey,
                   })
                 .end(function(err, res) {
                     res.should.have.status(500);
@@ -259,17 +257,17 @@ describe('web/admin', function() {
       });
 
     it('should save wns project', function(done) {
-        var packageId = 'pi';
-        var clientId = 'ci';
-        var clientSecret = 'cs';
+        const packageId = 'pi';
+        const clientId = 'ci';
+        const clientSecret = 'cs';
 
-        var step1 = function() {
+        const step1 = function() {
             webApp
                 .post('/admin/projects/wns')
                 .send({
                     package_id: packageId,
                     client_id: clientId,
-                    client_secret: clientSecret
+                    client_secret: clientSecret,
                   })
                 .end(function(err, res) {
                     res.should.have.status(202);
@@ -277,7 +275,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var step2 = function() {
+        const step2 = function() {
             db.projects.findConfig('wns', packageId, function(projectConfig) {
                 projectConfig.should.not.be.null;
                 projectConfig.client_id.should.equal(clientId);
@@ -291,16 +289,16 @@ describe('web/admin', function() {
       });
 
     it('should not save wns project', function(done) {
-        var packageId = 'pi';
-        var clientId = 'ci';
-        var clientSecret = 'cs';
+        const packageId = 'pi';
+        const clientId = 'ci';
+        const clientSecret = 'cs';
 
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .post('/admin/projects/wns')
                 .send({
                     client_id: clientId,
-                    client_secret: clientSecret
+                    client_secret: clientSecret,
                   })
                 .end(function(err, res) {
                     res.should.have.status(400);
@@ -308,12 +306,12 @@ describe('web/admin', function() {
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .post('/admin/projects/wns')
                 .send({
                     package_id: packageId,
-                    client_secret: clientSecret
+                    client_secret: clientSecret,
                   })
                 .end(function(err, res) {
                     res.should.have.status(400);
@@ -321,12 +319,12 @@ describe('web/admin', function() {
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .post('/admin/projects/wns')
                 .send({
                     package_id: packageId,
-                    client_id: clientId
+                    client_id: clientId,
                   })
                 .end(function(err, res) {
                     res.should.have.status(400);
@@ -334,13 +332,13 @@ describe('web/admin', function() {
                   });
           };
 
-        var test4 = function() {
+        const test4 = function() {
             webApp
                 .post('/admin/projects/wns')
                 .send({
                     package_id: 'error',
                     client_id: clientId,
-                    client_secret: clientSecret
+                    client_secret: clientSecret,
                   })
                 .end(function(err, res) {
                     res.should.have.status(500);
@@ -352,11 +350,11 @@ describe('web/admin', function() {
       });
 
     it('should respond with project info', function(done) {
-        var projectType = 'pt';
-        var projectId = 'pi';
-        var configuration = {foo: 'bar'};
+        const projectType = 'pt';
+        const projectId = 'pi';
+        const configuration = {foo: 'bar'};
 
-        var init = function() {
+        const init = function() {
             db.projects.save(projectType, projectId, configuration,
               function(isSaved) {
                 isSaved.should.not.be.false;
@@ -364,7 +362,7 @@ describe('web/admin', function() {
               });
           };
 
-        var test = function() {
+        const test = function() {
             webApp
                 .get('/admin/projects/' + projectType + '/' + projectId)
                 .end(function(err, res) {
@@ -380,8 +378,8 @@ describe('web/admin', function() {
       });
 
     it('should not respond for unknown project', function(done) {
-        var projectType = 'pt-unknown';
-        var projectId = 'pi-unknown';
+        const projectType = 'pt-unknown';
+        const projectId = 'pi-unknown';
 
         webApp
             .get('/admin/projects/' + projectType + '/' + projectId)
@@ -392,12 +390,12 @@ describe('web/admin', function() {
       });
 
     it('should require auth', function(done) {
-        var adminPrefix = '/admin-auth';
-        var username = 'username';
-        var password = 'password';
+        const adminPrefix = '/admin-auth';
+        const username = 'username';
+        const password = 'password';
         admin.setup(web._app, adminPrefix, username, password);
 
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .get(adminPrefix)
                 .end(function(err, res) {
@@ -406,7 +404,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .get(adminPrefix)
                 .auth(username, password + 'z')
@@ -416,7 +414,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .get(adminPrefix)
                 .auth(username, password)
@@ -430,17 +428,17 @@ describe('web/admin', function() {
       });
 
     it('should setup sections', function(done) {
-        var adminPrefix = '/admin-sections';
-        var sections = {
-            one: function(req, res, next) {
+        const adminPrefix = '/admin-sections';
+        const sections = {
+            'one': function(req, res, next) {
                 res.send({section: 1});
                 next();
               },
-            two2: function(req, res, next) {
+            'two2': function(req, res, next) {
                 res.send({section: 2});
                 next();
               },
-            three_: function(req, res, next) {
+            'three_': function(req, res, next) {
                 res.send({section: 3});
                 next();
               },
@@ -448,7 +446,7 @@ describe('web/admin', function() {
                 res.send({section: 'invalid'});
                 next();
               },
-            five: null
+            'five': null,
           };
 
         admin.setup(web._app,
@@ -456,7 +454,7 @@ describe('web/admin', function() {
           null, null, null, sections
         );
 
-        var test0 = function() {
+        const test0 = function() {
             webApp
                 .get(adminPrefix)
                 .end(function(err, res) {
@@ -466,7 +464,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var test1 = function() {
+        const test1 = function() {
             webApp
                 .get(adminPrefix + '/one')
                 .end(function(err, res) {
@@ -476,7 +474,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var test2 = function() {
+        const test2 = function() {
             webApp
                 .get(adminPrefix + '/two')
                 .end(function(err, res) {
@@ -486,7 +484,7 @@ describe('web/admin', function() {
                   });
           };
 
-        var test3 = function() {
+        const test3 = function() {
             webApp
                 .get(adminPrefix + '/three')
                 .end(function(err, res) {
