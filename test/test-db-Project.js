@@ -169,6 +169,7 @@ describe('db/Project', function() {
                 configuration: configuration,
               }, function(err, project) {
                 project.should.not.be.null;
+                project.configuration.should.deep.equal(configuration);
                 theProject = project;
                 step1();
               });
@@ -185,9 +186,7 @@ describe('db/Project', function() {
         const step2 = function() {
             db.projects._model.findById(theProject._id,
               function(err, project) {
-                project.configuration.should.has.all.keys('foo', 'bar');
-                project.configuration.foo.should.equal(configuration.foo);
-                project.configuration.bar.should.equal(configuration2.bar);
+                project.configuration.should.deep.equal(configuration2);
                 project.created.getTime().
                   should.equal(theProject.created.getTime());
                 project.last_updated.getTime().
