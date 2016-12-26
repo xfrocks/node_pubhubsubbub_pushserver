@@ -49,6 +49,9 @@ const wns = {
 };
 
 describe('app', function() {
+    // eslint-disable-next-line no-invalid-this
+    this.timeout(20000);
+
     before(function(done) {
         nock.disableNetConnect();
         nock.enableNetConnect('127.0.0.1');
@@ -57,6 +60,7 @@ describe('app', function() {
         process.env.CONFIG_WEB_CALLBACK = 'https://api-pushserver-xfrocks-com.herokuapp.com/callback';
         process.env.CONFIG_WEB_USERNAME = adminUsername;
         process.env.CONFIG_WEB_PASSWORD = adminPassword;
+        process.env.PORT = 0;
         config._reload();
         config.pushQueue.attempts = 0;
 
@@ -84,17 +88,6 @@ describe('app', function() {
         nock.cleanAll();
         nock.enableNetConnect();
         done();
-      });
-
-    it('should say hi', function(done) {
-        webApp
-            .get('/')
-            .end(function(err, res) {
-                res.should.have.status(200);
-                res.text.should.have.string('Hi, I am');
-
-                done();
-              });
       });
 
     it('should works with apn', function(done) {

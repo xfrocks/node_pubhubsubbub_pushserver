@@ -13,13 +13,6 @@ describe('config', function() {
         done();
       });
 
-    afterEach(function(done) {
-        process.env = {};
-        config._reload();
-
-        done();
-      });
-
     it('should load default values', function(done) {
         config._reload();
         _.forEach(config._defaultConfig, function(value, key) {
@@ -118,7 +111,6 @@ describe('config', function() {
 
     it('should handle CONFIG_WEB_USERNAME no PASSWORD', function(done) {
         process.env.CONFIG_WEB_USERNAME = 'username';
-        process.env.CONFIG_WEB_PASSWORD = '';
         config._reload();
 
         config.web.username.should.equal('');
@@ -130,7 +122,6 @@ describe('config', function() {
       });
 
     it('should handle CONFIG_WEB_PASSWORD no USERNAME', function(done) {
-        process.env.CONFIG_WEB_USERNAME = '';
         process.env.CONFIG_WEB_PASSWORD = 'password';
         config._reload();
 
@@ -166,7 +157,6 @@ describe('config', function() {
 
     it('should handle CONFIG_APN_CERT no KEY', function(done) {
         process.env.CONFIG_APN_CERT = 'cac';
-        process.env.CONFIG_APN_KEY = '';
         config._reload();
 
         config.apn.connectionOptions.cert.should.equal('');
@@ -176,7 +166,6 @@ describe('config', function() {
       });
 
     it('should handle CONFIG_APN_KEY no CERT', function(done) {
-        process.env.CONFIG_APN_CERT = '';
         process.env.CONFIG_APN_KEY = 'cak';
         config._reload();
 
@@ -271,7 +260,6 @@ describe('config', function() {
 
     it('should handle CONFIG_WNS_CLIENT_ID no SECRET', function(done) {
         process.env.CONFIG_WNS_CLIENT_ID = 'cwci';
-        process.env.CONFIG_WNS_CLIENT_SECRET = '';
         config._reload();
 
         config.wns.client_id.should.equal('');
@@ -281,7 +269,6 @@ describe('config', function() {
       });
 
     it('should handle CONFIG_WNS_CLIENT_SECRET no ID', function(done) {
-        process.env.CONFIG_WNS_CLIENT_ID = '';
         process.env.CONFIG_WNS_CLIENT_SECRET = 'cwcs';
         config._reload();
 
