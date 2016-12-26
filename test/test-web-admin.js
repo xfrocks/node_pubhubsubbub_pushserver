@@ -6,14 +6,16 @@ const _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
-
 const db = require('./mock/db');
 const admin = require('../lib/web/admin');
-const webApp = chai.request(web._app);
+
+let webApp = null;
 
 describe('web/admin', function() {
     before(function(done) {
-        admin.setup(web._app, '/admin', null, null, null, db);
+        web._reset();
+        webApp = chai.request(web.app());
+        admin.setup(web.app(), '/admin', null, null, null, db);
         done();
       });
 
@@ -393,7 +395,7 @@ describe('web/admin', function() {
         const adminPrefix = '/admin-auth';
         const username = 'username';
         const password = 'password';
-        admin.setup(web._app, adminPrefix, username, password);
+        admin.setup(web.app(), adminPrefix, username, password);
 
         const test1 = function() {
             webApp
@@ -449,7 +451,7 @@ describe('web/admin', function() {
             'five': null,
           };
 
-        admin.setup(web._app,
+        admin.setup(web.app(),
           adminPrefix, null, null,
           null, null, null, sections
         );

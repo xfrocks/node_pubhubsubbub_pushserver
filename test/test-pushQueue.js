@@ -38,7 +38,7 @@ describe('pushQueue', function() {
         db.projects._reset();
         db.devices._reset();
 
-        pushQueue.setup(pushKue, pusher, db.projects, db.devices);
+        pushQueue.setup(pushKue, pusher, db);
 
         done();
       });

@@ -11,11 +11,9 @@ const _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
-const expect = chai.expect;
-
 const db = require('./mock/db');
 const pushQueue = require('./mock/pushQueue');
-const webApp = chai.request(web._app);
+const expect = chai.expect;
 
 const testApp = express();
 let testAppReqs = [];
@@ -32,6 +30,7 @@ const testAppPort = testServer.address().port;
 const testAppUri = 'http://localhost:' + testAppPort;
 const testAppUriStatus202 = testAppUri + '/status/202';
 
+let webApp = null;
 const callbackUri = 'http://push.server/callback';
 const hubTopic = 'ht';
 const oauthClientId = 'oci';
@@ -43,7 +42,10 @@ const payload = 'p';
 
 describe('web/pubhubsubbub', function() {
     before(function(done) {
-        pubhubsubbub.setup(web._app, '', db, pushQueue);
+        web._reset();
+        webApp = chai.request(web.app());
+        pubhubsubbub.setup(web.app(), '', db, pushQueue);
+
         done();
       });
 
@@ -902,7 +904,7 @@ describe('web/pubhubsubbub', function() {
 
     it('should not register some routes without db', function(done) {
         const pubhubsubbubPrefix = '/no-device-db';
-        pubhubsubbub.setup(web._app, pubhubsubbubPrefix);
+        pubhubsubbub.setup(web.app(), pubhubsubbubPrefix);
 
         const test1 = function() {
             webApp
@@ -954,7 +956,7 @@ describe('web/pubhubsubbub', function() {
 
     it('should not register /callback without queue', function(done) {
         const pubhubsubbubPrefix = '/no-device-db';
-        pubhubsubbub.setup(web._app, pubhubsubbubPrefix, db.devices);
+        pubhubsubbub.setup(web.app(), pubhubsubbubPrefix, db.devices);
 
         webApp
             .post(pubhubsubbubPrefix + '/callback')
