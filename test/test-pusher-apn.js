@@ -9,6 +9,7 @@ chai.should();
 const expect = chai.expect;
 
 const lib = require('./mock/_modules-apn');
+const originalApnOptions = _.cloneDeep(config.apn);
 const connectionOptionsCert = {
   packageId: 'pi',
   cert: 'c',
@@ -28,7 +29,7 @@ const payload = {aps: {alert: 'foo'}};
 describe('pusher/apn', function() {
     beforeEach(function(done) {
         lib._reset();
-        config.apn.notificationOptions = {};
+        config.apn = _.cloneDeep(originalApnOptions);
         pusher.setup(config, lib);
         done();
       });
@@ -375,6 +376,26 @@ describe('pusher/apn', function() {
         const test2 = function() {
             pusher.send(connectionOptions, 't2', payload, function() {
                 lib._getProviderCount().should.equal(1);
+
+                done();
+              });
+          };
+
+        test1();
+      });
+
+    it('should not reuse old connection', function(done) {
+        config.apn.connectionTtlInMs = 10;
+
+        const test1 = function() {
+            pusher.send(connectionOptions, token, payload, function() {
+                setTimeout(test2, 20);
+              });
+          };
+
+        const test2 = function() {
+            pusher.send(connectionOptions, 't2', payload, function() {
+                lib._getProviderCount().should.equal(2);
 
                 done();
               });

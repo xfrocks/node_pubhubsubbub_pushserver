@@ -1,7 +1,6 @@
 'use strict';
 
 const pusher = exports;
-const _ = require('lodash');
 
 let latestPush = null;
 let pushes = [];
