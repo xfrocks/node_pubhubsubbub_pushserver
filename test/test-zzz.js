@@ -51,7 +51,6 @@ describe('full app', function() {
               const stats = res.body;
               stats.should.have.all.keys(
                 ['uptime', 'db', 'pusher', 'pushQueue', 'web']);
-              stats.uptime.should.at.least(1);
 
               stats.db.should.have.all.keys(
                 ['devices', 'hubs', 'projects']);
@@ -68,7 +67,8 @@ describe('full app', function() {
                 ['queued', 'processed']);
 
               stats.web.should.have.all.keys(
-                ['subscribe', 'unsubscribe', 'unregister', 'callback']);
+                ['subscribe', 'unsubscribe', 'unregister',
+                'callback', 'auto_unsubscribe']);
               stats.web.callback.should.have.all.keys(['get', 'post']);
 
               done();
