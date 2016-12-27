@@ -4,6 +4,7 @@ const helper = require('../lib/helper.js');
 const chai = require('chai');
 const _ = require('lodash');
 
+chai.should();
 const expect = chai.expect;
 
 describe('helper', function() {
@@ -96,5 +97,22 @@ describe('helper', function() {
             .that.is.true;
 
         done();
+      });
+
+    it('should invoke callback', function(done) {
+        const args = ['0', '1'];
+        const later = helper.later(function(args0, args1) {
+          args0.should.equal(args[0]);
+          args1.should.equal(args[1]);
+          done();
+        });
+
+        later(args[0], args[1]);
+      }).timeout(10);
+
+    it('should not invoke non-function', function(done) {
+        const later = helper.later(null);
+        later('something', 'else');
+        setTimeout(done, 10);
       });
   });
