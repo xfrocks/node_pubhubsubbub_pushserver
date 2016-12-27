@@ -1,11 +1,14 @@
 'use strict';
 
-const db = require('../lib/db');
+const config = require('../lib/config');
 const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
 const expect = chai.expect;
 
+let db = null;
+const originalProcessEnv = _.cloneDeep(process.env);
 const deviceType = 'dt';
 const deviceId = 'di';
 const oauthClientId = 'oci';
@@ -13,20 +16,35 @@ const hubTopic = 'ht';
 const extraData = {foo: 'bar'};
 
 describe('db/Device', function() {
-    beforeEach(function(done) {
-        const checkForDb = function() {
-          if (!db.isConnected()) {
-            return setTimeout(checkForDb, 100);
-          }
+    before(function(done) {
+        // eslint-disable-next-line no-invalid-this
+        this.timeout(20000);
 
-          db.devices._model.collection.drop().then(function() {
-              done();
-            }).catch(function() {
-              done();
-            });
+        process.env = _.cloneDeep(originalProcessEnv);
+        config._reload();
+        db = require('../lib/db')(config);
+
+        const waitForDb = function() {
+            if (!db.isConnected()) {
+              return setTimeout(waitForDb, 100);
+            }
+
+            done();
           };
 
-        checkForDb();
+        waitForDb();
+      });
+
+    after(function(done) {
+        db.closeConnection().then(done);
+      });
+
+    beforeEach(function(done) {
+        db.devices._model.collection.drop().then(function() {
+            done();
+          }).catch(function() {
+            done();
+          });
       });
 
     it('should save device', function(done) {
