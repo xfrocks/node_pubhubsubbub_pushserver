@@ -46,7 +46,7 @@ pushKue.create = function(queueId, jobData) {
       };
 
     const attempt = function() {
-        if (!_.isFunction(processCallbacks[queueId])) {
+        if (!_.has(processCallbacks, queueId)) {
           return;
         }
 
@@ -95,10 +95,7 @@ pushKue.create = function(queueId, jobData) {
             }
             queues[queueId].push(job);
 
-            if (_.isFunction(callback)) {
-              callback();
-            }
-
+            callback();
             attempt();
           },
       };

@@ -44,9 +44,7 @@ const mock = function(push, hint, callback) {
       break;
     }
 
-    if (_.isFunction(callback)) {
-      callback(err, info);
-    }
+    callback(err, info);
   };
 
 pusher.apn = function(connectionOptions, token, payload, callback) {

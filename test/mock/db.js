@@ -47,9 +47,7 @@ db.devices = {
           };
 
         const done = function(result) {
-            if (_.isFunction(callback)) {
-              callback(result);
-            }
+            callback(result);
           };
 
         mock();
@@ -68,9 +66,7 @@ db.devices = {
             }
           });
 
-        if (_.isFunction(callback)) {
-          callback(results);
-        }
+        callback(results);
       },
 
     delete: function(deviceType, deviceId, oauthClientId, hubTopic, callback) {
@@ -124,9 +120,7 @@ db.devices = {
           };
 
         const done = function(result) {
-            if (_.isFunction(callback)) {
-              callback(result);
-            }
+            callback(result);
           };
 
         mock();
@@ -166,9 +160,7 @@ db.hubs = {
           };
 
         const done = function(result) {
-            if (_.isFunction(callback)) {
-              callback(result);
-            }
+            callback(result);
           };
 
         mock();
@@ -176,9 +168,7 @@ db.hubs = {
 
     findHub: function(oauthClientId, callback) {
         const hub = _.has(hubs, oauthClientId) ? hubs[oauthClientId] : null;
-        if (_.isFunction(callback)) {
-          callback(hub);
-        }
+        callback(hub);
       },
   };
 
@@ -248,9 +238,7 @@ db.projects = {
           };
 
         const done = function(result) {
-            if (_.isFunction(callback)) {
-              callback(result);
-            }
+            callback(result);
           };
 
         mock();
@@ -267,19 +255,15 @@ db.projects = {
             }
           });
 
-        if (_.isFunction(callback)) {
-          callback(found);
-        }
+        callback(found);
       },
 
     findConfig: function(projectType, projectId, callback) {
         this.findProject(projectType, projectId, function(project) {
-            if (_.isFunction(callback)) {
-              if (project) {
-                callback(project.configuration);
-              } else {
-                callback(null);
-              }
+            if (project) {
+              callback(project.configuration);
+            } else {
+              callback(null);
             }
           });
       },
