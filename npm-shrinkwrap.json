@@ -1,6 +1,6 @@
 {
   "name": "node_pushserver",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "dependencies": {
     "abbrev": {
       "version": "1.0.9",
@@ -216,9 +216,9 @@
       "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.6.tgz"
     },
     "bson": {
-      "version": "1.0.1",
-      "from": "bson@>=1.0.1 <1.1.0",
-      "resolved": "https://registry.npmjs.org/bson/-/bson-1.0.1.tgz"
+      "version": "0.5.7",
+      "from": "bson@>=0.5.4 <0.6.0",
+      "resolved": "https://registry.npmjs.org/bson/-/bson-0.5.7.tgz"
     },
     "buffer-equal-constant-time": {
       "version": "1.0.1",
@@ -1465,31 +1465,6 @@
           "version": "2.0.1",
           "from": "async@2.0.1",
           "resolved": "https://registry.npmjs.org/async/-/async-2.0.1.tgz"
-        },
-        "bson": {
-          "version": "0.5.7",
-          "from": "bson@>=0.5.4 <0.6.0",
-          "resolved": "https://registry.npmjs.org/bson/-/bson-0.5.7.tgz"
-        },
-        "isarray": {
-          "version": "1.0.0",
-          "from": "isarray@~1.0.0",
-          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
-        },
-        "mongodb": {
-          "version": "2.2.9",
-          "from": "mongodb@2.2.9",
-          "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-2.2.9.tgz"
-        },
-        "mongodb-core": {
-          "version": "2.0.11",
-          "from": "mongodb-core@2.0.11",
-          "resolved": "https://registry.npmjs.org/mongodb-core/-/mongodb-core-2.0.11.tgz"
-        },
-        "readable-stream": {
-          "version": "2.1.5",
-          "from": "readable-stream@2.1.5",
-          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.5.tgz"
         }
       }
     },
@@ -1499,9 +1474,9 @@
       "resolved": "https://registry.npmjs.org/mongo-uri/-/mongo-uri-0.1.2.tgz"
     },
     "mongodb": {
-      "version": "2.2.16",
-      "from": "mongodb@>=2.1.18 <3.0.0",
-      "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-2.2.16.tgz",
+      "version": "2.2.9",
+      "from": "mongodb@2.2.9",
+      "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-2.2.9.tgz",
       "dependencies": {
         "isarray": {
           "version": "1.0.0",
@@ -1516,34 +1491,46 @@
       }
     },
     "mongodb-core": {
-      "version": "2.1.2",
-      "from": "mongodb-core@2.1.2",
-      "resolved": "https://registry.npmjs.org/mongodb-core/-/mongodb-core-2.1.2.tgz"
+      "version": "2.0.11",
+      "from": "mongodb-core@2.0.11",
+      "resolved": "https://registry.npmjs.org/mongodb-core/-/mongodb-core-2.0.11.tgz"
     },
     "mongoose": {
-      "version": "4.7.4",
-      "from": "mongoose@>=4.4.7 <5.0.0",
-      "resolved": "https://registry.npmjs.org/mongoose/-/mongoose-4.7.4.tgz",
+      "version": "4.7.5",
+      "from": "mongoose@4.7.5",
+      "resolved": "https://registry.npmjs.org/mongoose/-/mongoose-4.7.5.tgz",
       "dependencies": {
         "async": {
           "version": "2.1.4",
           "from": "async@2.1.4",
           "resolved": "https://registry.npmjs.org/async/-/async-2.1.4.tgz"
         },
-        "bson": {
-          "version": "0.5.7",
-          "from": "bson@>=0.5.4 <0.6.0",
-          "resolved": "https://registry.npmjs.org/bson/-/bson-0.5.7.tgz"
+        "isarray": {
+          "version": "1.0.0",
+          "from": "isarray@>=1.0.0 <1.1.0",
+          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
         },
-        "lodash": {
-          "version": "4.17.2",
-          "from": "lodash@>=4.14.0 <5.0.0",
-          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.2.tgz"
+        "mongodb": {
+          "version": "2.2.16",
+          "from": "mongodb@2.2.16",
+          "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-2.2.16.tgz"
         },
-        "ms": {
-          "version": "0.7.2",
-          "from": "ms@0.7.2",
-          "resolved": "https://registry.npmjs.org/ms/-/ms-0.7.2.tgz"
+        "mongodb-core": {
+          "version": "2.1.2",
+          "from": "mongodb-core@2.1.2",
+          "resolved": "https://registry.npmjs.org/mongodb-core/-/mongodb-core-2.1.2.tgz",
+          "dependencies": {
+            "bson": {
+              "version": "1.0.1",
+              "from": "bson@>=1.0.1 <1.1.0",
+              "resolved": "https://registry.npmjs.org/bson/-/bson-1.0.1.tgz"
+            }
+          }
+        },
+        "readable-stream": {
+          "version": "2.1.5",
+          "from": "readable-stream@2.1.5",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.5.tgz"
         }
       }
     },
@@ -2558,9 +2545,9 @@
       "resolved": "https://registry.npmjs.org/through/-/through-2.3.8.tgz"
     },
     "timed-out": {
-      "version": "3.1.0",
+      "version": "3.1.1",
       "from": "timed-out@>=3.0.0 <4.0.0",
-      "resolved": "https://registry.npmjs.org/timed-out/-/timed-out-3.1.0.tgz"
+      "resolved": "https://registry.npmjs.org/timed-out/-/timed-out-3.1.1.tgz"
     },
     "timers-ext": {
       "version": "0.1.0",
