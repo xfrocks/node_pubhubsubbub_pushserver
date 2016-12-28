@@ -30,6 +30,9 @@ const mock = function(push, hint, callback) {
       case 'Error':
         err = new Error('Message');
       break;
+      case 'Exception':
+        throw new Error('Message');
+      break;
       case 'retry1':
         err = 'retry1-Error';
         if (pushes.length > 1) {

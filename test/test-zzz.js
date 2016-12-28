@@ -21,7 +21,6 @@ describe('full app', function() {
         process.env = _.merge({}, originalProcessEnv);
         process.env.CONFIG_WEB_USERNAME = adminUsername;
         process.env.CONFIG_WEB_PASSWORD = adminPassword;
-        process.env.PORT = 0;
         config._reload();
 
         web._reset();

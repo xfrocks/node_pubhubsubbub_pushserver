@@ -22,7 +22,6 @@ gcm.Sender = function(apiKey) {
     const sender = this;
 
     this.sendNoRetry = function(message, recipient, callback) {
-        let error = null;
         const response = {
           success: 0,
           failure: 0,
@@ -41,7 +40,7 @@ gcm.Sender = function(apiKey) {
               registrationToken,
             };
 
-            let responseError = error;
+            let responseError = null;
             let responseResult = {
               message_id: 'm' + i,
             };
@@ -53,13 +52,15 @@ gcm.Sender = function(apiKey) {
               responseResult = {error: responseError};
             }
 
-            response.success += responseError !== null ? 0 : 1;
-            response.failure += responseError !== null ? 1 : 0;
+            if (apiKey !== 'ak-no-counter') {
+              response.success += responseError !== null ? 0 : 1;
+              response.failure += responseError !== null ? 1 : 0;
+            }
             response.results.push(responseResult);
             pushes.push(latestPush);
           });
 
-        return callback(error, response);
+        return callback(null, response);
       };
 
     this._getApiKey = function() {

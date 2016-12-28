@@ -31,6 +31,17 @@ describe('pusher/gcm', function() {
       });
     });
 
+    it('should guard against missing apiKey', function(done) {
+      const soWithoutApiKey = _.merge({}, senderOptions);
+      soWithoutApiKey.apiKey = '';
+
+      pusher.send(soWithoutApiKey, registrationToken, data, function(err) {
+        err.should.equal('apiKey missing');
+        done();
+      });
+    });
+
+
     it('should push', function(done) {
         pusher.send(senderOptions, registrationToken, data, function(err) {
             expect(err).to.be.undefined;
@@ -204,6 +215,22 @@ describe('pusher/gcm', function() {
               });
           });
       });
+
+    it('should do stats (batch, module response no counter)', function(done) {
+        const soWithNoCounter = _.merge({}, senderOptions);
+        soWithNoCounter.apiKey = 'ak-no-counter';
+
+        pusher.send(soWithNoCounter, ['ok', 'error-Some'], data, (err) => {
+            pusher.stats().then((stats) => {
+                stats.gcm[senderOptions.packageId].batch.should.equal(1);
+                stats.gcm[senderOptions.packageId].sent.should.equal(1);
+                stats.gcm[senderOptions.packageId].failed.should.equal(1);
+
+                done();
+              });
+          });
+      });
+
 
     it('should do stats (failed)', function(done) {
         pusher.send(senderOptions, 'error-Some', data, (err) => {

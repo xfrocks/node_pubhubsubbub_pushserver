@@ -27,6 +27,20 @@ describe('pusher/wns', function() {
       });
     });
 
+    it('should guard against missing clientId', function(done) {
+      pusher.send('', clientSecret, channelUri, dataRaw, function(err) {
+        err.should.equal('clientId missing');
+        done();
+      });
+    });
+
+    it('should guard against missing clientSecret', function(done) {
+      pusher.send(clientId, '', channelUri, dataRaw, function(err) {
+        err.should.equal('clientSecret missing');
+        done();
+      });
+    });
+
     it('should push', function(done) {
         pusher.send(clientId, clientSecret, channelUri, dataRaw, function(err) {
             expect(err).to.be.null;
