@@ -25,17 +25,18 @@ Send a `POST` request to `/subscribe`:
 via [argon/node-apn](https://github.com/argon/node-apn)
 
 Project configuration at `/admin/projects/apn`:
- * `app_id` (__required__): The iOS application ID
- * `cert` (__required__): The RSA certification plaintext
- * `key` (__required__): The RSA key plaintext
- * `other_options` (_optional_):
-  * `passphrase`: The passphrase for the key, if it is encrypted
-  * `address`: The APN gateway. By default, it will connect to the production gateway. Use `gateway.sandbox.push.apple.com` for sandbox.
+ * `bundle_id` (__required__): The iOS application Bundle ID
+ * `token`, an array of...
+  * `key` (__required__): The provider token key in plaintext
+  * `keyId` (__required__): The ID of the key issued by Apple
+  * `teamId` (__required__): The team ID associated with the provider token
+  * Please note that if you don't configure provider token, the RSA cert/key pair is required
+ * `production` (_optional_): 1 for production, 0 for sandbox
 
 `App` that wants to receive via APN must include these parameters during subscription:
  * `device_type` = `ios`
  * `device_id` = APN Device Token
- * `extra_data[package]` = Application ID
+ * `extra_data[package]` = Bundle ID
 
 ### Google Cloud Messaging
 via [ToothlessGear/node-gcm](https://github.com/ToothlessGear/node-gcm)
@@ -48,7 +49,7 @@ Project configuration at `/admin/projects/gcm`, parameters:
  * `device_type` = `android`
  * `device_id` = GCM Registration Token
  * `extra_data[package]` = Package ID
- 
+
 ### Windows Push Notification
 via [tjanczuk/wns](https://github.com/tjanczuk/wns)
 
