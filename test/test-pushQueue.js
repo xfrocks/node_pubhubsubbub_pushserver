@@ -3,9 +3,9 @@
 const config = require('../lib/config');
 const pushQueue = require('../lib/pushQueue');
 const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
-const expect = chai.expect;
 
 // setup push queue
 const pushKue = require('./mock/pushKue');
@@ -52,11 +52,23 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
         latestPush.type.should.equal('gcm');
-        latestPush.registrationId.should.equal(deviceId);
+        latestPush.registrationIds.should.have.all.members([deviceId]);
         latestPush.data.notification_id.should.equal(payload.notification_id);
         latestPush.data.notification.should.not.be.null;
+
+        done();
+      });
+
+    it('[android] batch request', function(done) {
+        const deviceType = 'android';
+        const deviceIds = ['di1', 'di2'];
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceIds, payload);
+
+        const latestPush = pusher._getLatestPush();
+        latestPush.registrationIds.should.have.all.members(deviceIds);
 
         done();
       });
@@ -69,8 +81,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('gcm');
-        latestPush.senderOptions.gcmKey.
+        latestPush.senderOptions.apiKey.
             should.equal(config.gcm.keys[config.gcm.defaultKeyId]);
 
         done();
@@ -87,8 +98,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.
+            latestPush.senderOptions.apiKey.
                 should.equal(config.gcm.keys[extraData.package]);
 
             test2();
@@ -98,8 +108,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData2);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.
+            latestPush.senderOptions.apiKey.
                 should.equal(config.gcm.keys[extraData2.package]);
 
             done();
@@ -126,8 +135,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.should.equal(apiKey);
+            latestPush.senderOptions.apiKey.should.equal(apiKey);
 
             done();
           };
@@ -145,13 +153,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        expect(job.error).to.be.null;
-        job.result.deleteDevice.should.be.true;
-        job.attempts.should.equal(1);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -166,13 +168,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        expect(job.error).to.be.null;
-        job.result.deleteDevice.should.be.true;
-        job.attempts.should.equal(1);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -189,7 +185,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('gcm');
         latestPush.data.should.deep.equal({foo: payload.foo});
 
         done();
@@ -205,8 +200,8 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload);
 
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -219,10 +214,22 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
         latestPush.type.should.equal('apn');
-        latestPush.token.should.equal(deviceId);
+        latestPush.tokens.should.have.all.members([deviceId]);
         latestPush.payload.aps.alert.should.not.be.null;
+
+        done();
+      });
+
+    it('[ios] batch request', function(done) {
+        const deviceType = 'ios';
+        const deviceIds = ['di1', 'di2'];
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceIds, payload);
+
+        const latestPush = pusher._getLatestPush();
+        latestPush.tokens.should.have.all.members(deviceIds);
 
         done();
       });
@@ -235,7 +242,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('apn');
         latestPush.connectionOptions.should.equal(config.apn.connectionOptions);
 
         done();
@@ -304,7 +310,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('apn');
         latestPush.payload.aps.badge.
             should.equal(payload.user_unread_notification_count);
 
@@ -319,20 +324,9 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        expect(job.error).to.be.null;
-        job.result.retry.should.be.false;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.attempts.should.equal(1);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.retries.should.be.empty;
+        job.result.invalids.should.be.empty;
 
         done();
       });
@@ -346,13 +340,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        expect(job.error).to.be.null;
-        job.result.deleteDevice.should.be.true;
-        job.attempts.should.equal(1);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -367,13 +355,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        expect(job.error).to.be.null;
-        job.result.deleteDevice.should.be.true;
-        job.attempts.should.equal(1);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -388,16 +370,11 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
-        latestPush.type.should.equal('wns');
         latestPush.channelUri.should.equal(channelUri);
 
         const data = JSON.parse(latestPush.dataRaw);
-        data.should.be.a('object');
-        data.action.should.equal(payload.action);
-        data.notification_id.should.equal(payload.notification_id);
-        data.notification_html.should.equal(payload.notification_html);
-        data.extra_data.foo.should.equal(extraData.foo);
+        _.omit(data, 'extra_data').should.deep.equal(payload);
+        data.extra_data.should.deep.equal(_.omit(extraData, 'channel_uri'));
 
         done();
       });
@@ -412,7 +389,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('wns');
         latestPush.clientId.should.equal(config.wns.client_id);
         latestPush.clientSecret.should.equal(config.wns.client_secret);
 
@@ -439,7 +415,6 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('wns');
             latestPush.clientId.should.equal(clientId);
             latestPush.clientSecret.should.equal(clientSecret);
 
@@ -459,19 +434,8 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.result.invalids.should.not.empty;
 
         done();
       });
@@ -514,6 +478,40 @@ describe('pushQueue', function() {
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(2);
+
+        done();
+      });
+
+    it('should retry with delay', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'retry1';
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.delay.should.equal(config.pushQueue.delayInMs);
+
+        done();
+      });
+
+    it('should retry with exponential delays', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'error';
+        const payload = generatePayload();
+
+        config.pushQueue.attempts = 10;
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const jobs = pushKue._getJobs(config.pushQueue.queueId);
+        jobs.length.should.equal(config.pushQueue.attempts);
+        _.forEach(jobs, function(job, i) {
+            let delay = config.pushQueue.delayInMs * Math.pow(2, i - 1);
+            if (i === 0) {
+              delay = 0;
+            }
+            job.delay.should.equal(delay);
+          });
 
         done();
       });

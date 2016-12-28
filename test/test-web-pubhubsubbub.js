@@ -599,9 +599,10 @@ describe('web/pubhubsubbub', function() {
 
                     const job = pushQueue._getLatestJob();
                     job.should.not.be.null;
-                    job.device_type.should.equal(deviceType);
-                    job.device_id.should.equal(deviceId);
-                    job.extra_data.foo.should.equal(extraData.foo);
+                    job.deviceType.should.equal(deviceType);
+                    job.deviceIds.should.have.all.members([deviceId]);
+                    _.pick(job.extraData, _.keys(extraData))
+                      .should.deep.equal(extraData);
                     job.payload.should.equal(payload);
 
                     done();
@@ -611,14 +612,60 @@ describe('web/pubhubsubbub', function() {
         init();
       });
 
-    it('should enqueue pushes for all devices', function(done) {
+    it('should enqueue pushes for all devices at once', function(done) {
+        const deviceId2 = 'di2';
+
         const init = function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, null,
                 function(isSaved) {
                 isSaved.should.equal('saved');
 
-                db.devices.save('dt2', 'di2',
+                db.devices.save(deviceType, deviceId2,
+                    oauthClientId, hubTopic, null,
+                    function(isSaved) {
+                    isSaved.should.equal('saved');
+                    test();
+                  });
+              });
+          };
+
+        const test = function() {
+            webApp
+                .post('/callback')
+                .send([
+                    {
+                        client_id: oauthClientId,
+                        topic: hubTopic,
+                        object_data: payload,
+                      },
+                ])
+                .end(function() {
+                    const jobs = pushQueue._getJobs();
+                    jobs.length.should.equal(1);
+
+                    const job = pushQueue._getLatestJob();
+                    const deviceIds = job.deviceIds;
+                    deviceIds.should.have.all.members([deviceId, deviceId2]);
+
+                    done();
+                  });
+          };
+
+        init();
+      });
+
+    it('should enqueue pushes for all devices (diff types)', function(done) {
+        const deviceType2 = 'dt2';
+        const deviceId2 = 'di2';
+
+        const init = function() {
+            db.devices.save(deviceType, deviceId,
+                oauthClientId, hubTopic, null,
+                function(isSaved) {
+                isSaved.should.equal('saved');
+
+                db.devices.save(deviceType2, deviceId2,
                     oauthClientId, hubTopic, null,
                     function(isSaved) {
                     isSaved.should.equal('saved');
@@ -640,10 +687,49 @@ describe('web/pubhubsubbub', function() {
                 .end(function() {
                     const jobs = pushQueue._getJobs();
                     jobs.length.should.equal(2);
-                    jobs[0].device_type.should.equal(deviceType);
-                    jobs[0].device_id.should.equal(deviceId);
-                    jobs[1].device_type.should.equal('dt2');
-                    jobs[1].device_id.should.equal('di2');
+                    jobs[0].deviceType.should.equal(deviceType);
+                    jobs[0].deviceIds.should.have.all.members([deviceId]);
+                    jobs[1].deviceType.should.equal(deviceType2);
+                    jobs[1].deviceIds.should.have.all.members([deviceId2]);
+
+                    done();
+                  });
+          };
+
+        init();
+      });
+
+    it('should enqueue pushes for all devices (diff data)', function(done) {
+        const deviceId2 = 'di2';
+
+        const init = function() {
+            db.devices.save(deviceType, deviceId,
+                oauthClientId, hubTopic, {data: 1},
+                function(isSaved) {
+                isSaved.should.equal('saved');
+
+                db.devices.save(deviceType, deviceId2,
+                    oauthClientId, hubTopic, {data: 2},
+                    function(isSaved) {
+                    isSaved.should.equal('saved');
+                    test();
+                  });
+              });
+          };
+
+        const test = function() {
+            webApp
+                .post('/callback')
+                .send([
+                    {
+                        client_id: oauthClientId,
+                        topic: hubTopic,
+                        object_data: payload,
+                      },
+                ])
+                .end(function() {
+                    const jobs = pushQueue._getJobs();
+                    jobs.length.should.equal(2);
 
                     done();
                   });

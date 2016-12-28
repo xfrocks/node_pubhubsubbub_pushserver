@@ -11,7 +11,7 @@ const expect = chai.expect;
 const lib = require('./mock/_modules-gcm');
 const senderOptions = {
   packageId: 'pi',
-  gcmKey: 'gk',
+  apiKey: 'ak',
 };
 const registrationToken = 'rt';
 const data = {foo: 'bar'};
@@ -33,12 +33,12 @@ describe('pusher/gcm', function() {
 
     it('should push', function(done) {
         pusher.send(senderOptions, registrationToken, data, function(err) {
-            expect(err).to.be.null;
+            expect(err).to.be.undefined;
 
             const push = lib._getLatestPush();
-            push.sender._getGcmKey().should.equal(senderOptions.gcmKey);
+            push.sender._getApiKey().should.equal(senderOptions.apiKey);
             push.message._getData().should.deep.equal(data);
-            push.recipient.to.should.equal(registrationToken);
+            push.registrationToken.should.equal(registrationToken);
 
             done();
           });
@@ -56,13 +56,13 @@ describe('pusher/gcm', function() {
           });
       });
 
-    it('should fail with status 4xx, retry=false', function(done) {
+    it('should fail with status 4xx, no retries', function(done) {
         const test = function(status, callback) {
             const dataWithError = _.merge({error: status}, data);
             pusher.send(senderOptions, registrationToken, dataWithError,
               function(err, result) {
                 err.should.equal(status);
-                result.retry.should.be.false;
+                result.retries.should.be.empty;
                 callback(status);
               });
           };
@@ -84,13 +84,13 @@ describe('pusher/gcm', function() {
         testRange(400, 500, done);
       });
 
-    it('should fail with status 3xx, 5xx, retry unset', function(done) {
+    it('should fail with status 3xx, 5xx, with retries', function(done) {
         const test = function(status, callback) {
             const dataWithError = _.merge({error: status}, data);
             pusher.send(senderOptions, registrationToken, dataWithError,
                 function(err, result) {
                   err.should.equal(status);
-                  result.should.not.have.ownProperty('retry');
+                  result.retries.should.have.all.members([registrationToken]);
                   callback(status);
                 });
           };
@@ -114,14 +114,12 @@ describe('pusher/gcm', function() {
         });
       });
 
-    it('should fail with response error, retry=false', function(done) {
+    it('should fail with response error, no retries', function(done) {
         const test = function(error, callback) {
-            const dataWithError = _.merge({}, data);
-            dataWithError.responseErrorResult = {error: error};
-            pusher.send(senderOptions, registrationToken, dataWithError,
+            const rtWithError = 'error-' + error;
+            pusher.send(senderOptions, rtWithError, data,
               function(err, result) {
-                err.should.equal(error);
-                result.retry.should.be.false;
+                result.retries.should.be.empty;
                 callback();
               });
           };
@@ -129,14 +127,12 @@ describe('pusher/gcm', function() {
         test('Some error', done);
       });
 
-    it('should fail with response error, retry unset', function(done) {
+    it('should fail with response error, with retries', function(done) {
         const test = function(error, callback) {
-            const dataWithError = _.merge({}, data);
-            dataWithError.responseErrorResult = {error: error};
-            pusher.send(senderOptions, registrationToken, dataWithError,
+            const rtWithError = 'error-' + error;
+            pusher.send(senderOptions, rtWithError, data,
               function(err, result) {
-                err.should.equal(error);
-                result.should.not.have.ownProperty('retry');
+                result.retries.should.have.all.members([rtWithError]);
                 callback();
               });
           };
@@ -145,26 +141,18 @@ describe('pusher/gcm', function() {
           test('Unavailable', test2);
         };
         const test2 = function() {
-          test('InternalServerError', test3);
-        };
-        const test3 = function() {
-          test('DeviceMessageRate Exceeded', test4);
-        };
-        const test4 = function() {
-          test('TopicsMessageRate Exceeded', done);
+          test('InternalServerError', done);
         };
 
         test1();
       });
 
-    it('should fail with deleteDevice=true', function(done) {
+    it('should fail with invalids', function(done) {
         const test = function(error, callback) {
-            const dataWithError = _.merge({}, data);
-            dataWithError.responseErrorResult = {error: error};
-            pusher.send(senderOptions, registrationToken, dataWithError,
+            const rtWithError = 'error-' + error;
+            pusher.send(senderOptions, rtWithError, data,
               function(err, result) {
-                err.should.equal(error);
-                result.deleteDevice.should.be.true;
+                result.invalids.should.have.all.members([rtWithError]);
                 callback();
               });
           };
@@ -189,12 +177,13 @@ describe('pusher/gcm', function() {
       });
 
     it('should do stats', function(done) {
-        pusher.send(senderOptions, registrationToken, data, function(err) {
-            expect(err).to.be.null;
+        pusher.send(senderOptions, registrationToken, data, (err) => {
+            expect(err).to.be.undefined;
 
             pusher.stats().then((stats) => {
                 stats.gcm.should.have.ownProperty(senderOptions.packageId);
                 const thisStats = stats.gcm[senderOptions.packageId];
+                thisStats.batch.should.equal(1);
                 thisStats.sent.should.equal(1);
                 thisStats.failed.should.equal(0);
                 thisStats.invalid.should.equal(0);
@@ -204,15 +193,20 @@ describe('pusher/gcm', function() {
           });
       });
 
-    it('should do stats (failed)', function(done) {
-        const dataWithError = _.merge({error: 'something'}, data);
-        pusher.send(
-          senderOptions,
-          registrationToken,
-          dataWithError,
-          function(err) {
-            err.should.equal(dataWithError.error);
+    it('should do stats (batch)', function(done) {
+        pusher.send(senderOptions, ['ok', 'error-Some'], data, (err) => {
+            pusher.stats().then((stats) => {
+                stats.gcm[senderOptions.packageId].batch.should.equal(1);
+                stats.gcm[senderOptions.packageId].sent.should.equal(1);
+                stats.gcm[senderOptions.packageId].failed.should.equal(1);
 
+                done();
+              });
+          });
+      });
+
+    it('should do stats (failed)', function(done) {
+        pusher.send(senderOptions, 'error-Some', data, (err) => {
             pusher.stats().then((stats) => {
                 stats.gcm[senderOptions.packageId].failed.should.equal(1);
 
@@ -222,16 +216,7 @@ describe('pusher/gcm', function() {
       });
 
     it('should do stats (invalid)', function(done) {
-        const dataWithError = _.merge({}, data);
-        dataWithError.responseErrorResult = {error: 'MissingRegistration'};
-
-        pusher.send(
-          senderOptions,
-          registrationToken,
-          dataWithError,
-          function(err) {
-            err.should.equal(dataWithError.responseErrorResult.error);
-
+        pusher.send(senderOptions, 'error-MissingRegistration', data, (err) => {
             pusher.stats().then((stats) => {
                 stats.gcm[senderOptions.packageId].invalid.should.equal(1);
 

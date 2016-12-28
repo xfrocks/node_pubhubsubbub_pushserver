@@ -4,44 +4,66 @@ const gcm = exports;
 const _ = require('lodash');
 
 let latestPush = null;
+let pushes = [];
+gcm._reset = function() {
+    latestPush = null;
+    pushes = [];
+  };
 
 gcm._getLatestPush = function() {
     return latestPush;
   };
 
-gcm.Sender = function(gcmKey) {
+gcm._getPushes = function() {
+    return pushes;
+  };
+
+gcm.Sender = function(apiKey) {
     const sender = this;
 
     this.sendNoRetry = function(message, recipient, callback) {
-        latestPush = {
-          sender: sender,
-          message: message,
-          recipient: recipient,
-        };
-
         let error = null;
         const response = {
-          multicast_id: 123,
-          success: 1,
+          success: 0,
           failure: 0,
-          canonical_ids: 0,
-          results: [{message_id: 'mi'}],
+          results: [],
         };
+
         const messageData = message._getData();
         if (_.has(messageData, 'error')) {
-          error = messageData.error;
-        }
-        if (_.has(messageData, 'responseErrorResult')) {
-          response.success = 0;
-          response.failure = 1;
-          response.results[0] = messageData.responseErrorResult;
+          return callback(messageData.error);
         }
 
-        callback(error, response);
+        _.forEach(recipient.registrationTokens, function(registrationToken, i) {
+            latestPush = {
+              sender,
+              message,
+              registrationToken,
+            };
+
+            let responseError = error;
+            let responseResult = {
+              message_id: 'm' + i,
+            };
+            const errorMatch = registrationToken.match(/^error-(.+)$/);
+            if (errorMatch) {
+              responseError = errorMatch[1];
+            }
+            if (responseError !== null) {
+              responseResult = {error: responseError};
+            }
+
+            response.success += responseError !== null ? 0 : 1;
+            response.failure += responseError !== null ? 1 : 0;
+            response.results.push(responseResult);
+            pushes.push(latestPush);
+          });
+
+        return callback(error, response);
       };
 
-    this._getGcmKey = function() {
-      return gcmKey;
+    this._getApiKey = function() {
+      return apiKey;
     };
   };
 

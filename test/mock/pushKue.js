@@ -27,15 +27,12 @@ pushKue._getJobs = function(queueId) {
   };
 
 pushKue.create = function(queueId, jobData) {
-    let remainingAttempts = 1;
-
     const job = {
         data: jobData,
         error: null,
         result: null,
 
-        attempts: 0,
-        backOff: null,
+        delay: 0,
         ttl: 1000,
         remoteOnComplete: false,
 
@@ -50,31 +47,15 @@ pushKue.create = function(queueId, jobData) {
           return;
         }
 
-        job.attempts++;
-
         processCallbacks[queueId](job, function(err, result) {
-            if (err) {
-              job.error = err;
-              job.result = null;
-              remainingAttempts--;
-              if (remainingAttempts > 0) {
-                attempt();
-              }
-
-              return;
-            }
-
-            job.error = null;
+            job.error = err;
             job.result = result;
           });
       };
 
     return {
-        attempts: function(n) {
-            remainingAttempts = n;
-          },
-        backoff: function(o) {
-            job.backOff = o;
+        delay: function(n) {
+            job.delay = n;
           },
         ttl: function(n) {
             job.ttl = n;
@@ -85,7 +66,7 @@ pushKue.create = function(queueId, jobData) {
 
         save: function(callback) {
             if (job.data.device_type === 'save' &&
-                job.data.device_id === 'error'
+                job.data.device_ids[0] === 'error'
             ) {
               return callback('job.save error');
             }
