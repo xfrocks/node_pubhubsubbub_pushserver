@@ -36,6 +36,7 @@
     "npm": ">=3.0.0"
   },
   "scripts": {
+    "bash": "/bin/sh",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
     "lint": "./node_modules/.bin/eslint --fix -- bin/pushserver lib test",
     "start": "node bin/pushserver",
