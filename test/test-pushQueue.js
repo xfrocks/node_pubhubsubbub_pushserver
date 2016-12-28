@@ -3,6 +3,7 @@
 const config = require('../lib/config');
 const pushQueue = require('../lib/pushQueue');
 const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
 
@@ -51,11 +52,23 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
         latestPush.type.should.equal('gcm');
-        latestPush.registrationId.should.equal(deviceId);
+        latestPush.registrationIds.should.have.all.members([deviceId]);
         latestPush.data.notification_id.should.equal(payload.notification_id);
         latestPush.data.notification.should.not.be.null;
+
+        done();
+      });
+
+    it('[android] batch request', function(done) {
+        const deviceType = 'android';
+        const deviceIds = ['di1', 'di2'];
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceIds, payload);
+
+        const latestPush = pusher._getLatestPush();
+        latestPush.registrationIds.should.have.all.members(deviceIds);
 
         done();
       });
@@ -68,8 +81,7 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('gcm');
-        latestPush.senderOptions.gcmKey.
+        latestPush.senderOptions.apiKey.
             should.equal(config.gcm.keys[config.gcm.defaultKeyId]);
 
         done();
@@ -86,8 +98,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.
+            latestPush.senderOptions.apiKey.
                 should.equal(config.gcm.keys[extraData.package]);
 
             test2();
@@ -97,8 +108,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData2);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.
+            latestPush.senderOptions.apiKey.
                 should.equal(config.gcm.keys[extraData2.package]);
 
             done();
@@ -125,8 +135,7 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('gcm');
-            latestPush.senderOptions.gcmKey.should.equal(apiKey);
+            latestPush.senderOptions.apiKey.should.equal(apiKey);
 
             done();
           };
@@ -134,64 +143,60 @@ describe('pushQueue', function() {
         init();
       });
 
-    it('[android] no key', function(done) {
-        const packageId = 'pi-db-no-client';
+    it('[android] package missing', function(done) {
         const deviceType = 'android';
-        const deviceId = 'di-no-client';
+        const deviceId = 'di-package-missing';
+        const payload = generatePayload();
+
+        config.gcm.defaultKeyId = '';
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING);
+        job.result.invalids.should.not.empty;
+
+        done();
+      });
+
+    it('[android] project not found', function(done) {
+        const packageId = 'pi-project-not-found';
+        const deviceType = 'android';
+        const deviceId = 'di-project-not-found';
         const payload = generatePayload();
         const extraData = {package: packageId};
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND);
+        job.result.invalids.should.not.empty;
 
         done();
       });
 
-    it('[android] non-notification payload', function(done) {
+    it('[android] project config', function(done) {
+        const packageId = 'pi-project-config';
         const deviceType = 'android';
-        const deviceId = 'di';
-        const payload = {
-            notification_id: 0,
-            notification_html: '',
-            foo: 'bar',
+        const deviceId = 'di-project-config';
+        const payload = generatePayload();
+        const extraData = {package: packageId};
+
+        const init = function() {
+            db.projects.saveGcm(packageId, '', function() {
+                test();
+              });
           };
 
-        pushQueue.enqueue(deviceType, deviceId, payload);
+        const test = function() {
+            pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('gcm');
-        latestPush.data.should.deep.equal({foo: payload.foo});
+            const job = pushKue._getLatestJob(config.pushQueue.queueId);
+            job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG);
 
-        done();
-      });
+            done();
+          };
 
-    it('[android] no default package', function(done) {
-        config.gcm.defaultKeyId = '';
-        config.gcm.keys = {};
-
-        const deviceType = 'android';
-        const deviceId = 'di';
-        const payload = generatePayload();
-
-        pushQueue.enqueue(deviceType, deviceId, payload);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
-
-        done();
+        init();
       });
 
     it('should process ios queue', function(done) {
@@ -202,10 +207,36 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
         latestPush.type.should.equal('apn');
-        latestPush.token.should.equal(deviceId);
+        latestPush.tokens.should.have.all.members([deviceId]);
         latestPush.payload.aps.alert.should.not.be.null;
+
+        done();
+      });
+
+    it('[ios] batch request', function(done) {
+        const deviceType = 'ios';
+        const deviceIds = ['di1', 'di2'];
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceIds, payload);
+
+        const latestPush = pusher._getLatestPush();
+        latestPush.tokens.should.have.all.members(deviceIds);
+
+        done();
+      });
+
+    it('[ios] payload', function(done) {
+        const deviceType = 'ios';
+        const deviceId = 'di';
+        const payload = generatePayload();
+        payload.notification_html = '';
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD);
 
         done();
       });
@@ -218,7 +249,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('apn');
         latestPush.connectionOptions.should.equal(config.apn.connectionOptions);
 
         done();
@@ -278,72 +308,60 @@ describe('pushQueue', function() {
         test1();
       });
 
-    it('[ios] payload with user_unread_notification_count', function(done) {
+    it('[ios] package missing', function(done) {
         const deviceType = 'ios';
-        const deviceId = 'di';
+        const deviceId = 'di-package-missing';
         const payload = generatePayload();
-        payload.user_unread_notification_count = 1;
 
+        config.apn.connectionOptions = null;
         pushQueue.enqueue(deviceType, deviceId, payload);
-
-        const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('apn');
-        latestPush.payload.aps.badge.
-            should.equal(payload.user_unread_notification_count);
-
-        done();
-      });
-
-    it('[ios] no notification_html', function(done) {
-        const deviceType = 'ios';
-        const deviceId = 'di';
-        const payload = generatePayload();
-        payload.notification_html = '';
-
-        pushQueue.enqueue(deviceType, deviceId, payload);
-
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
 
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        job.error.should.be.a('Error');
-        job.error.message.should.equal('payload.notification_html is missing');
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.attempts.should.equal(config.pushQueue.attempts);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING);
+        job.result.invalids.should.not.empty;
 
         done();
       });
 
-    it('[ios] no client', function(done) {
-        const packageId = 'pi-db-no-client';
+    it('[ios] project not found', function(done) {
+        const packageId = 'pi-project-not-found';
         const deviceType = 'ios';
-        const deviceId = 'di-no-client';
+        const deviceId = 'di-project-not-found';
         const payload = generatePayload();
         const extraData = {package: packageId};
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND);
+        job.result.invalids.should.not.empty;
 
         done();
+      });
+
+    it('[ios] project config', function(done) {
+        const packageId = 'pi-project-config';
+        const deviceType = 'ios';
+        const deviceId = 'di-project-config';
+        const payload = generatePayload();
+        const extraData = {package: packageId};
+
+        const init = function() {
+            db.projects.saveApn(packageId, '', '', '', true, () => {
+ test();
+});
+          };
+
+        const test = function() {
+            pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+            const job = pushKue._getLatestJob(config.pushQueue.queueId);
+            job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG);
+
+            done();
+          };
+
+        init();
       });
 
     it('should process windows queue', function(done) {
@@ -356,16 +374,11 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.should.not.be.null;
-        latestPush.type.should.equal('wns');
         latestPush.channelUri.should.equal(channelUri);
 
         const data = JSON.parse(latestPush.dataRaw);
-        data.should.be.a('object');
-        data.action.should.equal(payload.action);
-        data.notification_id.should.equal(payload.notification_id);
-        data.notification_html.should.equal(payload.notification_html);
-        data.extra_data.foo.should.equal(extraData.foo);
+        _.omit(data, 'extra_data').should.deep.equal(payload);
+        data.extra_data.should.deep.equal(_.omit(extraData, 'channel_uri'));
 
         done();
       });
@@ -380,7 +393,6 @@ describe('pushQueue', function() {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
         const latestPush = pusher._getLatestPush();
-        latestPush.type.should.equal('wns');
         latestPush.clientId.should.equal(config.wns.client_id);
         latestPush.clientSecret.should.equal(config.wns.client_secret);
 
@@ -407,7 +419,6 @@ describe('pushQueue', function() {
             pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
             const latestPush = pusher._getLatestPush();
-            latestPush.type.should.equal('wns');
             latestPush.clientId.should.equal(clientId);
             latestPush.clientSecret.should.equal(clientSecret);
 
@@ -417,31 +428,80 @@ describe('pushQueue', function() {
         init();
       });
 
-    it('[windows] no client', function(done) {
-        const packageId = 'pi-db-no-client';
+    it('[windows] channel_uri missing', function(done) {
+        const packageId = 'pi-channel_uri-missing';
         const deviceType = 'windows';
-        const deviceId = 'di-no-client';
+        const deviceId = 'di-channel_uri-missing';
+        const payload = generatePayload();
+        const extraData = {package: packageId};
+
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal('channel_uri missing');
+        job.result.invalids.should.not.empty;
+
+        done();
+      });
+
+    it('[windows] package missing', function(done) {
+        const deviceType = 'windows';
+        const deviceId = 'di-package-missing';
+        const payload = generatePayload();
+        const channelUri = 'https://microsoft.com/wns/channel/uri';
+        const extraData = {channel_uri: channelUri};
+
+        config.wns.client_id = '';
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING);
+        job.result.invalids.should.not.empty;
+
+        done();
+      });
+
+    it('[windows] project not found', function(done) {
+        const packageId = 'pi-project-not-found';
+        const deviceType = 'windows';
+        const deviceId = 'di-project-not-found';
         const payload = generatePayload();
         const channelUri = 'https://microsoft.com/wns/channel/uri';
         const extraData = {channel_uri: channelUri, package: packageId};
 
         pushQueue.enqueue(deviceType, deviceId, payload, extraData);
 
-        const jobs = pushKue._getJobs(config.pushQueue.queueId);
-        jobs.length.should.equal(1);
-
         const job = pushKue._getLatestJob(config.pushQueue.queueId);
-        job.should.not.be.null;
-        job.data.device_type.should.equal(deviceType);
-        job.data.device_id.should.equal(deviceId);
-        job.data.payload.should.deep.equal(payload);
-        job.data.extra_data.should.deep.equal(extraData);
-        job.attempts.should.equal(config.pushQueue.attempts);
-
-        const pushes = pusher._getPushes();
-        pushes.length.should.equal(0);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND);
+        job.result.invalids.should.not.empty;
 
         done();
+      });
+
+    it('[windows] project config', function(done) {
+        const packageId = 'pi-project-config';
+        const deviceType = 'windows';
+        const deviceId = 'di';
+        const payload = generatePayload();
+        const channelUri = 'https://microsoft.com/wns/channel/uri';
+        const extraData = {channel_uri: channelUri, package: packageId};
+
+        const init = function() {
+            db.projects.saveWns(packageId, '', '', function() {
+                test();
+              });
+          };
+
+        const test = function() {
+            pushQueue.enqueue(deviceType, deviceId, payload, extraData);
+
+            const job = pushKue._getLatestJob(config.pushQueue.queueId);
+            job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG);
+
+            done();
+          };
+
+        init();
       });
 
     it('should retry on text error', function(done) {
@@ -482,6 +542,40 @@ describe('pushQueue', function() {
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(2);
+
+        done();
+      });
+
+    it('should retry with delay', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'retry1';
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.delay.should.equal(config.pushQueue.delayInMs);
+
+        done();
+      });
+
+    it('should retry with exponential delays', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'error';
+        const payload = generatePayload();
+
+        config.pushQueue.attempts = 10;
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const jobs = pushKue._getJobs(config.pushQueue.queueId);
+        jobs.length.should.equal(config.pushQueue.attempts);
+        _.forEach(jobs, function(job, i) {
+            let delay = config.pushQueue.delayInMs * Math.pow(2, i - 1);
+            if (i === 0) {
+              delay = 0;
+            }
+            job.delay.should.equal(delay);
+          });
 
         done();
       });
@@ -546,6 +640,19 @@ describe('pushQueue', function() {
 
         const pushes = pusher._getPushes();
         pushes.length.should.equal(0);
+
+        done();
+      });
+
+    it('should handle pusher exception', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'Exception';
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PUSHER);
 
         done();
       });

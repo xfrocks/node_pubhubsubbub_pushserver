@@ -1,7 +1,6 @@
 'use strict';
 
 const pusher = exports;
-const _ = require('lodash');
 
 let latestPush = null;
 let pushes = [];
@@ -22,7 +21,7 @@ const mock = function(push, hint, callback) {
     pushes.push(push);
 
     let err = null;
-    const info = {};
+    const result = {retries: push.deviceIds, invalids: []};
 
     switch (hint) {
       case 'error':
@@ -31,45 +30,49 @@ const mock = function(push, hint, callback) {
       case 'Error':
         err = new Error('Message');
       break;
+      case 'Exception':
+        throw new Error('Message');
+      break;
       case 'retry1':
         err = 'retry1-Error';
         if (pushes.length > 1) {
-          info.retry = false;
+          result.retries = [];
         }
       break;
       case 'invalid':
         err = 'invalid';
-        info.retry = false;
-        info.deleteDevice = true;
+        result.retries = [];
+        result.invalids = push.deviceIds;
       break;
     }
 
-    if (_.isFunction(callback)) {
-      callback(err, info);
-    }
+    callback(err, result);
   };
 
-pusher.apn = function(connectionOptions, token, payload, callback) {
+pusher.apn = function(connectionOptions, tokens, payload, callback) {
     mock({
         type: 'apn',
-        connectionOptions: connectionOptions,
-        token: token,
-        payload: payload,
-      }, token, callback);
+        deviceIds: tokens,
+        connectionOptions,
+        tokens,
+        payload,
+      }, tokens[0], callback);
   };
 
-pusher.gcm = function(senderOptions, registrationId, data, callback) {
+pusher.gcm = function(senderOptions, registrationIds, data, callback) {
     mock({
         type: 'gcm',
-        senderOptions: senderOptions,
-        registrationId: registrationId,
-        data: data,
-      }, registrationId, callback);
+        deviceIds: registrationIds,
+        senderOptions,
+        registrationIds,
+        data,
+      }, registrationIds[0], callback);
   };
 
 pusher.wns = function(clientId, clientSecret, channelUri, dataRaw, callback) {
     mock({
         type: 'wns',
+        deviceIds: [],
         clientId: clientId,
         clientSecret: clientSecret,
         channelUri: channelUri,

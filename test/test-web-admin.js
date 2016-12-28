@@ -36,6 +36,15 @@ describe('web/admin', function() {
               });
       });
 
+    it('should show apn form', function(done) {
+        webApp
+            .get('/admin/projects/apn')
+            .end(function(err, res) {
+                res.should.have.status(200);
+                done();
+              });
+      });
+
     it('should save apn project', function(done) {
         const test = function(extraData, assertCallback) {
           const bundleId = 'bi';
@@ -185,6 +194,15 @@ describe('web/admin', function() {
         test1();
       });
 
+    it('should show gcm form', function(done) {
+        webApp
+            .get('/admin/projects/gcm')
+            .end(function(err, res) {
+                res.should.have.status(200);
+                done();
+              });
+      });
+
     it('should save gcm project', function(done) {
         const packageId = 'pi';
         const apiKey = 'ak';
@@ -256,6 +274,15 @@ describe('web/admin', function() {
           };
 
         test1();
+      });
+
+    it('should show wns form', function(done) {
+        webApp
+            .get('/admin/projects/wns')
+            .end(function(err, res) {
+                res.should.have.status(200);
+                done();
+              });
       });
 
     it('should save wns project', function(done) {

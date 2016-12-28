@@ -35,9 +35,9 @@ apn.Provider = function(options) {
 
           _.forEach(recipients, function(recipient) {
             latestPush = {
-              provider: provider,
-              recipient: recipient,
-              notification: notification,
+              provider,
+              recipient,
+              notification,
             };
             pushes.push(latestPush);
 

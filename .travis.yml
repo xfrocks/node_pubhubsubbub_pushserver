@@ -1,8 +1,11 @@
 language: node_js
 node_js:
   - "node"
+env:
+  - NODE_ENV=travis
 services:
   - mongodb
+  - redis-server
 cache:
   directories:
     - node_modules

@@ -17,12 +17,12 @@ pushQueue._getJobs = function() {
     return jobs;
   };
 
-pushQueue.enqueue = function(deviceType, deviceId, payload, extraData) {
+pushQueue.enqueue = function(deviceType, deviceIds, payload, extraData) {
     latestJob = {
-        device_type: deviceType,
-        device_id: deviceId,
-        payload: payload,
-        extra_data: extraData,
+        deviceType,
+        deviceIds,
+        payload,
+        extraData,
       };
 
     jobs.push(latestJob);

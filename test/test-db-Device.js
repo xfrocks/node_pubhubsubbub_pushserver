@@ -1,11 +1,14 @@
 'use strict';
 
-const db = require('../lib/db');
+const config = require('../lib/config');
 const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
 const expect = chai.expect;
 
+let db = null;
+const originalProcessEnv = _.cloneDeep(process.env);
 const deviceType = 'dt';
 const deviceId = 'di';
 const oauthClientId = 'oci';
@@ -13,20 +16,35 @@ const hubTopic = 'ht';
 const extraData = {foo: 'bar'};
 
 describe('db/Device', function() {
-    beforeEach(function(done) {
-        const checkForDb = function() {
-          if (!db.isConnected()) {
-            return setTimeout(checkForDb, 100);
-          }
+    before(function(done) {
+        // eslint-disable-next-line no-invalid-this
+        this.timeout(20000);
 
-          db.devices._model.collection.drop().then(function() {
-              done();
-            }).catch(function() {
-              done();
-            });
+        process.env = _.cloneDeep(originalProcessEnv);
+        config._reload();
+        db = require('../lib/db')(config);
+
+        const waitForDb = function() {
+            if (!db.isConnected()) {
+              return setTimeout(waitForDb, 100);
+            }
+
+            done();
           };
 
-        checkForDb();
+        waitForDb();
+      });
+
+    after(function(done) {
+        db.closeConnection().then(done);
+      });
+
+    beforeEach(function(done) {
+        db.devices._model.collection.drop().then(function() {
+            done();
+          }).catch(function() {
+            done();
+          });
       });
 
     it('should save device', function(done) {
@@ -34,7 +52,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, hubTopic, extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('inserted');
                 step2();
               });
           };
@@ -83,7 +101,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
               oauthClientId, 'ht2', extraData,
               function(isSaved) {
-                isSaved.should.not.be.false;
+                isSaved.should.equal('updated');
                 step2();
               });
           };
@@ -120,7 +138,7 @@ describe('db/Device', function() {
             db.devices.save(deviceType, deviceId,
                 oauthClientId, hubTopic, extraData2,
                 function(isSaved) {
-                    isSaved.should.not.be.false;
+                    isSaved.should.equal('updated');
                     step2();
                   });
           };
@@ -133,6 +151,32 @@ describe('db/Device', function() {
 
                 done();
               });
+          };
+
+        init();
+      });
+
+    it('should do no op', function(done) {
+        const init = function() {
+            db.devices._model.create({
+                device_type: deviceType,
+                device_id: deviceId,
+                oauth_client_id: oauthClientId,
+                hub_topic: [hubTopic],
+                extra_data: extraData,
+              }, function(err, device) {
+                device.should.not.be.null;
+                test();
+              });
+          };
+
+        const test = function() {
+            db.devices.save(deviceType, deviceId,
+                oauthClientId, hubTopic, extraData,
+                function(isSaved) {
+                    isSaved.should.equal('nop');
+                    done();
+                  });
           };
 
         init();

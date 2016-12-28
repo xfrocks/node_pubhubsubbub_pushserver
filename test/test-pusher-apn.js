@@ -9,6 +9,7 @@ chai.should();
 const expect = chai.expect;
 
 const lib = require('./mock/_modules-apn');
+const originalApnOptions = _.cloneDeep(config.apn);
 const connectionOptionsCert = {
   packageId: 'pi',
   cert: 'c',
@@ -28,7 +29,7 @@ const payload = {aps: {alert: 'foo'}};
 describe('pusher/apn', function() {
     beforeEach(function(done) {
         lib._reset();
-        config.apn.notificationOptions = {};
+        config.apn = _.cloneDeep(originalApnOptions);
         pusher.setup(config, lib);
         done();
       });
@@ -43,7 +44,7 @@ describe('pusher/apn', function() {
 
     it('should push with cert', function(done) {
         pusher.send(connectionOptionsCert, token, payload, function(err) {
-            expect(err).to.be.null;
+            expect(err).to.be.undefined;
 
             const push = lib._getLatestPush();
             push.provider.options.should.deep.equal(connectionOptionsCert);
@@ -59,7 +60,7 @@ describe('pusher/apn', function() {
 
     it('should push with token', function(done) {
         pusher.send(connectionOptions, token, payload, function(err) {
-            expect(err).to.be.null;
+            expect(err).to.be.undefined;
 
             const push = lib._getLatestPush();
             push.provider.options.should.deep.equal(connectionOptions);
@@ -74,39 +75,42 @@ describe('pusher/apn', function() {
       });
 
     it('should fail with string', function(done) {
-        pusher.send(connectionOptions, 'fail-string', payload, function(err) {
-            err.should.be.a('string');
+        const deviceId = 'fail-string';
+        pusher.send(connectionOptions, deviceId, payload, function(err) {
+            err[deviceId].error.should.be.a('string');
             done();
           });
       });
 
     it('should fail with Error', function(done) {
-        pusher.send(connectionOptions, 'fail-Error', payload, function(err) {
-            err.should.be.a('Error');
+        const deviceId = 'fail-Error';
+        pusher.send(connectionOptions, deviceId, payload, function(err) {
+            err[deviceId].error.should.be.a('Error');
             done();
           });
       });
 
     it('should fail with unknown error', function(done) {
-        pusher.send(connectionOptions, 'fail-unknown', payload, function(err) {
-            err.should.equal('Unknown error');
+        const deviceId = 'fail-unknown';
+        pusher.send(connectionOptions, deviceId, payload, function(err) {
+            err.should.have.all.keys([deviceId]);
             done();
           });
       });
 
-    it('should fail with retry=false', function(done) {
+    it('should fail with no retries', function(done) {
         const test = function(status, callback) {
+            const deviceId = 'fail-string';
             const payloadWithFailedStatus = _.merge(
               {failed_status: status},
               payload
             );
 
             pusher.send(connectionOptions,
-              'fail-string',
+              deviceId,
               payloadWithFailedStatus,
               function(err, result) {
-                err.should.be.a('string');
-                result.retry.should.be.false;
+                result.retries.should.be.empty;
                 callback(status);
               });
           };
@@ -128,19 +132,19 @@ describe('pusher/apn', function() {
         testRange(400, 500, done);
       });
 
-    it('should fail without retry', function(done) {
+    it('should fail with retries', function(done) {
         const test = function(status, callback) {
+            const deviceId = 'fail-string';
             const payloadWithFailedStatus = _.merge(
               {failed_status: status},
               payload
             );
 
             pusher.send(connectionOptions,
-              'fail-string',
+              deviceId,
               payloadWithFailedStatus,
               function(err, result) {
-                err.should.be.a('string');
-                result.should.not.have.ownProperty('retry');
+                result.retries.should.have.all.members([deviceId]);
                 callback(status);
               });
           };
@@ -164,18 +168,18 @@ describe('pusher/apn', function() {
         });
       });
 
-    it('should fail with deleteDevice=true status 400', function(done) {
+    it('should fail with invalids status 400', function(done) {
         const test = function(reason, callback) {
+            const deviceId = 'fail-string';
             const payloadWithFailedStatus = _.merge({
               failed_status: 400,
               failed_reason: reason,
             }, payload);
             pusher.send(connectionOptions,
-              'fail-string',
+              deviceId,
               payloadWithFailedStatus,
               function(err, result) {
-                err.should.be.a('string');
-                result.deleteDevice.should.be.true;
+                result.invalids.should.have.all.members([deviceId]);
                 callback();
               });
           };
@@ -194,16 +198,16 @@ describe('pusher/apn', function() {
       });
 
     it('should fail with deleteDevice=true status 410', function(done) {
+        const deviceId = 'fail-string';
         const payloadWithFailedStatus = _.merge({
           failed_status: 410,
           failed_reason: 'Unregistered',
         }, payload);
         pusher.send(connectionOptions,
-          'fail-string',
+          deviceId,
           payloadWithFailedStatus,
           function(err, result) {
-            err.should.be.a('string');
-            result.deleteDevice.should.be.true;
+            result.invalids.should.have.all.members([deviceId]);
             done();
           });
       });
@@ -305,8 +309,6 @@ describe('pusher/apn', function() {
           };
 
         pusher.send(connectionOptions, token, payload, function(err) {
-            expect(err).to.be.null;
-
             const push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.should.equal(payload.aps.badge);
@@ -332,8 +334,6 @@ describe('pusher/apn', function() {
             cert: 'cd',
             key: 'kd',
           }, token, payload, function(err) {
-            expect(err).to.be.null;
-
             const push = lib._getLatestPush();
             push.notification.alert.should.equal(payload.aps.alert);
             push.notification.badge.
@@ -375,6 +375,26 @@ describe('pusher/apn', function() {
         const test2 = function() {
             pusher.send(connectionOptions, 't2', payload, function() {
                 lib._getProviderCount().should.equal(1);
+
+                done();
+              });
+          };
+
+        test1();
+      });
+
+    it('should not reuse old connection', function(done) {
+        config.apn.connectionTtlInMs = 10;
+
+        const test1 = function() {
+            pusher.send(connectionOptions, token, payload, function() {
+                setTimeout(test2, 20);
+              });
+          };
+
+        const test2 = function() {
+            pusher.send(connectionOptions, 't2', payload, function() {
+                lib._getProviderCount().should.equal(2);
 
                 done();
               });
@@ -485,32 +505,40 @@ describe('pusher/apn', function() {
 
     it('should do stats', function(done) {
         pusher.send(connectionOptions, token, payload, function(err) {
-            expect(err).to.be.null;
+            pusher.stats().then((stats) => {
+                stats.apn.should.have.ownProperty(connectionOptions.packageId);
+                const thisStats = stats.apn[connectionOptions.packageId];
+                thisStats.batch.should.equal(1);
+                thisStats.sent.should.equal(1);
+                thisStats.failed.should.equal(0);
+                thisStats.invalid.should.equal(0);
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
+                done();
+              });
+          });
+      });
 
-            stats.should.have.ownProperty(connectionOptions.packageId);
-            const thisStats = stats[connectionOptions.packageId];
-            thisStats.sent.should.equal(1);
-            thisStats.failed.should.equal(0);
-            thisStats.invalid.should.equal(0);
+    it('should do stats (batch)', function(done) {
+        pusher.send(connectionOptions, ['ok', 'fail-string'], payload,
+          function(err) {
+            pusher.stats().then((stats) => {
+                stats.apn[connectionOptions.packageId].batch.should.equal(1);
+                stats.apn[connectionOptions.packageId].sent.should.equal(1);
+                stats.apn[connectionOptions.packageId].failed.should.equal(1);
 
-            done();
+                done();
+              });
           });
       });
 
     it('should do stats (failed)', function(done) {
-        const payloadWithFailedStatus = _.merge({failed_status: 500}, payload);
-        pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
+        pusher.send(connectionOptions, 'fail-string', payload,
           function(err) {
-            err.should.be.a('string');
+            pusher.stats().then((stats) => {
+                stats.apn[connectionOptions.packageId].failed.should.equal(1);
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
-            stats[connectionOptions.packageId].failed.should.equal(1);
-
-            done();
+                done();
+              });
           });
       });
 
@@ -521,13 +549,11 @@ describe('pusher/apn', function() {
         }, payload);
         pusher.send(connectionOptions, 'fail-string', payloadWithFailedStatus,
           function(err) {
-            err.should.be.a('string');
+            pusher.stats().then((stats) => {
+                stats.apn[connectionOptions.packageId].invalid.should.equal(1);
 
-            const stats = pusher.stats();
-            stats.total.should.equal(1);
-            stats[connectionOptions.packageId].invalid.should.equal(1);
-
-            done();
+                done();
+              });
           });
       });
   });

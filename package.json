@@ -29,7 +29,8 @@
     "eslint-config-google": "^0.7.1",
     "istanbul": "^0.4.3",
     "mocha": "^3.2.0",
-    "nock": "^9.0.2"
+    "nock": "^9.0.2",
+    "nodemon": "^1.11.0"
   },
   "engines": {
     "node": ">=6.9.0",
@@ -37,8 +38,9 @@
   },
   "scripts": {
     "bash": "/bin/sh",
-    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
+    "coverage": "NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
     "lint": "./node_modules/.bin/eslint --fix -- bin/pushserver lib test",
+    "develop": "./node_modules/.bin/nodemon --watch bin --watch lib",
     "start": "node bin/pushserver",
     "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
   },

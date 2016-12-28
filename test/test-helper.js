@@ -4,9 +4,47 @@ const helper = require('../lib/helper.js');
 const chai = require('chai');
 const _ = require('lodash');
 
+chai.should();
 const expect = chai.expect;
-
 describe('helper', function() {
+    it('should prepare mongo-express config', function(done) {
+      const mongoUri = 'mongodb://localhost/pushserver';
+      const mec = helper.prepareMongoExpressConfig(mongoUri);
+      mec.useBasicAuth.should.be.false;
+      mec.options.readOnly.should.be.true;
+      mec.options.logger.skip.should.be.a('function');
+      mec.options.logger.skip().should.be.true;
+
+      mec.mongodb.server.should.equal('localhost');
+      mec.mongodb.port.should.equal(27017);
+      mec.mongodb.auth.length.should.equal(1);
+
+      const auth = mec.mongodb.auth[0];
+      auth.should.deep.equal({
+        database: 'pushserver',
+      });
+
+      done();
+    });
+
+    it('should prepare mongo-express config with port', function(done) {
+      const mongoUri = 'mongodb://localhost:1234/pushserver';
+      const mec = helper.prepareMongoExpressConfig(mongoUri);
+      mec.mongodb.port.should.equal(1234);
+
+      done();
+    });
+
+    it('should prepare mongo-express config with auth', function(done) {
+      const mongoUri = 'mongodb://u:p@localhost/pushserver';
+      const mec = helper.prepareMongoExpressConfig(mongoUri);
+      const auth = mec.mongodb.auth[0];
+      auth.username.should.equal('u');
+      auth.password.should.equal('p');
+
+      done();
+    });
+
     it('should strip html', function(done) {
         const html = '\t<b>Hello</b> <em>World</em>!\r\n';
         const result = helper.stripHtml(html);
@@ -23,6 +61,179 @@ describe('helper', function() {
 
         const string231 = _.repeat('a', 231);
         helper.prepareApnMessage(string231).should.equal(string229 + '…');
+
+        done();
+      });
+
+    it('should prepare apn payload', function(done) {
+        const f = helper.prepareApnPayload;
+
+        expect(f()).to.be.null;
+        expect(f(null)).to.be.null;
+        expect(f({})).to.be.null;
+
+        expect(f({notification_html: ''})).to.be.null;
+
+        f({
+          notification_html: 'text',
+        }).should.deep.equal({
+          aps: {
+            alert: 'text',
+          },
+        });
+
+        f({
+          notification_html: 'text',
+          user_unread_notification_count: 123,
+        }).should.deep.equal({
+          aps: {
+            alert: 'text',
+            badge: 123,
+          },
+        });
+
+        done();
+      });
+
+    it('should prepare apn connection options', function(done) {
+        const f = helper.prepareApnConnectionOptions;
+        const packageId = 'pi';
+        const key = 'key';
+        const keyId = 'keyId';
+        const teamId = 'teamId';
+        const token = {key, keyId, teamId};
+        const production = true;
+
+        f(packageId, {token}).should.deep.equal({packageId, token});
+
+        f(packageId, {token, production})
+          .should.deep.equal({packageId, token, production});
+
+        done();
+      });
+
+    it('should prepare apn connection options (legacy)', function(done) {
+        const f = helper.prepareApnConnectionOptions;
+        const packageId = 'pi';
+        const cert = 'cert';
+        const key = 'key';
+        const address = 'gateway.push.apple.com';
+        const addressSandbox = 'gateway.sandbox.push.apple.com';
+
+        f(packageId, {cert, key}).should.deep.equal({packageId, cert, key});
+        f(packageId, {cert_data: cert, key_data: key})
+          .should.deep.equal({packageId, cert, key});
+
+        f(packageId, {cert, key, address})
+          .should.deep.equal({packageId, cert, key, production: true});
+        f(packageId, {cert, key, address: addressSandbox})
+          .should.deep.equal({packageId, cert, key, production: false});
+        f(packageId, {cert, key, gateway: address})
+          .should.deep.equal({packageId, cert, key, production: true});
+
+        done();
+      });
+
+    it('should not prepare apn connection options', function(done) {
+        const f = helper.prepareApnConnectionOptions;
+        const packageId = 'pi';
+        const key = 'key';
+        const keyId = 'keyId';
+        const teamId = 'teamId';
+        const token = {key, keyId, teamId};
+        const certData = 'cert';
+        const keyData = 'key';
+
+        expect(f()).to.be.null;
+        expect(f(packageId)).to.be.null;
+        expect(f(packageId, null)).to.be.null;
+        expect(f(packageId, {})).to.be.null;
+        expect(f(packageId, {empty: ''})).to.be.null;
+
+        expect(f(packageId, {token: {keyId, teamId}})).to.be.null;
+        expect(f(packageId, {token: {key, teamId}})).to.be.null;
+        expect(f(packageId, {token: {key, keyId}})).to.be.null;
+
+        expect(f(packageId, {cert: certData})).to.be.null;
+        expect(f(packageId, {key: keyData})).to.be.null;
+
+        expect(f(packageId, {token, cert: certData, key: keyData})).to.be.null;
+
+        done();
+      });
+
+    it('should prepare gcm payload', function(done) {
+        const f = helper.prepareGcmPayload;
+        f().should.deep.equal({});
+
+        f({
+          notification_id: 1,
+          notification_html: 'text',
+        }).should.deep.equal({
+          notification_id: 1,
+          notification: 'text',
+        });
+
+        f({
+          notification_id: 1,
+          notification_html: 'text',
+          something: 'else',
+        }).should.deep.equal({
+          notification_id: 1,
+          notification: 'text',
+        });
+
+        f({
+          key: 'value',
+        }).should.deep.equal({
+          key: 'value',
+        });
+
+        f({
+          key: 'value',
+          notification_id: 0,
+          notification_html: 'irrelevant',
+        }).should.deep.equal({
+          key: 'value',
+        });
+
+        done();
+      });
+
+    it('should prepare gcm sender options', function(done) {
+        const f = helper.prepareGcmSenderOptions;
+        const packageId = 'pi';
+        const apiKey = 'ak';
+
+        expect(f()).to.be.null;
+        expect(f(packageId)).to.be.null;
+        expect(f(packageId, null)).to.be.null;
+        expect(f(packageId, {})).to.be.null;
+
+        f(packageId, {api_key: apiKey}).should.deep.equal({packageId, apiKey});
+
+        done();
+      });
+
+    it('should prepare wns payload', function(done) {
+        const f = helper.prepareWnsPayload;
+        const fooBar = {foo: 'bar'};
+        const fooBarJson = '{"foo":"bar"}';
+
+        f().should.equal('{}');
+        f(null).should.equal('{}');
+        f({}).should.equal('{}');
+
+        f(fooBar).should.equal(fooBarJson);
+        f(fooBar, {channel_uri: 'cu'}).should.equal(fooBarJson);
+        f(fooBar, {package: 'p'}).should.equal(fooBarJson);
+
+        f(fooBar, {something: 'else'}).should.equal(JSON.stringify({
+          foo: fooBar.foo,
+          extra_data: {
+            something: 'else',
+          },
+        }));
 
         done();
       });
@@ -96,5 +307,22 @@ describe('helper', function() {
             .that.is.true;
 
         done();
+      });
+
+    it('should invoke callback', function(done) {
+        const args = ['0', '1'];
+        const later = helper.later(function(args0, args1) {
+          args0.should.equal(args[0]);
+          args1.should.equal(args[1]);
+          done();
+        });
+
+        later(args[0], args[1]);
+      }).timeout(10);
+
+    it('should not invoke non-function', function(done) {
+        const later = helper.later(null);
+        later('something', 'else');
+        setTimeout(done, 10);
       });
   });

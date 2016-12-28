@@ -1,29 +1,47 @@
 'use strict';
 
-const db = require('../lib/db');
+const config = require('../lib/config');
 const chai = require('chai');
+const _ = require('lodash');
 
 chai.should();
 
+let db = null;
+const originalProcessEnv = _.cloneDeep(process.env);
 const projectType = 'dt';
 const projectId = 'di';
 const configuration = {foo: 'bar'};
 
 describe('db/Project', function() {
-    beforeEach(function(done) {
-        const checkForDb = function() {
-          if (!db.isConnected()) {
-            return setTimeout(checkForDb, 100);
-          }
+    before(function(done) {
+        // eslint-disable-next-line no-invalid-this
+        this.timeout(20000);
 
-          db.projects._model.collection.drop().then(function() {
-              done();
-            }).catch(function() {
-              done();
-            });
+        process.env = _.cloneDeep(originalProcessEnv);
+        config._reload();
+        db = require('../lib/db')(config);
+
+        const waitForDb = function() {
+            if (!db.isConnected()) {
+              return setTimeout(waitForDb, 100);
+            }
+
+            done();
           };
 
-        checkForDb();
+        waitForDb();
+      });
+
+    after(function(done) {
+        db.closeConnection().then(done);
+      });
+
+    beforeEach(function(done) {
+        db.projects._model.collection.drop().then(function() {
+            done();
+          }).catch(function() {
+            done();
+          });
       });
 
     it('should save project', function(done) {
@@ -169,6 +187,7 @@ describe('db/Project', function() {
                 configuration: configuration,
               }, function(err, project) {
                 project.should.not.be.null;
+                project.configuration.should.deep.equal(configuration);
                 theProject = project;
                 step1();
               });
@@ -185,9 +204,7 @@ describe('db/Project', function() {
         const step2 = function() {
             db.projects._model.findById(theProject._id,
               function(err, project) {
-                project.configuration.should.has.all.keys('foo', 'bar');
-                project.configuration.foo.should.equal(configuration.foo);
-                project.configuration.bar.should.equal(configuration2.bar);
+                project.configuration.should.deep.equal(configuration2);
                 project.created.getTime().
                   should.equal(theProject.created.getTime());
                 project.last_updated.getTime().
