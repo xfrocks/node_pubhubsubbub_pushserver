@@ -511,6 +511,9 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload);
 
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal('Error');
+
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(config.pushQueue.attempts);
@@ -524,6 +527,27 @@ describe('pushQueue', function() {
         const payload = generatePayload();
 
         pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.be.a('Error');
+        job.error.message.should.equal('Message');
+
+        const pushes = pusher._getPushes();
+        config.pushQueue.attempts.should.be.above(2);
+        pushes.length.should.equal(config.pushQueue.attempts);
+
+        done();
+      });
+
+    it('should retry on array error', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'Array';
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal('["error"]');
 
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);

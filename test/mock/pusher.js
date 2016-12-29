@@ -30,6 +30,9 @@ const mock = function(push, hint, callback) {
       case 'Error':
         err = new Error('Message');
       break;
+      case 'Array':
+        err = ['error'];
+      break;
       case 'Exception':
         throw new Error('Message');
       break;
