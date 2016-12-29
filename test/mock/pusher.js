@@ -40,6 +40,7 @@ const mock = function(push, hint, callback) {
         }
       break;
       case 'invalid':
+      case 'invalid2':
         err = 'invalid';
         result.retries = [];
         result.invalids = push.deviceIds;
