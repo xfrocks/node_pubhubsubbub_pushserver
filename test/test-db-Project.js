@@ -9,7 +9,7 @@ chai.should();
 let db = null;
 const originalProcessEnv = _.cloneDeep(process.env);
 const projectType = 'dt';
-const projectId = 'di';
+const projectIdBase = 'di' + _.now();
 const configuration = {foo: 'bar'};
 
 describe('db/Project', function() {
@@ -33,18 +33,14 @@ describe('db/Project', function() {
       });
 
     after(function(done) {
-        db.closeConnection().then(done);
-      });
-
-    beforeEach(function(done) {
-        db.projects._model.collection.drop().then(function() {
-            done();
-          }).catch(function() {
-            done();
-          });
+        db.projects._model.collection.drop()
+          .then(() => db.closeConnection().then(done).catch(done))
+          .catch(done);
       });
 
     it('should save project', function(done) {
+        const projectId = projectIdBase + '-save';
+
         const step1 = function() {
             db.projects.save(projectType, projectId, configuration,
               function(isSaved) {
@@ -70,7 +66,7 @@ describe('db/Project', function() {
       });
 
     it('should save apn', function(done) {
-        const bundleId = 'bi';
+        const bundleId = projectIdBase + '-bi';
         const tokenKey = 'tk';
         const tokenKeyId = 'tki';
         const tokenTeamId = 'tti';
@@ -114,7 +110,7 @@ describe('db/Project', function() {
       });
 
     it('should save gcm', function(done) {
-        const packageId = 'pi';
+        const packageId = projectIdBase + '-gcm-pi';
         const apiKey = 'ak';
 
         const step1 = function() {
@@ -144,7 +140,7 @@ describe('db/Project', function() {
       });
 
     it('should save wns', function(done) {
-        const packageId = 'pi';
+        const packageId = projectIdBase + '-wns-pi';
         const clientId = 'ci';
         const clientSecret = 'cs';
 
@@ -177,6 +173,7 @@ describe('db/Project', function() {
       });
 
     it('should update project', function(done) {
+        const projectId = projectIdBase + '-update';
         const configuration2 = {bar: 'foo'};
         let theProject = null;
 
@@ -218,6 +215,7 @@ describe('db/Project', function() {
       });
 
     it('should return project', function(done) {
+        const projectId = projectIdBase + '-return';
         const now = Date.now();
 
         const init = function() {
@@ -247,6 +245,8 @@ describe('db/Project', function() {
       });
 
     it('should return project configuration', function(done) {
+        const projectId = projectIdBase + '-return-config';
+
         const init = function() {
             db.projects._model.create({
                 project_type: projectType,

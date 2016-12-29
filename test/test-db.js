@@ -27,7 +27,7 @@ describe('db', function() {
             }
 
             db.isConnected().should.be.true;
-            db.closeConnection().then(done);
+            db.closeConnection().then(done).catch(done);
           };
 
         waitForDb();
@@ -54,6 +54,6 @@ describe('db', function() {
         const middleware = db.expressMiddleware();
         middleware.should.not.be.null;
 
-        db.closeConnection().then(done);
+        db.closeConnection().then(done).catch(done);
       });
   });
