@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 let db = null;
 const originalProcessEnv = _.cloneDeep(process.env);
-const oauthClientId = 'oci';
+const oauthClientIdBase = 'oci' + _.now();
 const hubUri = 'hu';
 const extraData = {foo: 'bar'};
 
@@ -34,18 +34,14 @@ describe('db/Hub', function() {
       });
 
     after(function(done) {
-        db.closeConnection().then(done);
-      });
-
-    beforeEach(function(done) {
-        db.hubs._model.collection.drop().then(function() {
-            done();
-          }).catch(function() {
-            done();
-          });
+        db.hubs._model.collection.drop()
+          .then(() => db.closeConnection().then(done).catch(done))
+          .catch(done);
       });
 
     it('should save hub', function(done) {
+        const oauthClientId = oauthClientIdBase + '-save';
+
         const step1 = function() {
             db.hubs.save(oauthClientId, hubUri, extraData,
               function(isSaved) {
@@ -76,7 +72,10 @@ describe('db/Hub', function() {
       });
 
     it('should update hub uri', function(done) {
+        const oauthClientId = oauthClientIdBase + '-update-hub-uri';
+        const hubUri2 = hubUri + '2';
         let theHub = null;
+
         const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,
@@ -90,7 +89,7 @@ describe('db/Hub', function() {
           };
 
         const step1 = function() {
-            db.hubs.save(oauthClientId, 'hu2', extraData,
+            db.hubs.save(oauthClientId, hubUri2, extraData,
               function(isSaved) {
                 isSaved.should.equal('updated');
                 step2();
@@ -99,7 +98,7 @@ describe('db/Hub', function() {
 
         const step2 = function() {
             db.hubs._model.findById(theHub._id, function(err, hub) {
-                hub.hub_uri.should.have.members([hubUri, 'hu2']);
+                hub.hub_uri.should.have.members([hubUri, hubUri2]);
                 done();
               });
           };
@@ -108,6 +107,7 @@ describe('db/Hub', function() {
       });
 
     it('should update hub extra data', function(done) {
+        const oauthClientId = oauthClientIdBase + '-update-extra-data';
         const extraData2 = {bar: 'foo'};
         let theHub = null;
 
@@ -145,6 +145,8 @@ describe('db/Hub', function() {
       });
 
     it('should do no op', function(done) {
+        const oauthClientId = oauthClientIdBase + '-nop';
+
         const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,
@@ -168,6 +170,8 @@ describe('db/Hub', function() {
       });
 
     it('should return hub', function(done) {
+        const oauthClientId = oauthClientIdBase + '-return';
+
         const init = function() {
             db.hubs._model.create({
                 oauth_client_id: oauthClientId,

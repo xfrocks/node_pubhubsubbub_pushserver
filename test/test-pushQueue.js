@@ -511,6 +511,9 @@ describe('pushQueue', function() {
 
         pushQueue.enqueue(deviceType, deviceId, payload);
 
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal('Error');
+
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);
         pushes.length.should.equal(config.pushQueue.attempts);
@@ -524,6 +527,27 @@ describe('pushQueue', function() {
         const payload = generatePayload();
 
         pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.be.a('Error');
+        job.error.message.should.equal('Message');
+
+        const pushes = pusher._getPushes();
+        config.pushQueue.attempts.should.be.above(2);
+        pushes.length.should.equal(config.pushQueue.attempts);
+
+        done();
+      });
+
+    it('should retry on array error', function(done) {
+        const deviceType = 'android';
+        const deviceId = 'Array';
+        const payload = generatePayload();
+
+        pushQueue.enqueue(deviceType, deviceId, payload);
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId);
+        job.error.should.equal('["error"]');
 
         const pushes = pusher._getPushes();
         config.pushQueue.attempts.should.be.above(2);
@@ -580,43 +604,47 @@ describe('pushQueue', function() {
         done();
       });
 
-    it('should delete device', function(done) {
+    it('should delete devices', function(done) {
         const deviceType = 'android';
         const deviceId = 'invalid';
+        const deviceId2 = 'invalid2';
         const oauthClientId = 'oci';
         const hubTopic = 'ht';
         const payload = generatePayload();
 
-        const step1 = function() {
-          db.devices.save(
-            deviceType,
-            deviceId,
-            oauthClientId,
-            hubTopic,
-            {},
+        const init1 = function() {
+          db.devices.save(deviceType, deviceId, oauthClientId, hubTopic, {},
             function() {
               db.devices._devicesLength().should.equal(1);
-              step2();
+              init2();
             }
           );
         };
 
-        const step2 = function() {
-          pushQueue.enqueue(deviceType, deviceId, payload);
-
-          const pushes = pusher._getPushes();
-          config.pushQueue.attempts.should.be.above(1);
-          pushes.length.should.equal(1);
-
-          step3();
+        const init2 = function() {
+          db.devices.save(deviceType, deviceId2, oauthClientId, hubTopic, {},
+            function() {
+              db.devices._devicesLength().should.equal(2);
+              step1();
+            }
+          );
         };
 
-        const step3 = function() {
+        const step1 = function() {
+          pushQueue.enqueue(deviceType, [deviceId, deviceId2], payload);
+
+          const pushes = pusher._getPushes();
+          pushes.length.should.equal(1);
+
+          step2();
+        };
+
+        const step2 = function() {
           db.devices._devicesLength().should.equal(0);
           done();
         };
 
-        step1();
+        init1();
       });
 
     it('should encounter job.save error', function(done) {

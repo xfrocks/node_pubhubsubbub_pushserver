@@ -30,6 +30,9 @@ const mock = function(push, hint, callback) {
       case 'Error':
         err = new Error('Message');
       break;
+      case 'Array':
+        err = ['error'];
+      break;
       case 'Exception':
         throw new Error('Message');
       break;
@@ -40,6 +43,7 @@ const mock = function(push, hint, callback) {
         }
       break;
       case 'invalid':
+      case 'invalid2':
         err = 'invalid';
         result.retries = [];
         result.invalids = push.deviceIds;

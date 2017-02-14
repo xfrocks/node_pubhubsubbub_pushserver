@@ -29,6 +29,7 @@ pushKue._getJobs = function(queueId) {
 pushKue.create = function(queueId, jobData) {
     const job = {
         data: jobData,
+        done: false,
         error: null,
         result: null,
 
@@ -48,6 +49,11 @@ pushKue.create = function(queueId, jobData) {
         }
 
         processCallbacks[queueId](job, function(err, result) {
+            if (job.done) {
+              throw new Error('Job must not be done() twice');
+            }
+
+            job.done = true;
             job.error = err;
             job.result = result;
           });

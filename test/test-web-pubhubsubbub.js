@@ -110,9 +110,43 @@ describe('web/pubhubsubbub', function() {
                 device.device_type.should.equal(deviceType);
                 device.device_id.should.equal(deviceId);
                 device.extra_data.foo.should.equal(extraData.foo);
-              });
 
-            done();
+                done();
+              });
+          };
+
+        step1();
+      });
+
+    it('should subscribe without hub topic', function(done) {
+        const step1 = function() {
+            webApp
+                .post('/subscribe')
+                .send({
+                    hub_uri: testAppUriStatus202,
+                    oauth_client_id: oauthClientId,
+                    oauth_token: oauthToken,
+                    device_type: deviceType,
+                    device_id: deviceId,
+                    extra_data: extraData,
+                  })
+                .end(function(err, res) {
+                    res.should.have.status(204);
+                    step2();
+                  });
+          };
+
+        const step2 = function() {
+            db.devices.findDevices(oauthClientId, '', function(devices) {
+                devices.length.should.equal(1);
+
+                const device = devices[0];
+                device.device_type.should.equal(deviceType);
+                device.device_id.should.equal(deviceId);
+                device.extra_data.foo.should.equal(extraData.foo);
+
+                done();
+              });
           };
 
         step1();
@@ -195,6 +229,7 @@ describe('web/pubhubsubbub', function() {
             .post('/subscribe')
             .send({
                 hub_uri: testAppUri + '/status/403',
+                hub_topic: hubTopic,
                 oauth_client_id: oauthClientId,
                 oauth_token: oauthToken,
                 device_type: deviceType,
@@ -212,6 +247,7 @@ describe('web/pubhubsubbub', function() {
             .post('/subscribe')
             .send({
                 hub_uri: 'http://a.b.c/hub',
+                hub_topic: hubTopic,
                 oauth_client_id: oauthClientId,
                 oauth_token: oauthToken,
                 device_type: deviceType,
@@ -730,6 +766,53 @@ describe('web/pubhubsubbub', function() {
                 .end(function() {
                     const jobs = pushQueue._getJobs();
                     jobs.length.should.equal(2);
+
+                    done();
+                  });
+          };
+
+        init();
+      });
+
+    it('should enqueue pushes for all devices (no hub topic)', function(done) {
+        const deviceId2 = 'di2';
+        const deviceId3 = 'di3';
+        const hubTopic2 = 'ht2';
+
+        const init = function() {
+            db.devices.save(deviceType, deviceId,
+                oauthClientId, hubTopic, {data: 1},
+                function(isSaved) {
+                isSaved.should.equal('saved');
+
+                db.devices.save(deviceType, deviceId2,
+                    oauthClientId, hubTopic2, {data: 2},
+                    function(isSaved) {
+                    isSaved.should.equal('saved');
+
+                    db.devices.save(deviceType, deviceId3,
+                        oauthClientId, '', {data: 3},
+                        function(isSaved) {
+                        isSaved.should.equal('saved');
+                        test();
+                      });
+                  });
+              });
+          };
+
+        const test = function() {
+            webApp
+                .post('/callback')
+                .send([
+                    {
+                        client_id: oauthClientId,
+                        topic: '',
+                        object_data: payload,
+                      },
+                ])
+                .end(function() {
+                    const jobs = pushQueue._getJobs();
+                    jobs.length.should.equal(3);
 
                     done();
                   });
