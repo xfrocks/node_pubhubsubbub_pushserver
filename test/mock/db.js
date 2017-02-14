@@ -59,7 +59,7 @@ db.devices = {
               return false;
             }
 
-            if (hubTopic) {
+            if (_.isString(hubTopic) && hubTopic.length > 0) {
               return _.includes(device.hub_topic, hubTopic);
             } else {
               return true;
