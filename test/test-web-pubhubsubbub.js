@@ -153,21 +153,20 @@ describe('web/pubhubsubbub', function() {
       });
 
     it('should not subscribe with missing data', function(done) {
-        const seed = [
-            {},
-            {oauth_client_id: oauthClientId},
-            {oauth_token: oauthToken},
-            {device_type: deviceType},
-            {device_id: deviceId},
-        ];
+        const seed = {
+          device_type: deviceType,
+          device_id: deviceId,
+          oauth_client_id: oauthClientId,
+          hub_uri: testAppUriStatus202,
+        };
 
         const data = [];
-        _.forEach(seed, function(dataPiece) {
-            let prevData = {};
-            if (data.length > 0) {
-              prevData = _.last(data);
-            }
-            data.push(_.assign({}, prevData, dataPiece));
+        _.forEach(seed, function(seedValue, seedKey) {
+            const testDataWithoutKey = _.omit(seed, seedKey)
+            data.push(testDataWithoutKey);
+
+            const testDataWithEmptyKey = _.merge({seedKey: ''}, testDataWithoutKey)
+            data.push(testDataWithEmptyKey);
           });
 
         const test = function() {
