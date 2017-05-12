@@ -479,6 +479,8 @@ describe('pusher/apn', function() {
         const test1 = function() {
             pusher.send(connectionOptions, token, payload, function() {
                 push1 = lib._getLatestPush();
+                lib._getProviderCount().should.equal(1);
+                pusher._getActiveConnectionIds().length.should.equal(1);
 
                 setTimeout(test2, 20);
               });
@@ -487,6 +489,9 @@ describe('pusher/apn', function() {
         const test2 = function() {
             pusher.send(connectionOptionsCert, 't2', payload, function() {
                 push2 = lib._getLatestPush();
+                lib._getProviderCount().should.equal(2);
+                pusher._getActiveConnectionIds().length.should.equal(2);
+
                 setTimeout(test3, 20);
               });
           };
@@ -496,6 +501,8 @@ describe('pusher/apn', function() {
 
             push1.provider._hasBeenShutdown.should.be.true;
             push2.provider._hasBeenShutdown.should.be.false;
+            lib._getProviderCount().should.equal(2);
+            pusher._getActiveConnectionIds().length.should.equal(1);
 
             done();
           };
