@@ -161,11 +161,11 @@ describe('web/pubhubsubbub', function() {
         };
 
         const data = [];
-        _.forEach(seed, function(seedValue, seedKey) {
-            const testDataWithoutKey = _.omit(seed, seedKey)
+        _.forEach(seed, function(v, k) {
+            const testDataWithoutKey = _.omit(seed, k);
             data.push(testDataWithoutKey);
 
-            const testDataWithEmptyKey = _.merge({seedKey: ''}, testDataWithoutKey)
+            const testDataWithEmptyKey = _.merge({k: ''}, testDataWithoutKey);
             data.push(testDataWithEmptyKey);
           });
 
