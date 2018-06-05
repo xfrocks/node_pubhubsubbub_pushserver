@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  app:
+    build:
+      context: docker/serverless
+    environment:
+      - CONFIG_WEB_USERNAME=u
+      - CONFIG_WEB_PASSWORD=p
+      - DEBUG=pushserver:*
+    ports:
+      - "18080:18080"
+    volumes:
+      - .:/app
