@@ -2,6 +2,7 @@
 
 const web = require('../lib/web');
 const chai = require('chai');
+const http = require('http');
 const _ = require('lodash');
 
 chai.should();
@@ -9,12 +10,17 @@ chai.use(require('chai-http'));
 const db = require('./mock/db');
 const admin = require('../lib/web/admin');
 
+let server = null;
 let webApp = null;
 
 describe('web/admin', function() {
+    // eslint-disable-next-line no-invalid-this
+    this.timeout(20000);
+
     before(function(done) {
         web._reset();
-        webApp = chai.request(web.app());
+        server = http.createServer(web.app()).listen(0);
+        webApp = chai.request(server).keepOpen();
         admin.setup(web.app(), '/admin', null, null, null, db);
         done();
       });
@@ -23,6 +29,11 @@ describe('web/admin', function() {
         db.projects._reset();
         done();
       });
+
+    after(function(done) {
+        server.close();
+        done();
+      })
 
     it('should return sections', function(done) {
         webApp

@@ -3,11 +3,14 @@
 const config = require('../lib/config');
 const web = require('../lib/web');
 const chai = require('chai');
+const http = require('http');
 const _ = require('lodash');
 
 chai.should();
 chai.use(require('chai-http'));
 
+let db = null;
+let server = null;
 let webApp = null;
 const originalProcessEnv = _.merge({}, process.env);
 const adminUsername = 'username';
@@ -24,9 +27,15 @@ describe('full app', function() {
         config._reload();
 
         web._reset();
-        webApp = chai.request(web.start());
+        server = web.start();
+        webApp = chai.request(server).keepOpen();
 
         done();
+      });
+
+    after(function(done) {
+        server.close();
+        web._reset(done);
       });
 
     it('should say hi', function(done) {

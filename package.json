@@ -3,7 +3,7 @@
   "version": "2.0.1",
   "description": "Pubhubsubbub-compatible push server for Apple, Google and Microsoft services.",
   "dependencies": {
-    "apn": "~2.1.2",
+    "apn": "^2.2.0",
     "basic-auth": "^1.1.0",
     "body-parser": "^1.15.0",
     "bootstrap": "^3.3.6",
@@ -12,37 +12,33 @@
     "express": "^4.14.0",
     "kue": "~0.11.5",
     "lodash": "^4.17.2",
-    "mongo-express": "^0.35.0",
+    "mongo-express": "^0.47.0",
     "mongo-uri": "^0.1.2",
     "mongoose": "^4.4.7",
-    "node-gcm": "~0.14.4",
+    "node-gcm": "^1.0.2",
     "pug": "^2.0.0-alpha6",
-    "request": "~2.79.0",
+    "request": "^2.87.0",
     "string": "~3.3.1",
     "wns": "~0.5.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "chai-http": "^3.0.0",
-    "coveralls": "^2.11.9",
+    "chai-http": "^4.0.0",
+    "coveralls": "^3.0.1",
     "eslint": "^3.12.2",
     "eslint-config-google": "^0.7.1",
     "istanbul": "^0.4.3",
-    "mocha": "^3.2.0",
+    "mocha": "^5.2.0",
     "nock": "^9.0.2",
-    "nodemon": "^1.11.0"
-  },
-  "engines": {
-    "node": ">=7.3.0",
-    "npm": ">=3.10.10"
+    "nodemon": "^1.17.5"
   },
   "scripts": {
     "bash": "/bin/sh",
-    "coverage": "NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
+    "coverage": "CONFIG_DB_WEB=false NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
     "lint": "./node_modules/.bin/eslint --fix -- bin/pushserver lib test",
     "develop": "./node_modules/.bin/nodemon --watch bin --watch lib",
     "start": "node bin/pushserver",
-    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
+    "test": "CONFIG_DB_WEB=false NODE_ENV=test ./node_modules/mocha/bin/mocha"
   },
   "repository": {
     "type": "git",

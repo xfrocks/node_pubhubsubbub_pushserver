@@ -5,6 +5,7 @@ const pusher = require('../lib/pusher');
 const pushQueue = require('../lib/pushQueue');
 const web = require('../lib/web');
 const chai = require('chai');
+const http = require('http');
 const _ = require('lodash');
 const nock = require('nock');
 
@@ -13,6 +14,7 @@ chai.use(require('chai-http'));
 const db = require('./mock/db');
 const pushKue = require('./mock/pushKue');
 
+let server = null;
 let webApp = null;
 const originalProcessEnv = _.merge({}, process.env);
 const adminUsername = 'username';
@@ -69,7 +71,8 @@ describe('app', function() {
         web._reset();
 
         pushQueue.setup(pushKue, pusher.setupDefault(), db);
-        webApp = chai.request(web.start(db, pushQueue));
+        server = web.start(db, pushQueue);
+        webApp = chai.request(server).keepOpen();
 
         done();
       });
@@ -87,6 +90,7 @@ describe('app', function() {
     after(function(done) {
         nock.cleanAll();
         nock.enableNetConnect();
+        server.close();
         done();
       });
 

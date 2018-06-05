@@ -35,8 +35,8 @@ describe('db/Hub', function() {
 
     after(function(done) {
         db.hubs._model.collection.drop()
-          .then(() => db.closeConnection().then(done).catch(done))
-          .catch(done);
+          .then(() => db.closeConnection())
+          .then(done);
       });
 
     it('should save hub', function(done) {

@@ -21,7 +21,7 @@ db.devices = {
       hubTopic, extraData, callback) {
         const mock = function() {
             if (deviceId === 'error') {
-              done(false);
+              return done(false);
             }
 
             const key = deviceType + deviceId + oauthClientId;
@@ -32,7 +32,7 @@ db.devices = {
               }
               device.extra_data = _.assign({}, device.extra_data, extraData);
 
-              done('updated');
+              return done('updated');
             } else {
               devices[key] = {
                   device_type: deviceType,
@@ -42,7 +42,7 @@ db.devices = {
                   extra_data: extraData,
                 };
 
-              done('saved');
+              return done('saved');
             }
           };
 
@@ -147,7 +147,7 @@ db.hubs = {
               }
               hub.extra_data = _.assign({}, hub.extra_data, extraData);
 
-              done('updated');
+              return done('updated');
             } else {
               hubs[key] = {
                   oauth_client_id: oauthClientId,
@@ -155,7 +155,7 @@ db.hubs = {
                   extra_data: extraData,
                 };
 
-              done('saved');
+              return done('saved');
             }
           };
 

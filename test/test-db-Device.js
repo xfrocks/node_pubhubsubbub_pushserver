@@ -37,8 +37,8 @@ describe('db/Device', function() {
 
     after(function(done) {
         db.devices._model.collection.drop()
-          .then(() => db.closeConnection().then(done).catch(done))
-          .catch(done);
+          .then(() => db.closeConnection())
+          .then(done);
       });
 
     it('should save device', function(done) {

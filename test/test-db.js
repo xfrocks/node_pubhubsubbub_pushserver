@@ -12,48 +12,36 @@ describe('db', function() {
     // eslint-disable-next-line no-invalid-this
     this.timeout(20000);
 
+    const waitForConnection = function(db) {
+        return new Promise(function(resolve) {
+            const check = function() {
+              if (db.isConnecting()) {
+                return setTimeout(check, 100);
+              }
+              resolve();
+            }
+
+            check();
+          });
+      };
+
     beforeEach(function(done) {
         process.env = _.cloneDeep(originalProcessEnv);
         config._reload();
         done();
       });
 
-    it('should connect', function(done) {
+    it('should connect', function() {
         const db = require('../lib/db')(config);
-
-        const waitForDb = function() {
-            if (db.isConnecting()) {
-              return setTimeout(waitForDb, 100);
-            }
-
-            db.isConnected().should.be.true;
-            db.closeConnection().then(done).catch(done);
-          };
-
-        waitForDb();
+        return waitForConnection(db)
+          .then(() => db.isConnected().should.be.true)
+          .then(() => db.closeConnection())
       });
 
-    it('should fail with invalid uri', function(done) {
+    it('should fail with invalid uri', function() {
         config.db.mongoUri = 'mongodb://a.b.c/db';
         const db = require('../lib/db')(config);
-
-        const waitForDb = function() {
-            if (db.isConnecting()) {
-              return setTimeout(waitForDb, 100);
-            }
-
-            db.isConnected().should.be.false;
-            done();
-          };
-
-        waitForDb();
-      });
-
-    it('should have middleware', function(done) {
-        const db = require('../lib/db')(config);
-        const middleware = db.expressMiddleware();
-        middleware.should.not.be.null;
-
-        db.closeConnection().then(done).catch(done);
+        return waitForConnection(db)
+          .then(() => db.isConnected().should.be.false)
       });
   });

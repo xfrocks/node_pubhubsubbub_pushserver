@@ -30,6 +30,7 @@ const testAppPort = testServer.address().port;
 const testAppUri = 'http://localhost:' + testAppPort;
 const testAppUriStatus202 = testAppUri + '/status/202';
 
+let server = null;
 let webApp = null;
 const callbackUri = 'http://push.server/callback';
 const hubTopic = 'ht';
@@ -43,8 +44,11 @@ const payload = 'p';
 describe('web/pubhubsubbub', function() {
     before(function(done) {
         web._reset();
-        webApp = chai.request(web.app());
-        pubhubsubbub.setup(web.app(), '', db, pushQueue);
+
+        const app = web.app();
+        server = http.createServer(app).listen(0);
+        webApp = chai.request(server).keepOpen();
+        pubhubsubbub.setup(app, '', db, pushQueue);
 
         done();
       });
@@ -56,6 +60,12 @@ describe('web/pubhubsubbub', function() {
         testAppReqs = [];
         done();
       });
+
+    after(function(done) {
+        server.close();
+        testServer.close();
+        done();
+      })
 
     it('should say hi', function(done) {
         webApp
