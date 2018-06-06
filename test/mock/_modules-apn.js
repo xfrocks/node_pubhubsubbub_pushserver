@@ -78,8 +78,8 @@ apn.Provider = function (options) {
   providers.push(this)
 }
 
-apn.Notification = function (payload) {
-  this.payload = payload
+apn.Notification = function () {
+  this.payload = {}
   this.alert = ''
   this.badge = ''
   this.sound = ''
