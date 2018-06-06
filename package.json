@@ -12,7 +12,6 @@
     "express": "^4.14.0",
     "kue": "~0.11.5",
     "lodash": "^4.17.2",
-    "mongo-express": "^0.47.0",
     "mongo-uri": "^0.1.2",
     "mongoose": "^4.4.7",
     "node-gcm": "^1.0.2",
@@ -33,11 +32,11 @@
   },
   "scripts": {
     "bash": "/bin/sh",
-    "coverage": "CONFIG_DB_WEB=false NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
+    "coverage": "NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
     "lint": "./node_modules/.bin/standard",
     "develop": "./node_modules/.bin/nodemon --watch bin --watch lib",
     "start": "node bin/pushserver",
-    "test": "CONFIG_DB_WEB=false NODE_ENV=test ./node_modules/mocha/bin/mocha"
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
   },
   "repository": {
     "type": "git",

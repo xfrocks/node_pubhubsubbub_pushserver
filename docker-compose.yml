@@ -1,6 +1,13 @@
 version: '2'
 
 services:
+  adminmongo:
+    image: mrvautin/adminmongo
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./docker/adminmongo/app.json:/app/user/config/app.json:ro
+
   app:
     build:
       context: docker/node

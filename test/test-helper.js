@@ -9,44 +9,6 @@ const _ = require('lodash')
 chai.should()
 const expect = chai.expect
 describe('helper', function () {
-  it('should prepare mongo-express config', function (done) {
-    const mongoUri = 'mongodb://localhost/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    mec.useBasicAuth.should.be.false
-    mec.options.readOnly.should.be.true
-    mec.options.logger.skip.should.be.a('function')
-    mec.options.logger.skip().should.be.true
-
-    mec.mongodb.server.should.equal('localhost')
-    mec.mongodb.port.should.equal(27017)
-    mec.mongodb.auth.length.should.equal(1)
-
-    const auth = mec.mongodb.auth[0]
-    auth.should.deep.equal({
-      database: 'pushserver'
-    })
-
-    done()
-  })
-
-  it('should prepare mongo-express config with port', function (done) {
-    const mongoUri = 'mongodb://localhost:1234/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    mec.mongodb.port.should.equal(1234)
-
-    done()
-  })
-
-  it('should prepare mongo-express config with auth', function (done) {
-    const mongoUri = 'mongodb://u:p@localhost/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    const auth = mec.mongodb.auth[0]
-    auth.username.should.equal('u')
-    auth.password.should.equal('p')
-
-    done()
-  })
-
   it('should strip html', function (done) {
     const html = '\t<b>Hello</b> <em>World</em>!\r\n'
     const result = helper.stripHtml(html)

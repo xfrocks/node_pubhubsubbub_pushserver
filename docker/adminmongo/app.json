@@ -1,0 +1,6 @@
+{
+  "app": {
+    "context": "admin/db",
+    "monitoring": false
+  }
+}
