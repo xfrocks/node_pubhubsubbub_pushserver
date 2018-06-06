@@ -4,13 +4,11 @@ node_js:
   - '9'
   - '8'
 
-env:
-  - NODE_ENV=travis
 services:
   - mongodb
   - redis-server
 cache:
   directories:
     - node_modules
-script: "npm run coverage"
+script: "npm run lint && npm run coverage"
 after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"

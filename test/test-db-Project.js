@@ -1,272 +1,281 @@
-'use strict';
+'use strict'
 
-const config = require('../lib/config');
-const chai = require('chai');
-const _ = require('lodash');
+/* eslint-disable no-unused-expressions */
 
-chai.should();
+const config = require('../lib/config')
+const chai = require('chai')
+const _ = require('lodash')
 
-let db = null;
-const originalProcessEnv = _.cloneDeep(process.env);
-const projectType = 'dt';
-const projectIdBase = 'di' + _.now();
-const configuration = {foo: 'bar'};
+chai.should()
+const expect = chai.expect
 
-describe('db/Project', function() {
-    before(function(done) {
-        // eslint-disable-next-line no-invalid-this
-        this.timeout(20000);
+let db = null
+const originalProcessEnv = _.cloneDeep(process.env)
+const projectType = 'dt'
+const projectIdBase = 'di' + _.now()
+const configuration = {foo: 'bar'}
 
-        process.env = _.cloneDeep(originalProcessEnv);
-        config._reload();
-        db = require('../lib/db')(config);
+describe('db/Project', function () {
+  before(function (done) {
+    // eslint-disable-next-line no-invalid-this
+    this.timeout(20000)
 
-        const waitForDb = function() {
-            if (!db.isConnected()) {
-              return setTimeout(waitForDb, 100);
-            }
+    process.env = _.cloneDeep(originalProcessEnv)
+    config._reload()
+    db = require('../lib/db')(config)
 
-            done();
-          };
+    const waitForDb = function () {
+      if (!db.isConnected()) {
+        return setTimeout(waitForDb, 100)
+      }
 
-        waitForDb();
-      });
+      done()
+    }
 
-    after(function(done) {
-        db.projects._model.collection.drop()
-          .then(() => db.closeConnection())
-          .then(done);
-      });
+    waitForDb()
+  })
 
-    it('should save project', function(done) {
-        const projectId = projectIdBase + '-save';
+  after(function (done) {
+    db.projects._model.collection.drop()
+      .then(() => db.closeConnection())
+      .then(done)
+  })
 
-        const step1 = function() {
-            db.projects.save(projectType, projectId, configuration,
-              function(isSaved) {
-                isSaved.should.not.be.false;
-                step2();
-              });
-          };
+  it('should save project', function (done) {
+    const projectId = projectIdBase + '-save'
 
-        const step2 = function() {
-            db.projects._model.find({
-                project_type: projectType,
-                project_id: projectId,
-              }, function(err, projects) {
-                projects.should.be.a('array');
-                projects.length.should.equal(1);
-                projects[0].configuration.should.deep.equal(configuration);
+    const step1 = function () {
+      db.projects.save(projectType, projectId, configuration,
+        function (isSaved) {
+          isSaved.should.not.be.false
+          step2()
+        })
+    }
 
-                done();
-              });
-          };
+    const step2 = function () {
+      db.projects._model.find({
+        project_type: projectType,
+        project_id: projectId
+      }, function (err, projects) {
+        expect(err).to.be.null
+        projects.should.be.a('array')
+        projects.length.should.equal(1)
+        projects[0].configuration.should.deep.equal(configuration)
 
-        step1();
-      });
+        done()
+      })
+    }
 
-    it('should save apn', function(done) {
-        const bundleId = projectIdBase + '-bi';
-        const tokenKey = 'tk';
-        const tokenKeyId = 'tki';
-        const tokenTeamId = 'tti';
-        const production = true;
+    step1()
+  })
 
-        const step1 = function() {
-            db.projects.saveApn(
-              bundleId,
-              tokenKey,
-              tokenKeyId,
-              tokenTeamId,
-              production,
-              function(isSaved) {
-                isSaved.should.not.be.false;
-                step2();
-              }
-            );
-          };
+  it('should save apn', function (done) {
+    const bundleId = projectIdBase + '-bi'
+    const tokenKey = 'tk'
+    const tokenKeyId = 'tki'
+    const tokenTeamId = 'tti'
+    const production = true
 
-        const step2 = function() {
-            db.projects._model.find({
-                project_type: 'apn',
-                project_id: bundleId,
-              }, function(err, projects) {
-                projects.should.be.a('array');
-                projects.length.should.equal(1);
+    const step1 = function () {
+      db.projects.saveApn(
+        bundleId,
+        tokenKey,
+        tokenKeyId,
+        tokenTeamId,
+        production,
+        function (isSaved) {
+          isSaved.should.not.be.false
+          step2()
+        }
+      )
+    }
 
-                const project = projects[0];
-                project.configuration.should.be.a('object');
-                project.configuration.token.should.be.a('object');
-                project.configuration.token.key.should.equal(tokenKey);
-                project.configuration.token.keyId.should.equal(tokenKeyId);
-                project.configuration.token.teamId.should.equal(tokenTeamId);
-                project.configuration.production.should.equal(production);
+    const step2 = function () {
+      db.projects._model.find({
+        project_type: 'apn',
+        project_id: bundleId
+      }, function (err, projects) {
+        expect(err).to.be.null
+        projects.should.be.a('array')
+        projects.length.should.equal(1)
 
-                done();
-              });
-          };
+        const project = projects[0]
+        project.configuration.should.be.a('object')
+        project.configuration.token.should.be.a('object')
+        project.configuration.token.key.should.equal(tokenKey)
+        project.configuration.token.keyId.should.equal(tokenKeyId)
+        project.configuration.token.teamId.should.equal(tokenTeamId)
+        project.configuration.production.should.equal(production)
 
-        step1();
-      });
+        done()
+      })
+    }
 
-    it('should save gcm', function(done) {
-        const packageId = projectIdBase + '-gcm-pi';
-        const apiKey = 'ak';
+    step1()
+  })
 
-        const step1 = function() {
-            db.projects.saveGcm(packageId, apiKey, function(isSaved) {
-                isSaved.should.not.be.false;
-                step2();
-              });
-          };
+  it('should save gcm', function (done) {
+    const packageId = projectIdBase + '-gcm-pi'
+    const apiKey = 'ak'
 
-        const step2 = function() {
-            db.projects._model.find({
-                project_type: 'gcm',
-                project_id: packageId,
-              }, function(err, projects) {
-                projects.should.be.a('array');
-                projects.length.should.equal(1);
+    const step1 = function () {
+      db.projects.saveGcm(packageId, apiKey, function (isSaved) {
+        isSaved.should.not.be.false
+        step2()
+      })
+    }
 
-                const project = projects[0];
-                project.configuration.should.be.a('object');
-                project.configuration.api_key.should.equal(apiKey);
+    const step2 = function () {
+      db.projects._model.find({
+        project_type: 'gcm',
+        project_id: packageId
+      }, function (err, projects) {
+        expect(err).to.be.null
+        projects.should.be.a('array')
+        projects.length.should.equal(1)
 
-                done();
-              });
-          };
+        const project = projects[0]
+        project.configuration.should.be.a('object')
+        project.configuration.api_key.should.equal(apiKey)
 
-        step1();
-      });
+        done()
+      })
+    }
 
-    it('should save wns', function(done) {
-        const packageId = projectIdBase + '-wns-pi';
-        const clientId = 'ci';
-        const clientSecret = 'cs';
+    step1()
+  })
 
-        const step1 = function() {
-            db.projects.saveWns(packageId, clientId, clientSecret,
-              function(isSaved) {
-                isSaved.should.not.be.false;
-                step2();
-              });
-          };
+  it('should save wns', function (done) {
+    const packageId = projectIdBase + '-wns-pi'
+    const clientId = 'ci'
+    const clientSecret = 'cs'
 
-        const step2 = function() {
-            db.projects._model.find({
-                project_type: 'wns',
-                project_id: packageId,
-              }, function(err, projects) {
-                projects.should.be.a('array');
-                projects.length.should.equal(1);
+    const step1 = function () {
+      db.projects.saveWns(packageId, clientId, clientSecret,
+        function (isSaved) {
+          isSaved.should.not.be.false
+          step2()
+        })
+    }
 
-                const project = projects[0];
-                project.configuration.should.be.a('object');
-                project.configuration.client_id.should.equal(clientId);
-                project.configuration.client_secret.should.equal(clientSecret);
+    const step2 = function () {
+      db.projects._model.find({
+        project_type: 'wns',
+        project_id: packageId
+      }, function (err, projects) {
+        expect(err).to.be.null
+        projects.should.be.a('array')
+        projects.length.should.equal(1)
 
-                done();
-              });
-          };
+        const project = projects[0]
+        project.configuration.should.be.a('object')
+        project.configuration.client_id.should.equal(clientId)
+        project.configuration.client_secret.should.equal(clientSecret)
 
-        step1();
-      });
+        done()
+      })
+    }
 
-    it('should update project', function(done) {
-        const projectId = projectIdBase + '-update';
-        const configuration2 = {bar: 'foo'};
-        let theProject = null;
+    step1()
+  })
 
-        const init = function() {
-            db.projects._model.create({
-                project_type: projectType,
-                project_id: projectId,
-                configuration: configuration,
-              }, function(err, project) {
-                project.should.not.be.null;
-                project.configuration.should.deep.equal(configuration);
-                theProject = project;
-                step1();
-              });
-          };
+  it('should update project', function (done) {
+    const projectId = projectIdBase + '-update'
+    const configuration2 = {bar: 'foo'}
+    let theProject = null
 
-        const step1 = function() {
-            db.projects.save(projectType, projectId, configuration2,
-              function(isSaved) {
-                isSaved.should.not.be.false;
-                step2();
-              });
-          };
+    const init = function () {
+      db.projects._model.create({
+        project_type: projectType,
+        project_id: projectId,
+        configuration: configuration
+      }, function (err, project) {
+        expect(err).to.be.null
+        project.should.not.be.null
+        project.configuration.should.deep.equal(configuration)
+        theProject = project
+        step1()
+      })
+    }
 
-        const step2 = function() {
-            db.projects._model.findById(theProject._id,
-              function(err, project) {
-                project.configuration.should.deep.equal(configuration2);
-                project.created.getTime().
-                  should.equal(theProject.created.getTime());
-                project.last_updated.getTime().
-                  should.above(theProject.last_updated.getTime());
+    const step1 = function () {
+      db.projects.save(projectType, projectId, configuration2,
+        function (isSaved) {
+          isSaved.should.not.be.false
+          step2()
+        })
+    }
 
-                done();
-              });
-          };
+    const step2 = function () {
+      db.projects._model.findById(theProject._id,
+        function (err, project) {
+          expect(err).to.be.null
+          project.configuration.should.deep.equal(configuration2)
+          project.created.getTime()
+            .should.equal(theProject.created.getTime())
+          project.last_updated.getTime()
+            .should.above(theProject.last_updated.getTime())
 
-        init();
-      });
+          done()
+        })
+    }
 
-    it('should return project', function(done) {
-        const projectId = projectIdBase + '-return';
-        const now = Date.now();
+    init()
+  })
 
-        const init = function() {
-            db.projects._model.create({
-                project_type: projectType,
-                project_id: projectId,
-                configuration: configuration,
-              }, function() {
-                step1();
-              });
-          };
+  it('should return project', function (done) {
+    const projectId = projectIdBase + '-return'
+    const now = Date.now()
 
-        const step1 = function() {
-            db.projects.findProject(projectType, projectId, function(project) {
-                project.should.be.a('object');
-                project.project_type.should.equal(projectType);
-                project.project_id.should.equal(projectId);
-                project.configuration.should.deep.equal(configuration);
-                project.created.getTime().should.be.at.least(now);
-                project.last_updated.getTime().should.be.at.least(now);
+    const init = function () {
+      db.projects._model.create({
+        project_type: projectType,
+        project_id: projectId,
+        configuration: configuration
+      }, function () {
+        step1()
+      })
+    }
 
-                done();
-              });
-          };
+    const step1 = function () {
+      db.projects.findProject(projectType, projectId, function (project) {
+        project.should.be.a('object')
+        project.project_type.should.equal(projectType)
+        project.project_id.should.equal(projectId)
+        project.configuration.should.deep.equal(configuration)
+        project.created.getTime().should.be.at.least(now)
+        project.last_updated.getTime().should.be.at.least(now)
 
-        init();
-      });
+        done()
+      })
+    }
 
-    it('should return project configuration', function(done) {
-        const projectId = projectIdBase + '-return-config';
+    init()
+  })
 
-        const init = function() {
-            db.projects._model.create({
-                project_type: projectType,
-                project_id: projectId,
-                configuration: configuration,
-              }, function() {
-                step1();
-              });
-          };
+  it('should return project configuration', function (done) {
+    const projectId = projectIdBase + '-return-config'
 
-        const step1 = function() {
-            db.projects.findConfig(projectType, projectId,
-              function(projectConfig) {
-                projectConfig.should.be.a('object');
-                projectConfig.should.deep.equal(configuration);
+    const init = function () {
+      db.projects._model.create({
+        project_type: projectType,
+        project_id: projectId,
+        configuration: configuration
+      }, function () {
+        step1()
+      })
+    }
 
-                done();
-              });
-          };
+    const step1 = function () {
+      db.projects.findConfig(projectType, projectId,
+        function (projectConfig) {
+          projectConfig.should.be.a('object')
+          projectConfig.should.deep.equal(configuration)
 
-        init();
-      });
-  });
+          done()
+        })
+    }
+
+    init()
+  })
+})
