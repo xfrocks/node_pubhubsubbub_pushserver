@@ -27,13 +27,14 @@ testApp.post('/status/:code', function (req, res) {
   })
   res.status(req.params.code).end()
 })
-const testServer = http.createServer(testApp).listen()
-const testAppPort = testServer.address().port
-const testAppUri = 'http://localhost:' + testAppPort
-const testAppUriStatus202 = testAppUri + '/status/202'
 
 let server = null
 let webApp = null
+
+let testServer = null
+let testAppUri = null
+let testAppUriStatus202 = null
+
 const callbackUri = 'http://push.server/callback'
 const hubTopic = 'ht'
 const oauthClientId = 'oci'
@@ -51,6 +52,11 @@ describe('web/pubhubsubbub', function () {
     server = http.createServer(app).listen(0)
     webApp = chai.request(server).keepOpen()
     pubhubsubbub.setup(app, '', db, pushQueue)
+
+    testServer = http.createServer(testApp).listen()
+    const testAppPort = testServer.address().port
+    testAppUri = 'http://localhost:' + testAppPort
+    testAppUriStatus202 = testAppUri + '/status/202'
 
     done()
   })
