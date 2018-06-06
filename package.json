@@ -1,6 +1,6 @@
 {
   "name": "node_pushserver",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Pubhubsubbub-compatible push server for Apple, Google and Microsoft services.",
   "dependencies": {
     "apn": "^2.2.0",
