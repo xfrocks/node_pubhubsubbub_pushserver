@@ -19,12 +19,12 @@ services:
       - .:/app
 
   dev-redis:
-    image: redis:3.2.7-alpine
+    image: redis:4.0.9-alpine
     command: redis-server --appendonly yes
     volumes:
       - ./docker/data/redis:/data
 
   dev-mongo:
-    image: mongo:3.4.2
+    image: mongo:3.6.5
     volumes:
       - ./docker/data/mongo:/data/db

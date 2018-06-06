@@ -1,29 +1,29 @@
-'use strict';
+'use strict'
 
-const pushQueue = exports;
+const pushQueue = exports
 
-let latestJob = null;
-let jobs = [];
-pushQueue._reset = function() {
-    latestJob = null;
-    jobs = [];
-  };
+let latestJob = null
+let jobs = []
+pushQueue._reset = function () {
+  latestJob = null
+  jobs = []
+}
 
-pushQueue._getLatestJob = function() {
-    return latestJob;
-  };
+pushQueue._getLatestJob = function () {
+  return latestJob
+}
 
-pushQueue._getJobs = function() {
-    return jobs;
-  };
+pushQueue._getJobs = function () {
+  return jobs
+}
 
-pushQueue.enqueue = function(deviceType, deviceIds, payload, extraData) {
-    latestJob = {
-        deviceType,
-        deviceIds,
-        payload,
-        extraData,
-      };
+pushQueue.enqueue = function (deviceType, deviceIds, payload, extraData) {
+  latestJob = {
+    deviceType,
+    deviceIds,
+    payload,
+    extraData
+  }
 
-    jobs.push(latestJob);
-  };
+  jobs.push(latestJob)
+}
