@@ -67,34 +67,64 @@ describe('helper', function () {
     done()
   })
 
-  it('should prepare apn payload', function (done) {
+  describe('prepareApnPayload', () => {
     const f = helper.prepareApnPayload
 
-    expect(f()).to.be.null
-    expect(f(null)).to.be.null
-    expect(f({})).to.be.null
+    it('should not prepare', (done) => {
+      expect(f()).to.be.null
+      expect(f(null)).to.be.null
+      expect(f({})).to.be.null
 
-    expect(f({notification_html: ''})).to.be.null
+      expect(f({notification_html: ''})).to.be.null
 
-    f({
-      notification_html: 'text'
-    }).should.deep.equal({
-      aps: {
-        alert: 'text'
-      }
+      done()
     })
 
-    f({
-      notification_html: 'text',
-      user_unread_notification_count: 123
-    }).should.deep.equal({
-      aps: {
-        alert: 'text',
-        badge: 123
-      }
+    it('should prepare alert (notification)', (done) => {
+      f({
+        notification_id: 1,
+        notification_html: 'text'
+      }).should.have.nested.property('aps.alert', 'text')
+
+      done()
     })
 
-    done()
+    it('should prepare alert (conversation message)', (done) => {
+      const payload = f({
+        creator_username: 'user',
+        message: {
+          conversation_id: 1234,
+          message_id: 5678,
+          message: 'hello world'
+        }
+      })
+
+      payload.should.have.nested.property('aps.alert', 'user: hello world')
+      payload.should.have.nested.property('data.conversation_id', 1234)
+      payload.should.have.nested.property('data.message_id', 5678)
+
+      done()
+    })
+
+    it('should prepare badge', (done) => {
+      f({
+        notification_id: 1,
+        notification_html: 'text',
+        user_unread_notification_count: 123
+      }).should.have.nested.property('aps.badge', 123)
+
+      done()
+    })
+
+    it('should prepare notification type', (done) => {
+      f({
+        notification_id: 1,
+        notification_html: 'text',
+        notification_type: 'type'
+      }).should.have.nested.property('data.notification_type', 'type')
+
+      done()
+    })
   })
 
   it('should prepare apn connection options', function (done) {
