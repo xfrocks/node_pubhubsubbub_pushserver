@@ -232,7 +232,7 @@ describe('helper', function () {
     done()
   })
 
-  it('should prepare subscribe data', function (done) {
+  describe('prepareSubscribeData', () => {
     const hubTopic = 'ht'
     const hubUri = 'http://domain.com/hub'
     const hubUriWithTopic = hubUri + '?hub.topic=' + hubTopic
@@ -241,66 +241,70 @@ describe('helper', function () {
     const deviceType = 'dt'
     const deviceId = 'di'
     const extraData = {foo: 'bar'}
+    const f = helper.prepareSubscribeData
 
-    expect(helper.prepareSubscribeData({
-      hub_uri: hubUri,
-      hub_topic: hubTopic,
-      oauth_client_id: oauthClientId,
-      oauth_token: oauthToken,
+    it('should prepare empty object', () => {
+      expect(f({})).to.deep.equal({
+        hub_uri: '',
+        hub_topic: '',
+        oauth_client_id: '',
+        oauth_token: '',
 
-      device_type: deviceType,
-      device_id: deviceId,
-      extra_data: extraData
-    })).to.deep.equal({
-      hub_uri: hubUri,
-      hub_topic: hubTopic,
-      oauth_client_id: oauthClientId,
-      oauth_token: oauthToken,
+        device_type: '',
+        device_id: '',
+        extra_data: null,
 
-      device_type: deviceType,
-      device_id: deviceId,
-      extra_data: extraData,
-
-      has_all_required_keys: true
+        has_all_required_keys: true
+      })
     })
 
-    expect(helper.prepareSubscribeData({})).to.deep.equal({
-      hub_uri: '',
-      hub_topic: '',
-      oauth_client_id: '',
-      oauth_token: '',
+    it('should prepare all', () => {
+      const reqBody = {
+        hub_uri: hubUri,
+        hub_topic: hubTopic,
+        oauth_client_id: oauthClientId,
+        oauth_token: oauthToken,
 
-      device_type: '',
-      device_id: '',
-      extra_data: null,
+        device_type: deviceType,
+        device_id: deviceId,
+        extra_data: extraData
+      }
+      const expectedData = _.clone(reqBody)
+      expectedData.has_all_required_keys = true
 
-      has_all_required_keys: true
+      expect(f(reqBody)).to.deep.equal(expectedData)
     })
 
-    expect(helper.prepareSubscribeData({
-      hub_uri: hubUriWithTopic
-    })).to.deep.equal({
-      hub_uri: hubUriWithTopic,
-      hub_topic: hubTopic,
-      oauth_client_id: '',
-      oauth_token: '',
+    it('should remove token from uri', () => {
+      expect(f({hub_uri: 'http://domain.com/hub?oauth_token=t'}))
+        .to.have.property('hub_uri', 'http://domain.com/hub')
 
-      device_type: '',
-      device_id: '',
-      extra_data: null,
+      expect(f({hub_uri: 'http://domain.com/hub?oauth_token=t&after=a'}))
+        .to.have.property('hub_uri', 'http://domain.com/hub?after=a')
 
-      has_all_required_keys: true
+      expect(f({hub_uri: 'http://domain.com/hub?first=f&oauth_token=t'}))
+        .to.have.property('hub_uri', 'http://domain.com/hub?first=f')
+
+      expect(f({hub_uri: 'http://domain.com/hub?first=f&oauth_token=t&after=a'}))
+        .to.have.property('hub_uri', 'http://domain.com/hub?first=f&after=a')
     })
 
-    expect(helper.prepareSubscribeData({}, ['hub_uri']))
-      .to.have.property('has_all_required_keys')
-      .that.is.false
+    it('should extract topic from uri', () => {
+      const reqBody = {
+        hub_uri: hubUriWithTopic
+      }
+      expect(f(reqBody)).to.have.property('hub_topic', hubTopic)
+    })
 
-    expect(helper.prepareSubscribeData({}, ['extra_data']))
-      .to.have.property('has_all_required_keys')
-      .that.is.true
+    it('should find missing keys', () => {
+      expect(f({}, ['hub_uri']))
+        .to.have.property('has_all_required_keys')
+        .that.is.false
 
-    done()
+      expect(f({}, ['extra_data']))
+        .to.have.property('has_all_required_keys')
+        .that.is.true
+    })
   })
 
   it('should invoke callback', function (done) {
