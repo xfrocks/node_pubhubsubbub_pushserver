@@ -235,7 +235,6 @@ describe('helper', function () {
   describe('prepareSubscribeData', () => {
     const hubTopic = 'ht'
     const hubUri = 'http://domain.com/hub'
-    const hubUriWithTopic = hubUri + '?hub.topic=' + hubTopic
     const oauthClientId = 'oci'
     const oauthToken = 'ot'
     const deviceType = 'dt'
@@ -275,25 +274,54 @@ describe('helper', function () {
       expect(f(reqBody)).to.deep.equal(expectedData)
     })
 
-    it('should remove token from uri', () => {
-      expect(f({hub_uri: 'http://domain.com/hub?oauth_token=t'}))
-        .to.have.property('hub_uri', 'http://domain.com/hub')
+    describe('oauth_token', () => {
+      it('should extract from uri', () => {
+        const test = (hubUriQuery, expectQuery) => {
+          const data = f({hub_uri: hubUri + hubUriQuery})
+          expect(data).to.have.property('hub_uri', hubUri + expectQuery)
+          expect(data).to.have.property('oauth_token', oauthToken)
+        }
 
-      expect(f({hub_uri: 'http://domain.com/hub?oauth_token=t&after=a'}))
-        .to.have.property('hub_uri', 'http://domain.com/hub?after=a')
+        test(`?oauth_token=${oauthToken}`, '')
+        test(`?oauth_token=${oauthToken}&after=a`, '?after=a')
+        test(`?first=f&oauth_token=${oauthToken}`, '?first=f')
+        test(`?first=f&oauth_token=${oauthToken}&after=a`, '?first=f&after=a')
+      })
 
-      expect(f({hub_uri: 'http://domain.com/hub?first=f&oauth_token=t'}))
-        .to.have.property('hub_uri', 'http://domain.com/hub?first=f')
-
-      expect(f({hub_uri: 'http://domain.com/hub?first=f&oauth_token=t&after=a'}))
-        .to.have.property('hub_uri', 'http://domain.com/hub?first=f&after=a')
+      it('should use value from reqBody if availble', () => {
+        const reqBody = {
+          hub_uri: `${hubUri}?oauth_token=ot1`,
+          oauth_token: 'ot2'
+        }
+        const data = f(reqBody)
+        expect(data).to.have.property('hub_uri', hubUri)
+        expect(data).to.have.property('oauth_token', 'ot2')
+      })
     })
 
-    it('should extract topic from uri', () => {
-      const reqBody = {
-        hub_uri: hubUriWithTopic
-      }
-      expect(f(reqBody)).to.have.property('hub_topic', hubTopic)
+    describe('hub_topic', () => {
+      it('should extract from uri', () => {
+        const test = (hubUriQuery, expectQuery) => {
+          const data = f({hub_uri: hubUri + hubUriQuery})
+          expect(data).to.have.property('hub_uri', hubUri + expectQuery)
+          expect(data).to.have.property('hub_topic', hubTopic)
+        }
+
+        test(`?hub.topic=${hubTopic}`, '')
+        test(`?hub.topic=${hubTopic}&after=a`, '?after=a')
+        test(`?first=f&hub.topic=${hubTopic}`, '?first=f')
+        test(`?first=f&hub.topic=${hubTopic}&after=a`, '?first=f&after=a')
+      })
+
+      it('should use value from reqBody if available', () => {
+        const reqBody = {
+          hub_uri: `${hubUri}?hub.topic=ht1`,
+          hub_topic: 'ht2'
+        }
+        const data = f(reqBody)
+        expect(data).to.have.property('hub_uri', hubUri)
+        expect(data).to.have.property('hub_topic', 'ht2')
+      })
     })
 
     it('should find missing keys', () => {
