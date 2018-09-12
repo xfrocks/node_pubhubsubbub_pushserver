@@ -174,7 +174,8 @@ describe('helper', function () {
       something: 'else'
     }).should.deep.equal({
       notification_id: 1,
-      notification: 'text'
+      notification: 'text',
+      something: 'else'
     })
 
     f({
