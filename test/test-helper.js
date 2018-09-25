@@ -9,13 +9,6 @@ const _ = require('lodash')
 chai.should()
 const expect = chai.expect
 describe('helper', function () {
-  it('should strip html', function (done) {
-    const html = '\t<b>Hello</b> <em>World</em>!\r\n'
-    const result = helper.stripHtml(html)
-    result.should.equal('Hello World!')
-    done()
-  })
-
   it('should prepare apn message', function (done) {
     const string229 = _.repeat('a', 229)
     helper.prepareApnMessage(string229).should.equal(string229)
@@ -207,6 +200,13 @@ describe('helper', function () {
 
     f(packageId, {api_key: apiKey}).should.deep.equal({packageId, apiKey})
 
+    done()
+  })
+
+  it('should prepare notification html', function (done) {
+    const html = '\t<b>Hello</b> &quot;<em>World</em>&quot;!\r\n'
+    const result = helper.prepareNotificationHtml(html)
+    result.should.equal('Hello "World"!')
     done()
   })
 
