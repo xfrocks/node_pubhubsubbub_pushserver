@@ -16,7 +16,7 @@
     "mongoose": "^4.4.7",
     "node-gcm": "^1.0.2",
     "pug": "^2.0.0-alpha6",
-    "request": "^2.87.0",
+    "request": "^2.88.0",
     "sanitize-html": "^1.19.0",
     "wns": "~0.5.3"
   },
