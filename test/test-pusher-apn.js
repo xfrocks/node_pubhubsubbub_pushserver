@@ -26,7 +26,7 @@ const connectionOptions = {
   }
 }
 const token = 't'
-const payload = {aps: {alert: 'foo'}}
+const payload = { aps: { alert: 'foo' } }
 
 describe('pusher/apn', function () {
   beforeEach(function (done) {
@@ -104,7 +104,7 @@ describe('pusher/apn', function () {
     const test = function (status, callback) {
       const deviceId = 'fail-string'
       const payloadWithFailedStatus = _.merge(
-        {failed_status: status},
+        { failed_status: status },
         payload
       )
 
@@ -139,7 +139,7 @@ describe('pusher/apn', function () {
     const test = function (status, callback) {
       const deviceId = 'fail-string'
       const payloadWithFailedStatus = _.merge(
-        {failed_status: status},
+        { failed_status: status },
         payload
       )
 
@@ -311,7 +311,9 @@ describe('pusher/apn', function () {
         sound: 's'
       },
       'expiry': 123,
-      'content-available': 1
+      'data': {
+        foo: 'bar'
+      }
     }
 
     pusher.send(connectionOptions, token, payload, function () {
@@ -320,9 +322,9 @@ describe('pusher/apn', function () {
       push.notification.badge.should.equal(payload.aps.badge)
       push.notification.sound.should.equal(payload.aps.sound)
       push.notification.expiry.should.equal(payload.expiry)
-      push.notification.payload.should.deep.equal({
-        'content-available': payload['content-available']
-      })
+
+      const filtered = _.omit(payload, ['aps', 'expiry'])
+      push.notification.payload.should.deep.equal(filtered)
 
       done()
     })

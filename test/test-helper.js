@@ -9,51 +9,6 @@ const _ = require('lodash')
 chai.should()
 const expect = chai.expect
 describe('helper', function () {
-  it('should prepare mongo-express config', function (done) {
-    const mongoUri = 'mongodb://localhost/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    mec.useBasicAuth.should.be.false
-    mec.options.readOnly.should.be.true
-    mec.options.logger.skip.should.be.a('function')
-    mec.options.logger.skip().should.be.true
-
-    mec.mongodb.server.should.equal('localhost')
-    mec.mongodb.port.should.equal(27017)
-    mec.mongodb.auth.length.should.equal(1)
-
-    const auth = mec.mongodb.auth[0]
-    auth.should.deep.equal({
-      database: 'pushserver'
-    })
-
-    done()
-  })
-
-  it('should prepare mongo-express config with port', function (done) {
-    const mongoUri = 'mongodb://localhost:1234/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    mec.mongodb.port.should.equal(1234)
-
-    done()
-  })
-
-  it('should prepare mongo-express config with auth', function (done) {
-    const mongoUri = 'mongodb://u:p@localhost/pushserver'
-    const mec = helper.prepareMongoExpressConfig(mongoUri)
-    const auth = mec.mongodb.auth[0]
-    auth.username.should.equal('u')
-    auth.password.should.equal('p')
-
-    done()
-  })
-
-  it('should strip html', function (done) {
-    const html = '\t<b>Hello</b> <em>World</em>!\r\n'
-    const result = helper.stripHtml(html)
-    result.should.equal('Hello World!')
-    done()
-  })
-
   it('should prepare apn message', function (done) {
     const string229 = _.repeat('a', 229)
     helper.prepareApnMessage(string229).should.equal(string229)
@@ -75,7 +30,7 @@ describe('helper', function () {
       expect(f(null)).to.be.null
       expect(f({})).to.be.null
 
-      expect(f({notification_html: ''})).to.be.null
+      expect(f({ notification_html: '' })).to.be.null
 
       done()
     })
@@ -133,13 +88,13 @@ describe('helper', function () {
     const key = 'key'
     const keyId = 'keyId'
     const teamId = 'teamId'
-    const token = {key, keyId, teamId}
+    const token = { key, keyId, teamId }
     const production = true
 
-    f(packageId, {token}).should.deep.equal({packageId, token})
+    f(packageId, { token }).should.deep.equal({ packageId, token })
 
-    f(packageId, {token, production})
-      .should.deep.equal({packageId, token, production})
+    f(packageId, { token, production })
+      .should.deep.equal({ packageId, token, production })
 
     done()
   })
@@ -152,16 +107,16 @@ describe('helper', function () {
     const address = 'gateway.push.apple.com'
     const addressSandbox = 'gateway.sandbox.push.apple.com'
 
-    f(packageId, {cert, key}).should.deep.equal({packageId, cert, key})
-    f(packageId, {cert_data: cert, key_data: key})
-      .should.deep.equal({packageId, cert, key})
+    f(packageId, { cert, key }).should.deep.equal({ packageId, cert, key })
+    f(packageId, { cert_data: cert, key_data: key })
+      .should.deep.equal({ packageId, cert, key })
 
-    f(packageId, {cert, key, address})
-      .should.deep.equal({packageId, cert, key, production: true})
-    f(packageId, {cert, key, address: addressSandbox})
-      .should.deep.equal({packageId, cert, key, production: false})
-    f(packageId, {cert, key, gateway: address})
-      .should.deep.equal({packageId, cert, key, production: true})
+    f(packageId, { cert, key, address })
+      .should.deep.equal({ packageId, cert, key, production: true })
+    f(packageId, { cert, key, address: addressSandbox })
+      .should.deep.equal({ packageId, cert, key, production: false })
+    f(packageId, { cert, key, gateway: address })
+      .should.deep.equal({ packageId, cert, key, production: true })
 
     done()
   })
@@ -172,7 +127,7 @@ describe('helper', function () {
     const key = 'key'
     const keyId = 'keyId'
     const teamId = 'teamId'
-    const token = {key, keyId, teamId}
+    const token = { key, keyId, teamId }
     const certData = 'cert'
     const keyData = 'key'
 
@@ -180,16 +135,16 @@ describe('helper', function () {
     expect(f(packageId)).to.be.null
     expect(f(packageId, null)).to.be.null
     expect(f(packageId, {})).to.be.null
-    expect(f(packageId, {empty: ''})).to.be.null
+    expect(f(packageId, { empty: '' })).to.be.null
 
-    expect(f(packageId, {token: {keyId, teamId}})).to.be.null
-    expect(f(packageId, {token: {key, teamId}})).to.be.null
-    expect(f(packageId, {token: {key, keyId}})).to.be.null
+    expect(f(packageId, { token: { keyId, teamId } })).to.be.null
+    expect(f(packageId, { token: { key, teamId } })).to.be.null
+    expect(f(packageId, { token: { key, keyId } })).to.be.null
 
-    expect(f(packageId, {cert: certData})).to.be.null
-    expect(f(packageId, {key: keyData})).to.be.null
+    expect(f(packageId, { cert: certData })).to.be.null
+    expect(f(packageId, { key: keyData })).to.be.null
 
-    expect(f(packageId, {token, cert: certData, key: keyData})).to.be.null
+    expect(f(packageId, { token, cert: certData, key: keyData })).to.be.null
 
     done()
   })
@@ -212,7 +167,8 @@ describe('helper', function () {
       something: 'else'
     }).should.deep.equal({
       notification_id: 1,
-      notification: 'text'
+      notification: 'text',
+      something: 'else'
     })
 
     f({
@@ -242,14 +198,21 @@ describe('helper', function () {
     expect(f(packageId, null)).to.be.null
     expect(f(packageId, {})).to.be.null
 
-    f(packageId, {api_key: apiKey}).should.deep.equal({packageId, apiKey})
+    f(packageId, { api_key: apiKey }).should.deep.equal({ packageId, apiKey })
 
+    done()
+  })
+
+  it('should prepare notification html', function (done) {
+    const html = '\t<b>Hello</b> &quot;<em>World</em>&quot;!\r\n'
+    const result = helper.prepareNotificationHtml(html)
+    result.should.equal('Hello "World"!')
     done()
   })
 
   it('should prepare wns payload', function (done) {
     const f = helper.prepareWnsPayload
-    const fooBar = {foo: 'bar'}
+    const fooBar = { foo: 'bar' }
     const fooBarJson = '{"foo":"bar"}'
 
     f().should.equal('{}')
@@ -257,10 +220,10 @@ describe('helper', function () {
     f({}).should.equal('{}')
 
     f(fooBar).should.equal(fooBarJson)
-    f(fooBar, {channel_uri: 'cu'}).should.equal(fooBarJson)
-    f(fooBar, {package: 'p'}).should.equal(fooBarJson)
+    f(fooBar, { channel_uri: 'cu' }).should.equal(fooBarJson)
+    f(fooBar, { package: 'p' }).should.equal(fooBarJson)
 
-    f(fooBar, {something: 'else'}).should.equal(JSON.stringify({
+    f(fooBar, { something: 'else' }).should.equal(JSON.stringify({
       foo: fooBar.foo,
       extra_data: {
         something: 'else'
@@ -270,75 +233,107 @@ describe('helper', function () {
     done()
   })
 
-  it('should prepare subscribe data', function (done) {
+  describe('prepareSubscribeData', () => {
     const hubTopic = 'ht'
     const hubUri = 'http://domain.com/hub'
-    const hubUriWithTopic = hubUri + '?hub.topic=' + hubTopic
     const oauthClientId = 'oci'
     const oauthToken = 'ot'
     const deviceType = 'dt'
     const deviceId = 'di'
-    const extraData = {foo: 'bar'}
+    const extraData = { foo: 'bar' }
+    const f = helper.prepareSubscribeData
 
-    expect(helper.prepareSubscribeData({
-      hub_uri: hubUri,
-      hub_topic: hubTopic,
-      oauth_client_id: oauthClientId,
-      oauth_token: oauthToken,
+    it('should prepare empty object', () => {
+      expect(f({})).to.deep.equal({
+        hub_uri: '',
+        hub_topic: '',
+        oauth_client_id: '',
+        oauth_token: '',
 
-      device_type: deviceType,
-      device_id: deviceId,
-      extra_data: extraData
-    })).to.deep.equal({
-      hub_uri: hubUri,
-      hub_topic: hubTopic,
-      oauth_client_id: oauthClientId,
-      oauth_token: oauthToken,
+        device_type: '',
+        device_id: '',
+        extra_data: null,
 
-      device_type: deviceType,
-      device_id: deviceId,
-      extra_data: extraData,
-
-      has_all_required_keys: true
+        has_all_required_keys: true
+      })
     })
 
-    expect(helper.prepareSubscribeData({})).to.deep.equal({
-      hub_uri: '',
-      hub_topic: '',
-      oauth_client_id: '',
-      oauth_token: '',
+    it('should prepare all', () => {
+      const reqBody = {
+        hub_uri: hubUri,
+        hub_topic: hubTopic,
+        oauth_client_id: oauthClientId,
+        oauth_token: oauthToken,
 
-      device_type: '',
-      device_id: '',
-      extra_data: null,
+        device_type: deviceType,
+        device_id: deviceId,
+        extra_data: extraData
+      }
+      const expectedData = _.clone(reqBody)
+      expectedData.has_all_required_keys = true
 
-      has_all_required_keys: true
+      expect(f(reqBody)).to.deep.equal(expectedData)
     })
 
-    expect(helper.prepareSubscribeData({
-      hub_uri: hubUriWithTopic
-    })).to.deep.equal({
-      hub_uri: hubUriWithTopic,
-      hub_topic: hubTopic,
-      oauth_client_id: '',
-      oauth_token: '',
+    describe('oauth_token', () => {
+      it('should extract from uri', () => {
+        const test = (hubUriQuery, expectQuery) => {
+          const data = f({ hub_uri: hubUri + hubUriQuery })
+          expect(data).to.have.property('hub_uri', hubUri + expectQuery)
+          expect(data).to.have.property('oauth_token', oauthToken)
+        }
 
-      device_type: '',
-      device_id: '',
-      extra_data: null,
+        test(`?oauth_token=${oauthToken}`, '')
+        test(`?oauth_token=${oauthToken}&after=a`, '?after=a')
+        test(`?first=f&oauth_token=${oauthToken}`, '?first=f')
+        test(`?first=f&oauth_token=${oauthToken}&after=a`, '?first=f&after=a')
+      })
 
-      has_all_required_keys: true
+      it('should use value from reqBody if availble', () => {
+        const reqBody = {
+          hub_uri: `${hubUri}?oauth_token=ot1`,
+          oauth_token: 'ot2'
+        }
+        const data = f(reqBody)
+        expect(data).to.have.property('hub_uri', hubUri)
+        expect(data).to.have.property('oauth_token', 'ot2')
+      })
     })
 
-    expect(helper.prepareSubscribeData({}, ['hub_uri']))
-      .to.have.property('has_all_required_keys')
-      .that.is.false
+    describe('hub_topic', () => {
+      it('should extract from uri', () => {
+        const test = (hubUriQuery, expectQuery) => {
+          const data = f({ hub_uri: hubUri + hubUriQuery })
+          expect(data).to.have.property('hub_uri', hubUri + expectQuery)
+          expect(data).to.have.property('hub_topic', hubTopic)
+        }
 
-    expect(helper.prepareSubscribeData({}, ['extra_data']))
-      .to.have.property('has_all_required_keys')
-      .that.is.true
+        test(`?hub.topic=${hubTopic}`, '')
+        test(`?hub.topic=${hubTopic}&after=a`, '?after=a')
+        test(`?first=f&hub.topic=${hubTopic}`, '?first=f')
+        test(`?first=f&hub.topic=${hubTopic}&after=a`, '?first=f&after=a')
+      })
 
-    done()
+      it('should use value from reqBody if available', () => {
+        const reqBody = {
+          hub_uri: `${hubUri}?hub.topic=ht1`,
+          hub_topic: 'ht2'
+        }
+        const data = f(reqBody)
+        expect(data).to.have.property('hub_uri', hubUri)
+        expect(data).to.have.property('hub_topic', 'ht2')
+      })
+    })
+
+    it('should find missing keys', () => {
+      expect(f({}, ['hub_uri']))
+        .to.have.property('has_all_required_keys')
+        .that.is.false
+
+      expect(f({}, ['extra_data']))
+        .to.have.property('has_all_required_keys')
+        .that.is.true
+    })
   })
 
   it('should invoke callback', function (done) {

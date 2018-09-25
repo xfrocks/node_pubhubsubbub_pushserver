@@ -105,8 +105,20 @@ describe('config', function () {
 
     config.web.username.should.equal(process.env.CONFIG_WEB_USERNAME)
     config.web.password.should.equal(process.env.CONFIG_WEB_PASSWORD)
-    config.db.web.should.be.true
     config.pushQueue.web.should.be.true
+
+    done()
+  })
+
+  it('should handle CONFIG_PUSH_QUEUE_WEB=false', function (done) {
+    process.env.CONFIG_WEB_USERNAME = 'username'
+    process.env.CONFIG_WEB_PASSWORD = 'password'
+    process.env.CONFIG_PUSH_QUEUE_WEB = 'false'
+    config._reload()
+
+    config.web.username.should.equal(process.env.CONFIG_WEB_USERNAME)
+    config.web.password.should.equal(process.env.CONFIG_WEB_PASSWORD)
+    config.pushQueue.web.should.be.false
 
     done()
   })
@@ -117,7 +129,6 @@ describe('config', function () {
 
     config.web.username.should.equal('')
     config.web.password.should.equal('')
-    config.db.web.should.be.false
     config.pushQueue.web.should.be.false
 
     done()
@@ -129,7 +140,6 @@ describe('config', function () {
 
     config.web.username.should.equal('')
     config.web.password.should.equal('')
-    config.db.web.should.be.false
     config.pushQueue.web.should.be.false
 
     done()

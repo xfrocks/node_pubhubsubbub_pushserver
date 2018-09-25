@@ -1,6 +1,13 @@
 version: '2'
 
 services:
+  adminmongo:
+    image: mrvautin/adminmongo
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./docker/adminmongo/app.json:/app/user/config/app.json:ro
+
   app:
     build:
       context: docker/node
@@ -8,23 +15,25 @@ services:
       - CONFIG_WEB_USERNAME=u
       - CONFIG_WEB_PASSWORD=p
       - DEBUG=pushserver:*
-      - MONGO_URI=mongodb://dev-mongo/pushserver
-      - REDIS_URL=http://dev-redis:6379
+      - MONGO_URI=mongodb://mongo/pushserver
+      - REDIS_URL=http://redis:6379
     links:
-      - dev-mongo
-      - dev-redis
+      - mongo
+      - redis
     ports:
       - "18080:18080"
     volumes:
       - .:/app
 
-  dev-redis:
-    image: redis:4.0.9-alpine
+  mongo:
+    image: mongo:4.0.2
+    volumes:
+      - .:/app:ro
+      - ./docker/data/mongo:/data/db
+
+  redis:
+    image: redis:4.0.11-alpine
     command: redis-server --appendonly yes
     volumes:
+      - .:/app:ro
       - ./docker/data/redis:/data
-
-  dev-mongo:
-    image: mongo:3.6.5
-    volumes:
-      - ./docker/data/mongo:/data/db

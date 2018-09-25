@@ -11,7 +11,7 @@ wns._getLatestPush = function () {
 }
 
 wns.sendRaw = function (channelUri, dataRaw, options, callback) {
-  latestPush = {channelUri, dataRaw, options}
+  latestPush = { channelUri, dataRaw, options }
 
   const done = helper.later(callback)
   let error = null

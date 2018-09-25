@@ -13,7 +13,7 @@ let db = null
 const originalProcessEnv = _.cloneDeep(process.env)
 const oauthClientIdBase = 'oci' + _.now()
 const hubUri = 'hu'
-const extraData = {foo: 'bar'}
+const extraData = { foo: 'bar' }
 
 describe('db/Hub', function () {
   before(function (done) {
@@ -113,7 +113,7 @@ describe('db/Hub', function () {
 
   it('should update hub extra data', function (done) {
     const oauthClientId = oauthClientIdBase + '-update-extra-data'
-    const extraData2 = {bar: 'foo'}
+    const extraData2 = { bar: 'foo' }
     let theHub = null
 
     const init = function () {

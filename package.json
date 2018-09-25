@@ -4,40 +4,39 @@
   "description": "Pubhubsubbub-compatible push server for Apple, Google and Microsoft services.",
   "dependencies": {
     "apn": "^2.2.0",
-    "basic-auth": "^1.1.0",
+    "basic-auth": "^2.0.1",
     "body-parser": "^1.15.0",
-    "bootstrap": "^3.3.6",
-    "compression": "^1.6.1",
-    "debug": "^2.5.1",
+    "bootstrap": "^4.1.3",
+    "debug": "^4.0.1",
     "express": "^4.14.0",
+    "he": "^1.2.0",
     "kue": "~0.11.5",
-    "lodash": "^4.17.2",
-    "mongo-express": "^0.47.0",
+    "lodash": "^4.17.11",
     "mongo-uri": "^0.1.2",
-    "mongoose": "^4.4.7",
+    "mongoose": "^5.2.17",
     "node-gcm": "^1.0.2",
     "pug": "^2.0.0-alpha6",
-    "request": "^2.87.0",
-    "string": "~3.3.1",
-    "wns": "~0.5.3"
+    "request": "^2.88.0",
+    "sanitize-html": "^1.19.0",
+    "wns": "^0.5.4"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "chai-http": "^4.0.0",
-    "coveralls": "^3.0.1",
+    "chai-http": "^4.2.0",
+    "coveralls": "^3.0.2",
     "istanbul": "^0.4.3",
     "mocha": "^5.2.0",
-    "nock": "^9.0.2",
-    "nodemon": "^1.17.5",
-    "standard": "^11.0.1"
+    "nock": "^10.0.0",
+    "nodemon": "^1.8.4",
+    "standard": "^12.0.1"
   },
   "scripts": {
     "bash": "/bin/sh",
-    "coverage": "CONFIG_DB_WEB=false NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
+    "coverage": "NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
     "lint": "./node_modules/.bin/standard",
     "develop": "./node_modules/.bin/nodemon --watch bin --watch lib",
     "start": "node bin/pushserver",
-    "test": "CONFIG_DB_WEB=false NODE_ENV=test ./node_modules/mocha/bin/mocha"
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
   },
   "repository": {
     "type": "git",

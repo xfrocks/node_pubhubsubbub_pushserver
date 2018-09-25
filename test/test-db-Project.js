@@ -13,7 +13,7 @@ let db = null
 const originalProcessEnv = _.cloneDeep(process.env)
 const projectType = 'dt'
 const projectIdBase = 'di' + _.now()
-const configuration = {foo: 'bar'}
+const configuration = { foo: 'bar' }
 
 describe('db/Project', function () {
   before(function (done) {
@@ -181,7 +181,7 @@ describe('db/Project', function () {
 
   it('should update project', function (done) {
     const projectId = projectIdBase + '-update'
-    const configuration2 = {bar: 'foo'}
+    const configuration2 = { bar: 'foo' }
     let theProject = null
 
     const init = function () {

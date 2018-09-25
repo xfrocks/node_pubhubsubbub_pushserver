@@ -21,7 +21,7 @@ const mock = function (push, hint, callback) {
   pushes.push(push)
 
   let err = null
-  const result = {retries: push.deviceIds, invalids: []}
+  const result = { retries: push.deviceIds, invalids: [] }
 
   switch (hint) {
     case 'error':

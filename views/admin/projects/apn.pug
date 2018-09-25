@@ -22,10 +22,10 @@ block content
       div.form-group
         label(for="ctrl_token_team_id") Team ID
         input.form-control#ctrl_key(name="token[team_id]", placeholder="DEF123GHIJ", value= query["token[team_id]"])
-    div.checkbox
-      label
-        input(type="checkbox", name="production", value="0",
-          checked=(query["production"] === "0") ? "checked" : undefined)
+    div.form-check
+      input.form-check-input#ctrl_production(type="checkbox", name="production", value="0",
+        checked=(query["production"] === "0") ? "checked" : undefined)
+      label.form-check-label(for="ctrl_production")
         | Use Sandbox Gateway
 
-    button.btn.btn-default(type="submit") Submit
+    button.btn.btn-primary(type="submit") Submit

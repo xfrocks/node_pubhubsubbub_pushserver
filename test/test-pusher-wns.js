@@ -13,7 +13,7 @@ const lib = require('./mock/_modules-wns')
 const clientId = 'ci'
 const clientSecret = 'sc'
 const channelUri = 'cu'
-const dataRaw = {foo: 'bar'}
+const dataRaw = { foo: 'bar' }
 
 describe('pusher/wns', function () {
   beforeEach(function (done) {
@@ -60,7 +60,7 @@ describe('pusher/wns', function () {
   })
 
   it('should fail', function (done) {
-    const dataWithError = _.merge({error: {message: 'something'}}, dataRaw)
+    const dataWithError = _.merge({ error: { message: 'something' } }, dataRaw)
     pusher.send(
       clientId,
       clientSecret,
@@ -75,7 +75,7 @@ describe('pusher/wns', function () {
   it('should fail with status 4xx, retry=false', function (done) {
     const test = function (statusCode, callback) {
       const dataWithError = _.merge({}, dataRaw)
-      dataWithError.error = {message: 'something', statusCode}
+      dataWithError.error = { message: 'something', statusCode }
       pusher.send(
         clientId,
         clientSecret,
@@ -108,7 +108,7 @@ describe('pusher/wns', function () {
   it('should fail with status 3xx, 5xx, retry unset', function (done) {
     const test = function (statusCode, callback) {
       const dataWithError = _.merge({}, dataRaw)
-      dataWithError.error = {message: 'something', statusCode}
+      dataWithError.error = { message: 'something', statusCode }
       pusher.send(
         clientId,
         clientSecret,
@@ -143,7 +143,7 @@ describe('pusher/wns', function () {
   it('should fail with deleteDevice=true', function (done) {
     const test = function (statusCode, callback) {
       const dataWithError = _.merge({}, dataRaw)
-      dataWithError.error = {message: 'something', statusCode}
+      dataWithError.error = { message: 'something', statusCode }
       pusher.send(
         clientId,
         clientSecret,
@@ -188,7 +188,7 @@ describe('pusher/wns', function () {
   })
 
   it('should do stats (failed)', function (done) {
-    const dataWithError = _.merge({error: {message: 'something'}}, dataRaw)
+    const dataWithError = _.merge({ error: { message: 'something' } }, dataRaw)
     pusher.send(
       clientId,
       clientSecret,
@@ -207,7 +207,7 @@ describe('pusher/wns', function () {
 
   it('should do stats (invalid)', function (done) {
     const dataWithError = _.merge({}, dataRaw)
-    dataWithError.error = {message: 'something', statusCode: 410}
+    dataWithError.error = { message: 'something', statusCode: 410 }
 
     pusher.send(
       clientId,
