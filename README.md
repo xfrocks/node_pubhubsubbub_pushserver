@@ -1,10 +1,10 @@
-# PubSubHubbub Push Server
+# WebSub Push Server
 [![Build Status](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver.svg?branch=master)](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver)
 [![Coverage Status](https://coveralls.io/repos/github/xfrocks/node_pubhubsubbub_pushserver/badge.svg?branch=master)](https://coveralls.io/github/xfrocks/node_pubhubsubbub_pushserver?branch=master)
 
-Node.js push notification server which is compatible with PubSubHubbub protocol.
+Node.js push notification server which is compatible with WebSub protocol.
 
- 1. Mobile application (`App`) that wants to receive push notifications from PubSubHubbub Publisher (`Publisher`) may register itself with this Push Server (`Server`).
+ 1. Mobile application (`App`) that wants to receive push notifications from WebSub Publisher (`Publisher`) may register itself with this Push Server (`Server`).
  2. `Server` will subscribe on behalf of `App` with `Publisher`.
  3. When `Publisher` publishes something, `Server` will forward the information to `App` via one of the supported push services.
 
