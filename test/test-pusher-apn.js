@@ -26,7 +26,7 @@ const connectionOptions = {
   }
 }
 const token = 't'
-const payload = {aps: {alert: 'foo'}}
+const payload = { aps: { alert: 'foo' } }
 
 describe('pusher/apn', function () {
   beforeEach(function (done) {
@@ -104,7 +104,7 @@ describe('pusher/apn', function () {
     const test = function (status, callback) {
       const deviceId = 'fail-string'
       const payloadWithFailedStatus = _.merge(
-        {failed_status: status},
+        { failed_status: status },
         payload
       )
 
@@ -139,7 +139,7 @@ describe('pusher/apn', function () {
     const test = function (status, callback) {
       const deviceId = 'fail-string'
       const payloadWithFailedStatus = _.merge(
-        {failed_status: status},
+        { failed_status: status },
         payload
       )
 

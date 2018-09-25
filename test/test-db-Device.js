@@ -15,7 +15,7 @@ const deviceType = 'dt'
 const deviceIdBase = 'di' + _.now()
 const oauthClientId = 'oci'
 const hubTopic = 'ht'
-const extraData = {foo: 'bar'}
+const extraData = { foo: 'bar' }
 
 describe('db/Device', function () {
   before(function (done) {
@@ -152,7 +152,7 @@ describe('db/Device', function () {
 
   it('should update device extra data', function (done) {
     const deviceId = deviceIdBase + '-update-extra-data'
-    const extraData2 = {bar: 'foo'}
+    const extraData2 = { bar: 'foo' }
     let theDevice = null
 
     const init = function () {

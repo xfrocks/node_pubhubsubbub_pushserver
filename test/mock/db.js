@@ -199,7 +199,7 @@ db.projects = {
   },
 
   saveGcm: function (packageId, apiKey, callback) {
-    return this.save('gcm', packageId, {api_key: apiKey}, callback)
+    return this.save('gcm', packageId, { api_key: apiKey }, callback)
   },
 
   saveWns: function (packageId, clientId, clientSecret, callback) {

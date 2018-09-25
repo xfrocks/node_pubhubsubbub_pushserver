@@ -19,7 +19,7 @@ const expect = chai.expect
 
 const testApp = express()
 let testAppReqs = []
-testApp.use(bodyParser.urlencoded({extended: false}))
+testApp.use(bodyParser.urlencoded({ extended: false }))
 testApp.post('/status/:code', function (req, res) {
   testAppReqs.push({
     params: req.params,
@@ -41,7 +41,7 @@ const oauthClientId = 'oci'
 const oauthToken = 'ot'
 const deviceType = 'dt'
 const deviceId = 'di'
-const extraData = {foo: 'bar'}
+const extraData = { foo: 'bar' }
 const payload = 'p'
 
 describe('web/pubhubsubbub', function () {
@@ -187,7 +187,7 @@ describe('web/pubhubsubbub', function () {
       const testDataWithoutKey = _.omit(seed, k)
       data.push(testDataWithoutKey)
 
-      const testDataWithEmptyKey = _.merge({k: ''}, testDataWithoutKey)
+      const testDataWithEmptyKey = _.merge({ k: '' }, testDataWithoutKey)
       data.push(testDataWithEmptyKey)
     })
 
@@ -332,10 +332,10 @@ describe('web/pubhubsubbub', function () {
   it('should not unsubscribe with missing data', function (done) {
     const seed = [
       {},
-      {hub_topic: hubTopic},
-      {oauth_client_id: oauthClientId},
-      {device_type: deviceType},
-      {device_id: deviceId}
+      { hub_topic: hubTopic },
+      { oauth_client_id: oauthClientId },
+      { device_type: deviceType },
+      { device_id: deviceId }
     ]
 
     const data = []
@@ -485,8 +485,8 @@ describe('web/pubhubsubbub', function () {
   it('should not unregister with missing data', function (done) {
     const seed = [
       {},
-      {device_type: deviceType},
-      {device_id: deviceId}
+      { device_type: deviceType },
+      { device_id: deviceId }
     ]
 
     const data = []
@@ -592,10 +592,10 @@ describe('web/pubhubsubbub', function () {
   it('should not answer challenge with missing data', function (done) {
     const seed = [
       {},
-      {'hub.topic': hubTopic},
-      {'client_id': oauthClientId},
-      {'hub.challenge': Math.random().toString()},
-      {'hub.mode': 'subscribe'}
+      { 'hub.topic': hubTopic },
+      { 'client_id': oauthClientId },
+      { 'hub.challenge': Math.random().toString() },
+      { 'hub.mode': 'subscribe' }
     ]
 
     const data = []
@@ -779,12 +779,12 @@ describe('web/pubhubsubbub', function () {
 
     const init = function () {
       db.devices.save(deviceType, deviceId,
-        oauthClientId, hubTopic, {data: 1},
+        oauthClientId, hubTopic, { data: 1 },
         function (isSaved) {
           isSaved.should.equal('saved')
 
           db.devices.save(deviceType, deviceId2,
-            oauthClientId, hubTopic, {data: 2},
+            oauthClientId, hubTopic, { data: 2 },
             function (isSaved) {
               isSaved.should.equal('saved')
               test()
@@ -820,17 +820,17 @@ describe('web/pubhubsubbub', function () {
 
     const init = function () {
       db.devices.save(deviceType, deviceId,
-        oauthClientId, hubTopic, {data: 1},
+        oauthClientId, hubTopic, { data: 1 },
         function (isSaved) {
           isSaved.should.equal('saved')
 
           db.devices.save(deviceType, deviceId2,
-            oauthClientId, hubTopic2, {data: 2},
+            oauthClientId, hubTopic2, { data: 2 },
             function (isSaved) {
               isSaved.should.equal('saved')
 
               db.devices.save(deviceType, deviceId3,
-                oauthClientId, '', {data: 3},
+                oauthClientId, '', { data: 3 },
                 function (isSaved) {
                   isSaved.should.equal('saved')
                   test()

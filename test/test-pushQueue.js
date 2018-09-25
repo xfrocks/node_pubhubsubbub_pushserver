@@ -93,8 +93,8 @@ describe('pushQueue', function () {
     const deviceType = 'android'
     const deviceId = 'di'
     const payload = generatePayload()
-    const extraData = {package: 'key1'}
-    const extraData2 = {package: 'key2'}
+    const extraData = { package: 'key1' }
+    const extraData2 = { package: 'key2' }
 
     const test1 = function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
@@ -125,7 +125,7 @@ describe('pushQueue', function () {
     const deviceType = 'android'
     const deviceId = 'di-db'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     const init = function () {
       db.projects.saveGcm(packageId, apiKey, function () {
@@ -165,7 +165,7 @@ describe('pushQueue', function () {
     const deviceType = 'android'
     const deviceId = 'di-project-not-found'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -181,7 +181,7 @@ describe('pushQueue', function () {
     const deviceType = 'android'
     const deviceId = 'di-project-config'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     const init = function () {
       db.projects.saveGcm(packageId, '', function () {
@@ -264,7 +264,7 @@ describe('pushQueue', function () {
     const deviceType = 'ios'
     const deviceId = 'di'
     const payload = generatePayload()
-    const extraData = {package: bundleId}
+    const extraData = { package: bundleId }
 
     const test = function (production, callback) {
       const step1 = function () {
@@ -330,7 +330,7 @@ describe('pushQueue', function () {
     const deviceType = 'ios'
     const deviceId = 'di-project-not-found'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -346,7 +346,7 @@ describe('pushQueue', function () {
     const deviceType = 'ios'
     const deviceId = 'di-project-config'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     const init = function () {
       db.projects.saveApn(packageId, '', '', '', true, () => {
@@ -371,7 +371,7 @@ describe('pushQueue', function () {
     const deviceId = 'di'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {foo: 'bar', channel_uri: channelUri}
+    const extraData = { foo: 'bar', channel_uri: channelUri }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -390,7 +390,7 @@ describe('pushQueue', function () {
     const deviceId = 'di'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {channel_uri: channelUri}
+    const extraData = { channel_uri: channelUri }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -409,7 +409,7 @@ describe('pushQueue', function () {
     const deviceId = 'di'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {channel_uri: channelUri, package: packageId}
+    const extraData = { channel_uri: channelUri, package: packageId }
 
     const init = function () {
       db.projects.saveWns(packageId, clientId, clientSecret, function () {
@@ -435,7 +435,7 @@ describe('pushQueue', function () {
     const deviceType = 'windows'
     const deviceId = 'di-channel_uri-missing'
     const payload = generatePayload()
-    const extraData = {package: packageId}
+    const extraData = { package: packageId }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -451,7 +451,7 @@ describe('pushQueue', function () {
     const deviceId = 'di-package-missing'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {channel_uri: channelUri}
+    const extraData = { channel_uri: channelUri }
 
     config.wns.client_id = ''
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
@@ -469,7 +469,7 @@ describe('pushQueue', function () {
     const deviceId = 'di-project-not-found'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {channel_uri: channelUri, package: packageId}
+    const extraData = { channel_uri: channelUri, package: packageId }
 
     pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
@@ -486,7 +486,7 @@ describe('pushQueue', function () {
     const deviceId = 'di'
     const payload = generatePayload()
     const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = {channel_uri: channelUri, package: packageId}
+    const extraData = { channel_uri: channelUri, package: packageId }
 
     const init = function () {
       db.projects.saveWns(packageId, '', '', function () {

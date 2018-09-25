@@ -31,7 +31,7 @@ apn.Provider = function (options) {
 
   this.send = function (notification, recipients) {
     return new global.Promise(function (fulfill) {
-      const result = {sent: [], failed: []}
+      const result = { sent: [], failed: [] }
 
       _.forEach(recipients, function (recipient) {
         latestPush = {
@@ -60,7 +60,7 @@ apn.Provider = function (options) {
             })
             break
           case 'fail-unknown':
-            result.failed.push({device: recipient})
+            result.failed.push({ device: recipient })
             break
           default:
             result.sent.push(recipient)

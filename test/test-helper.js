@@ -30,7 +30,7 @@ describe('helper', function () {
       expect(f(null)).to.be.null
       expect(f({})).to.be.null
 
-      expect(f({notification_html: ''})).to.be.null
+      expect(f({ notification_html: '' })).to.be.null
 
       done()
     })
@@ -88,13 +88,13 @@ describe('helper', function () {
     const key = 'key'
     const keyId = 'keyId'
     const teamId = 'teamId'
-    const token = {key, keyId, teamId}
+    const token = { key, keyId, teamId }
     const production = true
 
-    f(packageId, {token}).should.deep.equal({packageId, token})
+    f(packageId, { token }).should.deep.equal({ packageId, token })
 
-    f(packageId, {token, production})
-      .should.deep.equal({packageId, token, production})
+    f(packageId, { token, production })
+      .should.deep.equal({ packageId, token, production })
 
     done()
   })
@@ -107,16 +107,16 @@ describe('helper', function () {
     const address = 'gateway.push.apple.com'
     const addressSandbox = 'gateway.sandbox.push.apple.com'
 
-    f(packageId, {cert, key}).should.deep.equal({packageId, cert, key})
-    f(packageId, {cert_data: cert, key_data: key})
-      .should.deep.equal({packageId, cert, key})
+    f(packageId, { cert, key }).should.deep.equal({ packageId, cert, key })
+    f(packageId, { cert_data: cert, key_data: key })
+      .should.deep.equal({ packageId, cert, key })
 
-    f(packageId, {cert, key, address})
-      .should.deep.equal({packageId, cert, key, production: true})
-    f(packageId, {cert, key, address: addressSandbox})
-      .should.deep.equal({packageId, cert, key, production: false})
-    f(packageId, {cert, key, gateway: address})
-      .should.deep.equal({packageId, cert, key, production: true})
+    f(packageId, { cert, key, address })
+      .should.deep.equal({ packageId, cert, key, production: true })
+    f(packageId, { cert, key, address: addressSandbox })
+      .should.deep.equal({ packageId, cert, key, production: false })
+    f(packageId, { cert, key, gateway: address })
+      .should.deep.equal({ packageId, cert, key, production: true })
 
     done()
   })
@@ -127,7 +127,7 @@ describe('helper', function () {
     const key = 'key'
     const keyId = 'keyId'
     const teamId = 'teamId'
-    const token = {key, keyId, teamId}
+    const token = { key, keyId, teamId }
     const certData = 'cert'
     const keyData = 'key'
 
@@ -135,16 +135,16 @@ describe('helper', function () {
     expect(f(packageId)).to.be.null
     expect(f(packageId, null)).to.be.null
     expect(f(packageId, {})).to.be.null
-    expect(f(packageId, {empty: ''})).to.be.null
+    expect(f(packageId, { empty: '' })).to.be.null
 
-    expect(f(packageId, {token: {keyId, teamId}})).to.be.null
-    expect(f(packageId, {token: {key, teamId}})).to.be.null
-    expect(f(packageId, {token: {key, keyId}})).to.be.null
+    expect(f(packageId, { token: { keyId, teamId } })).to.be.null
+    expect(f(packageId, { token: { key, teamId } })).to.be.null
+    expect(f(packageId, { token: { key, keyId } })).to.be.null
 
-    expect(f(packageId, {cert: certData})).to.be.null
-    expect(f(packageId, {key: keyData})).to.be.null
+    expect(f(packageId, { cert: certData })).to.be.null
+    expect(f(packageId, { key: keyData })).to.be.null
 
-    expect(f(packageId, {token, cert: certData, key: keyData})).to.be.null
+    expect(f(packageId, { token, cert: certData, key: keyData })).to.be.null
 
     done()
   })
@@ -198,7 +198,7 @@ describe('helper', function () {
     expect(f(packageId, null)).to.be.null
     expect(f(packageId, {})).to.be.null
 
-    f(packageId, {api_key: apiKey}).should.deep.equal({packageId, apiKey})
+    f(packageId, { api_key: apiKey }).should.deep.equal({ packageId, apiKey })
 
     done()
   })
@@ -212,7 +212,7 @@ describe('helper', function () {
 
   it('should prepare wns payload', function (done) {
     const f = helper.prepareWnsPayload
-    const fooBar = {foo: 'bar'}
+    const fooBar = { foo: 'bar' }
     const fooBarJson = '{"foo":"bar"}'
 
     f().should.equal('{}')
@@ -220,10 +220,10 @@ describe('helper', function () {
     f({}).should.equal('{}')
 
     f(fooBar).should.equal(fooBarJson)
-    f(fooBar, {channel_uri: 'cu'}).should.equal(fooBarJson)
-    f(fooBar, {package: 'p'}).should.equal(fooBarJson)
+    f(fooBar, { channel_uri: 'cu' }).should.equal(fooBarJson)
+    f(fooBar, { package: 'p' }).should.equal(fooBarJson)
 
-    f(fooBar, {something: 'else'}).should.equal(JSON.stringify({
+    f(fooBar, { something: 'else' }).should.equal(JSON.stringify({
       foo: fooBar.foo,
       extra_data: {
         something: 'else'
@@ -240,7 +240,7 @@ describe('helper', function () {
     const oauthToken = 'ot'
     const deviceType = 'dt'
     const deviceId = 'di'
-    const extraData = {foo: 'bar'}
+    const extraData = { foo: 'bar' }
     const f = helper.prepareSubscribeData
 
     it('should prepare empty object', () => {
@@ -278,7 +278,7 @@ describe('helper', function () {
     describe('oauth_token', () => {
       it('should extract from uri', () => {
         const test = (hubUriQuery, expectQuery) => {
-          const data = f({hub_uri: hubUri + hubUriQuery})
+          const data = f({ hub_uri: hubUri + hubUriQuery })
           expect(data).to.have.property('hub_uri', hubUri + expectQuery)
           expect(data).to.have.property('oauth_token', oauthToken)
         }
@@ -303,7 +303,7 @@ describe('helper', function () {
     describe('hub_topic', () => {
       it('should extract from uri', () => {
         const test = (hubUriQuery, expectQuery) => {
-          const data = f({hub_uri: hubUri + hubUriQuery})
+          const data = f({ hub_uri: hubUri + hubUriQuery })
           expect(data).to.have.property('hub_uri', hubUri + expectQuery)
           expect(data).to.have.property('hub_topic', hubTopic)
         }

@@ -16,7 +16,7 @@ const senderOptions = {
   apiKey: 'ak'
 }
 const registrationToken = 'rt'
-const data = {foo: 'bar'}
+const data = { foo: 'bar' }
 
 describe('pusher/gcm', function () {
   beforeEach(function (done) {
@@ -57,7 +57,7 @@ describe('pusher/gcm', function () {
   })
 
   it('should fail', function (done) {
-    const dataWithError = _.merge({error: 'something'}, data)
+    const dataWithError = _.merge({ error: 'something' }, data)
     pusher.send(
       senderOptions,
       registrationToken,
@@ -70,7 +70,7 @@ describe('pusher/gcm', function () {
 
   it('should fail with status 4xx, no retries', function (done) {
     const test = function (status, callback) {
-      const dataWithError = _.merge({error: status}, data)
+      const dataWithError = _.merge({ error: status }, data)
       pusher.send(senderOptions, registrationToken, dataWithError,
         function (err, result) {
           err.should.equal(status)
@@ -98,7 +98,7 @@ describe('pusher/gcm', function () {
 
   it('should fail with status 3xx, 5xx, with retries', function (done) {
     const test = function (status, callback) {
-      const dataWithError = _.merge({error: status}, data)
+      const dataWithError = _.merge({ error: status }, data)
       pusher.send(senderOptions, registrationToken, dataWithError,
         function (err, result) {
           err.should.equal(status)

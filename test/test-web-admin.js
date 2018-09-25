@@ -103,7 +103,7 @@ describe('web/admin', function () {
     }
 
     const test1 = function () {
-      test({production: 1}, function (projectConfig) {
+      test({ production: 1 }, function (projectConfig) {
         projectConfig.production.should.be.true
 
         test2()
@@ -111,7 +111,7 @@ describe('web/admin', function () {
     }
 
     const test2 = function () {
-      test({production: 0}, function (projectConfig) {
+      test({ production: 0 }, function (projectConfig) {
         projectConfig.production.should.be.false
 
         test3()
@@ -414,7 +414,7 @@ describe('web/admin', function () {
   it('should respond with project info', function (done) {
     const projectType = 'pt'
     const projectId = 'pi'
-    const configuration = {foo: 'bar'}
+    const configuration = { foo: 'bar' }
 
     const init = function () {
       db.projects.save(projectType, projectId, configuration,
@@ -498,19 +498,19 @@ describe('web/admin', function () {
     const adminPrefix = '/admin-sections'
     const sections = {
       'one': function (req, res, next) {
-        res.send({section: 1})
+        res.send({ section: 1 })
         next()
       },
       'two2': function (req, res, next) {
-        res.send({section: 2})
+        res.send({ section: 2 })
         next()
       },
       'three_': function (req, res, next) {
-        res.send({section: 3})
+        res.send({ section: 3 })
         next()
       },
       '!@#$': function (req, res, next) {
-        res.send({section: 'invalid'})
+        res.send({ section: 'invalid' })
         next()
       },
       'five': null
@@ -538,7 +538,7 @@ describe('web/admin', function () {
         .end(function (err, res) {
           expect(err).to.be.null
           res.should.have.status(200)
-          res.body.should.deep.equal({section: 1})
+          res.body.should.deep.equal({ section: 1 })
           test2()
         })
     }
@@ -549,7 +549,7 @@ describe('web/admin', function () {
         .end(function (err, res) {
           expect(err).to.be.null
           res.should.have.status(200)
-          res.body.should.deep.equal({section: 2})
+          res.body.should.deep.equal({ section: 2 })
           test3()
         })
     }
@@ -560,7 +560,7 @@ describe('web/admin', function () {
         .end(function (err, res) {
           expect(err).to.be.null
           res.should.have.status(200)
-          res.body.should.deep.equal({section: 3})
+          res.body.should.deep.equal({ section: 3 })
           done()
         })
     }

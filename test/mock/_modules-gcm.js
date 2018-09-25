@@ -49,7 +49,7 @@ gcm.Sender = function (apiKey) {
         responseError = errorMatch[1]
       }
       if (responseError !== null) {
-        responseResult = {error: responseError}
+        responseResult = { error: responseError }
       }
 
       if (apiKey !== 'ak-no-counter') {
