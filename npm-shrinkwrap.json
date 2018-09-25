@@ -7090,9 +7090,9 @@
       }
     },
     "wns": {
-      "version": "0.5.3",
-      "resolved": "https://registry.npmjs.org/wns/-/wns-0.5.3.tgz",
-      "integrity": "sha1-APToXPz44zg9y9gYmJBvH2rUhF8="
+      "version": "0.5.4",
+      "resolved": "https://registry.npmjs.org/wns/-/wns-0.5.4.tgz",
+      "integrity": "sha512-WYiJ7khIwUGBD5KAm+YYmwJDDRzFRs4YGAjtbFSoRIdbn9Jcix3p9khJmpvBTXGommaKkvduAn+pc9l4d9yzVQ=="
     },
     "wordwrap": {
       "version": "0.0.2",
