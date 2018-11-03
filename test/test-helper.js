@@ -149,6 +149,56 @@ describe('helper', function () {
     done()
   })
 
+  it('should prepare fcm payload', function (done) {
+    const f = helper.prepareFcmPayload
+    f().should.deep.equal({})
+
+    f({
+      notification_id: 1,
+      notification_html: 'text'
+    }).should.deep.equal({
+      notification: { body: 'text' },
+      data: { notification_id: '1' }
+    })
+
+    f({
+      notification_id: 1,
+      notification_html: 'text',
+      something: 'else'
+    }).should.deep.equal({
+      notification: { body: 'text' },
+      data: {
+        notification_id: '1',
+        something: 'else'
+      }
+    })
+
+    f({
+      key: 'value'
+    }).should.deep.equal({
+      data: { key: 'value' }
+    })
+
+    f({
+      key: 'value',
+      notification_id: 0,
+      notification_html: 'irrelevant'
+    }).should.deep.equal({
+      data: { key: 'value' }
+    })
+
+    f({
+      key: 'value',
+      from: 'should be ignored',
+      'google.xxx': 'should be ignored too',
+      'google.document': 'https://firebase.google.com/docs/reference/admin/node/admin.messaging.DataMessagePayload'
+    }).should.deep.equal({
+      data: { key: 'value' }
+    })
+
+    done()
+  })
+
   it('should prepare gcm payload', function (done) {
     const f = helper.prepareGcmPayload
     f().should.deep.equal({})

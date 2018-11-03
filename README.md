@@ -38,6 +38,16 @@ Project configuration at `/admin/projects/apn`:
  * `device_id` = APN Device Token
  * `extra_data[package]` = Bundle ID
 
+### Firebase Cloud Messaging
+via [firebase-admin](https://github.com/firebase/firebase-admin-node) (the official SDK)
+
+No project configuration currently available.
+
+`App` that wants to receive via FCM must include these parameters during subscription:
+ * `device_type` = `firebase`
+ * `device_id` = FCM Registration Token
+ * `extra_data[package]` = Project ID
+
 ### Google Cloud Messaging
 via [ToothlessGear/node-gcm](https://github.com/ToothlessGear/node-gcm)
 
