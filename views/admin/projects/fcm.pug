@@ -1,0 +1,23 @@
+extends ../../layout/default.pug
+
+block title
+  title New FCM Project
+
+block content
+  h1 #{prefix}/projects/fcm
+
+  form(action=prefix + "/projects/fcm", method="POST")
+    div.form-group
+      label(for="ctrl_project_id") Project ID
+      input.form-control#ctrl_project_id(type="text", name="project_id", placeholder="Identifier", value=query.project_id)
+    div.form-group
+      label(for="ctrl_client_email") Client Email
+      input.form-control#ctrl_client_email(type="email", name="client_email", placeholder="foo@<PROJECT_ID>.iam.gserviceaccount.com", value=query.client_email)
+    div.form-group
+      label(for="ctrl_private_key") Private Key
+      textarea.form-control#ctrl_cert(name="private_key", placeholder="-----BEGIN PRIVATE KEY-----<KEY>-----END PRIVATE KEY-----", rows="5")= query["private_key"]
+    div.form-group
+      label(for="ctrl_click_action") Click Action
+      input.form-control#ctrl_click_action(type="text", name="click_action", value=query.click_action)
+
+    button.btn.btn-primary(type="submit") Submit

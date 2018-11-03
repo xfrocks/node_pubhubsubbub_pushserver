@@ -41,7 +41,11 @@ Project configuration at `/admin/projects/apn`:
 ### Firebase Cloud Messaging
 via [firebase-admin](https://github.com/firebase/firebase-admin-node) (the official SDK)
 
-No project configuration currently available.
+Project configuration at `/admin/projects/fcm`, parameters:
+ * `project_id` (__required__): The Google project ID
+ * `client_email` (__required__)
+ * `private_key` (__required__)
+ * `click_action` (_optional_)
 
 `App` that wants to receive via FCM must include these parameters during subscription:
  * `device_type` = `firebase`

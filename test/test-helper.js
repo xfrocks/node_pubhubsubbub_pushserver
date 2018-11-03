@@ -180,6 +180,22 @@ describe('helper', function () {
     })
 
     f({
+      links: {
+        one: 1,
+        two: 2,
+        nested: {
+          three: 3
+        }
+      }
+    }).should.deep.equal({
+      data: {
+        'links.one': '1',
+        'links.two': '2',
+        'links.nested.three': '3'
+      }
+    })
+
+    f({
       key: 'value',
       notification_id: 0,
       notification_html: 'irrelevant'
