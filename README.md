@@ -50,7 +50,7 @@ Project configuration at `/admin/projects/fcm`, parameters:
 `App` that wants to receive via FCM must include these parameters during subscription:
  * `device_type` = `firebase`
  * `device_id` = FCM Registration Token
- * `extra_data[package]` = Project ID
+ * `extra_data[project]` = Project ID
 
 ### Google Cloud Messaging
 via [ToothlessGear/node-gcm](https://github.com/ToothlessGear/node-gcm)
