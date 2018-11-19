@@ -157,8 +157,7 @@ describe('helper', function () {
       notification_id: 1,
       notification_html: 'text'
     }).should.deep.equal({
-      notification: { body: 'text' },
-      data: { notification_id: '1' }
+      data: { body: 'text', notification_id: '1' }
     })
 
     f({
@@ -166,8 +165,8 @@ describe('helper', function () {
       notification_html: 'text',
       something: 'else'
     }).should.deep.equal({
-      notification: { body: 'text' },
       data: {
+        body: 'text',
         notification_id: '1',
         something: 'else'
       }
