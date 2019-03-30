@@ -16,8 +16,5 @@ block content
     div.form-group
       label(for="ctrl_private_key") Private Key
       textarea.form-control#ctrl_cert(name="private_key", placeholder="-----BEGIN PRIVATE KEY-----<KEY>-----END PRIVATE KEY-----", rows="5")= query["private_key"]
-    div.form-group
-      label(for="ctrl_click_action") Click Action
-      input.form-control#ctrl_click_action(type="text", name="click_action", value=query.click_action)
 
     button.btn.btn-primary(type="submit") Submit
