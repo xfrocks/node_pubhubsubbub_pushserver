@@ -252,6 +252,81 @@ describe('app', function () {
     })
   })
 
+  it('should works with fcm', done => {
+    const deviceId = 'firebase-di'
+    const projectId = 'firebase-pi'
+
+    const setup = () =>
+      webApp
+        .post('/admin/projects/fcm')
+        .auth(adminUsername, adminPassword)
+        .send({
+          project_id: projectId,
+          client_email: 'user@domain.com',
+          private_key: '-----BEGIN RSA PRIVATE KEY-----\nMGUCAQACEQDZ9yHDjBHwQKkk+I3pfVeVAgMBAAECEQCw9uXR1zJlRQoGH0SKmPiB\nAgkA+w3y/vic1aECCQDeQlECbNmVdQIJAJPvYlLweKpBAgkAqBpAazUo3IECCQDj\nX4gCHu8E+w==\n-----END RSA PRIVATE KEY-----'
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(202)
+          subscribe()
+        })
+
+    const subscribe = () =>
+      webApp
+        .post('/subscribe')
+        .send({
+          hub_uri: hubUri,
+          hub_topic: hubTopic,
+          oauth_client_id: oauthClientId,
+          oauth_token: oauthToken,
+          extra_data: {
+            project: projectId
+          },
+          device_type: 'firebase',
+          device_id: deviceId
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(202)
+          res.text.should.equal('succeeded')
+          callback()
+        })
+
+    const callback = () =>
+      webApp
+        .post('/callback')
+        .send([
+          {
+            client_id: oauthClientId,
+            topic: hubTopic,
+            object_data: {
+              notification_id: notificationId,
+              notification_html: notificationHtml
+            }
+          }
+        ])
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(202)
+          setTimeout(verifyPushQueueStats, 100)
+        })
+
+    let queuedBefore = 0
+    let processedBefore = 0
+    const verifyPushQueueStats = () =>
+      pushQueue.stats().then(stats => {
+        stats.pushQueue.queued.should.equal(queuedBefore + 1)
+        stats.pushQueue.processed.should.equal(processedBefore + 1)
+        done()
+      })
+
+    pushQueue.stats().then(statsBefore => {
+      queuedBefore = statsBefore.pushQueue.queued
+      processedBefore = statsBefore.pushQueue.processed
+      setup()
+    })
+  })
+
   it('should works with wns', function (done) {
     nock('https://login.live.com')
       .post('/accesstoken.srf')
