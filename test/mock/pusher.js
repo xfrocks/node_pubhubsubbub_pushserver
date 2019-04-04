@@ -62,6 +62,16 @@ pusher.apn = function (connectionOptions, tokens, payload, callback) {
   }, tokens[0], callback)
 }
 
+pusher.fcm = (projectId, projectConfig, registrationTokens, payload, callback) =>
+  mock({
+    type: 'fcm',
+    deviceIds: registrationTokens,
+    projectId,
+    projectConfig,
+    registrationTokens,
+    payload
+  }, registrationTokens[0], callback)
+
 pusher.gcm = function (senderOptions, registrationIds, data, callback) {
   mock({
     type: 'gcm',
