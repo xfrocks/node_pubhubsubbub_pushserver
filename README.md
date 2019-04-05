@@ -51,6 +51,10 @@ Project configuration at `/admin/projects/fcm`, parameters:
  * `device_id` = FCM Registration Token
  * `extra_data[project]` = Project ID
 
+By default, the server will push data messages...
+ * `extra_data[notification]` if specified, [notification messages](https://firebase.google.com/docs/cloud-messaging/concept-options#notifications_and_data_messages) will be pushed instead
+ * `extra_data[click_action]` the action associated with a user click on the notification. Corresponds to `category` in the APNs payload.
+
 ### Google Cloud Messaging
 via [ToothlessGear/node-gcm](https://github.com/ToothlessGear/node-gcm)
 

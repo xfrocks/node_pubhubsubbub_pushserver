@@ -149,69 +149,125 @@ describe('helper', function () {
     done()
   })
 
-  it('should prepare fcm payload', function (done) {
-    const f = helper.prepareFcmPayload
-    f().should.deep.equal({})
-
-    f({
-      notification_id: 1,
-      notification_html: 'text'
-    }).should.deep.equal({
-      data: { body: 'text', notification_id: '1' }
+  describe('prepareFcmPayload', () => {
+    it('should prepare empty object', () => {
+      helper.prepareFcmPayload().should.deep.equal({})
     })
 
-    f({
-      notification_id: 1,
-      notification_html: 'text',
-      something: 'else'
-    }).should.deep.equal({
-      data: {
-        body: 'text',
-        notification_id: '1',
+    it('should prepare data', () => {
+      const f = helper.prepareFcmPayload
+
+      f({
+        notification_id: 1,
+        notification_html: 'text'
+      }).should.deep.equal({
+        data: { body: 'text', notification_id: '1' }
+      })
+
+      f({
+        notification_id: 1,
+        notification_html: 'text',
+        body: 'body text override'
+      }).should.deep.equal({
+        data: { body: 'body text override', notification_id: '1' }
+      })
+
+      f({
+        notification_id: 1,
+        notification_html: 'text',
         something: 'else'
-      }
-    })
-
-    f({
-      key: 'value'
-    }).should.deep.equal({
-      data: { key: 'value' }
-    })
-
-    f({
-      links: {
-        one: 1,
-        two: 2,
-        nested: {
-          three: 3
+      }).should.deep.equal({
+        data: {
+          body: 'text',
+          notification_id: '1',
+          something: 'else'
         }
-      }
-    }).should.deep.equal({
-      data: {
-        'links.one': '1',
-        'links.two': '2',
-        'links.nested.three': '3'
-      }
+      })
+
+      f({ key: 'value' }).should.deep.equal({ data: { key: 'value' } })
+
+      f({
+        links: {
+          one: 1,
+          two: 2,
+          nested: {
+            three: 3
+          }
+        }
+      }).should.deep.equal({
+        data: {
+          'links.one': '1',
+          'links.two': '2',
+          'links.nested.three': '3'
+        }
+      })
+
+      f({
+        key: 'value',
+        notification_id: 0,
+        notification_html: 'irrelevant'
+      }).should.deep.equal({ data: { key: 'value' } })
+
+      f({
+        key: 'value',
+        from: 'should be ignored',
+        'google.xxx': 'should be ignored too',
+        'google.document': 'https://firebase.google.com/docs/reference/admin/node/admin.messaging.DataMessagePayload'
+      }).should.deep.equal({ data: { key: 'value' } })
     })
 
-    f({
-      key: 'value',
-      notification_id: 0,
-      notification_html: 'irrelevant'
-    }).should.deep.equal({
-      data: { key: 'value' }
+    it('should prepare notification', () => {
+      const f = d => helper.prepareFcmPayload(d, { notification: true })
+
+      f({
+        notification_id: 1,
+        notification_html: 'text'
+      }).should.deep.equal({
+        notification: { body: 'text' },
+        data: { notification_id: '1' }
+      })
+
+      f({
+        notification_id: 1,
+        notification_html: 'text',
+        body: 'body text override'
+      }).should.deep.equal({
+        notification: { body: 'text' },
+        data: { body: 'body text override', notification_id: '1' }
+      })
+
+      f({
+        notification_id: 1,
+        notification_html: 'text',
+        something: 'else'
+      }).should.deep.equal({
+        notification: { body: 'text' },
+        data: {
+          notification_id: '1',
+          something: 'else'
+        }
+      })
+
+      f({ key: 'value' }).should.deep.equal({ data: { key: 'value' } })
+
+      f({
+        key: 'value',
+        notification_id: 0,
+        notification_html: 'irrelevant'
+      }).should.deep.equal({ data: { key: 'value' } })
     })
 
-    f({
-      key: 'value',
-      from: 'should be ignored',
-      'google.xxx': 'should be ignored too',
-      'google.document': 'https://firebase.google.com/docs/reference/admin/node/admin.messaging.DataMessagePayload'
-    }).should.deep.equal({
-      data: { key: 'value' }
+    it('should prepare click action', () => {
+      helper.prepareFcmPayload(
+        {
+          notification_id: 1,
+          notification_html: 'text'
+        }, { notification: true, clickAction: 'CLICK_ACTION' }
+      ).should.deep.equal({
+        notification: { body: 'text', clickAction: 'CLICK_ACTION' },
+        data: { notification_id: '1' }
+      })
     })
-
-    done()
   })
 
   it('should prepare gcm payload', function (done) {
@@ -398,6 +454,22 @@ describe('helper', function () {
       expect(f({}, ['extra_data']))
         .to.have.property('has_all_required_keys')
         .that.is.true
+    })
+  })
+
+  describe('isPositive', () => {
+    it('should return true', () => {
+      helper.isPositive(true).should.be.true
+      helper.isPositive('1').should.be.true
+      helper.isPositive('yes').should.be.true
+    })
+
+    it('should return false', () => {
+      helper.isPositive(false).should.be.false
+      helper.isPositive('').should.be.false
+      helper.isPositive(null).should.be.false
+      helper.isPositive(undefined).should.be.false
+      helper.isPositive({}).should.be.false
     })
   })
 

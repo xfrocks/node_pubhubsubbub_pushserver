@@ -229,11 +229,24 @@ describe('pushQueue', function () {
       done()
     })
 
-    it('extra_data[project] missing', done => {
+    it('extra_data missing', done => {
       const deviceId = 'di-extra_data-project-missing'
       const payload = generatePayload()
 
       pushQueue.enqueue(deviceType, deviceId, payload)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('extra_data[project] missing', done => {
+      const deviceId = 'di-extra_data-project-missing'
+      const payload = generatePayload()
+
+      pushQueue.enqueue(deviceType, deviceId, payload, {})
 
       const job = pushKue._getLatestJob(config.pushQueue.queueId)
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
