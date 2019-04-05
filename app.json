@@ -1,0 +1,29 @@
+{
+  "addons": [
+    "mongolab",
+    "redistogo"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "CONFIG_WEB_PASSWORD": {
+      "required": true
+    },
+    "CONFIG_WEB_USERNAME": {
+      "required": true
+    },
+    "DEBUG": "pushserver:*"
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "heroku",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}
