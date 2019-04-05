@@ -239,10 +239,17 @@ describe('helper', function () {
 
       f({
         notification_id: 1,
-        notification_html: 'text'
+        notification_html: 'text',
+        user_unread_notification_count: 2
       }).should.deep.equal({
-        notification: { body: 'text' },
-        data: { notification_id: '1' }
+        notification: {
+          body: 'text',
+          badge: 2
+        },
+        data: {
+          notification_id: '1',
+          user_unread_notification_count: '2'
+        }
       })
 
       f({
