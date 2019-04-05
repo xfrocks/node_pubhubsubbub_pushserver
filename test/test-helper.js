@@ -244,7 +244,7 @@ describe('helper', function () {
       }).should.deep.equal({
         notification: {
           body: 'text',
-          badge: 2
+          badge: '2'
         },
         data: {
           notification_id: '1',
