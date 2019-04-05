@@ -151,7 +151,7 @@ describe('helper', function () {
 
   describe('prepareFcmPayload', () => {
     it('should prepare empty object', () => {
-      helper.prepareFcmPayload().should.deep.equal({})
+      helper.prepareFcmPayload({}).should.deep.equal({})
     })
 
     it('should prepare data', () => {
@@ -162,6 +162,24 @@ describe('helper', function () {
         notification_html: 'text'
       }).should.deep.equal({
         data: { body: 'text', notification_id: '1' }
+      })
+
+      f({
+        notification_id: 0,
+        notification_html: '',
+        message: {
+          conversation_id: 1,
+          creator_username: 'foo',
+          message: 'hello world',
+          title: 'convo title'
+        }
+      }).should.deep.equal({
+        data: {
+          'message.conversation_id': '1',
+          'message.creator_username': 'foo',
+          'message.message': 'hello world',
+          'message.title': 'convo title'
+        }
       })
 
       f({
@@ -225,6 +243,28 @@ describe('helper', function () {
       }).should.deep.equal({
         notification: { body: 'text' },
         data: { notification_id: '1' }
+      })
+
+      f({
+        notification_id: 0,
+        notification_html: '',
+        message: {
+          conversation_id: 1,
+          creator_username: 'foo',
+          message: 'hello world',
+          title: 'convo title'
+        }
+      }).should.deep.equal({
+        notification: {
+          body: 'foo: hello world',
+          title: 'convo title'
+        },
+        data: {
+          'message.conversation_id': '1',
+          'message.creator_username': 'foo',
+          'message.message': 'hello world',
+          'message.title': 'convo title'
+        }
       })
 
       f({
