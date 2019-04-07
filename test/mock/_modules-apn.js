@@ -81,7 +81,7 @@ apn.Provider = function (options) {
 apn.Notification = function () {
   this.payload = {}
   this.alert = ''
-  this.badge = ''
+  this.badge = undefined
   this.sound = ''
 
   this.topic = ''
