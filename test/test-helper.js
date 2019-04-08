@@ -167,16 +167,16 @@ describe('helper', function () {
       f({
         notification_id: 0,
         notification_html: '',
+        creator_username: 'foo',
         message: {
           conversation_id: 1,
-          creator_username: 'foo',
           message: 'hello world',
           title: 'convo title'
         }
       }).should.deep.equal({
         data: {
+          'creator_username': 'foo',
           'message.conversation_id': '1',
-          'message.creator_username': 'foo',
           'message.message': 'hello world',
           'message.title': 'convo title'
         }
@@ -255,9 +255,9 @@ describe('helper', function () {
       f({
         notification_id: 0,
         notification_html: '',
+        creator_username: 'foo',
         message: {
           conversation_id: 1,
-          creator_username: 'foo',
           message: 'hello world',
           title: 'convo title'
         }
@@ -267,8 +267,8 @@ describe('helper', function () {
           title: 'convo title'
         },
         data: {
+          'creator_username': 'foo',
           'message.conversation_id': '1',
-          'message.creator_username': 'foo',
           'message.message': 'hello world',
           'message.title': 'convo title'
         }
