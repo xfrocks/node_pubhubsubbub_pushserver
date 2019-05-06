@@ -30,9 +30,24 @@ describe('helper', function () {
       expect(f(null)).to.be.null
       expect(f({})).to.be.null
 
-      expect(f({ notification_html: '' })).to.be.null
+      expect(f({
+        notification_id: 0,
+        notification_html: 'text'
+      })).to.be.null
+
+      expect(f({
+        notification_id: 1,
+        notification_html: ''
+      })).to.be.null
 
       done()
+    })
+
+    it('should not prepare (invalid notification html)', () => {
+      expect(f({
+        notification_id: 1,
+        notification_html: '<br />'
+      })).to.be.null
     })
 
     it('should prepare alert (notification)', (done) => {
