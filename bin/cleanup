@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+const request = require('request-promise-native')
+
+const auth = {
+  username: process.env.CONFIG_WEB_USERNAME,
+  password: process.env.CONFIG_WEB_PASSWORD
+}
+
+const apiRoot = 'http://127.0.0.1/admin/queue'
+const apiBatch = 100
+const opts = { auth, json: true }
+const cutOff = Date.now() - 3600000
+
+const findAndDelete = async () => {
+  const jobs = await request(`${apiRoot}/jobs/failed/0..${apiBatch}/asc`, opts)
+  const deleted = await Promise.all(jobs.map(async job => {
+    const { id, failed_at: failedAt } = job
+    const failedAtInt = parseInt(failedAt)
+    if (failedAtInt > cutOff) return false
+
+    const result = await request(`${apiRoot}/job/${id}`, { ...opts, method: 'DELETE' })
+    return result.message === `job ${id} removed`
+  }))
+
+  let count = 0
+  deleted.forEach(ok => (count += (ok ? 1 : 0)))
+  if (count === 0) {
+    console.log('Nothing left to do, bye bye!')
+    return
+  }
+
+  console.log(`Deleted ${count} jobs.`)
+  findAndDelete()
+}
+
+findAndDelete()

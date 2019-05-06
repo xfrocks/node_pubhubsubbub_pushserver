@@ -307,7 +307,7 @@ describe('pusher/apn', function () {
     const payload = {
       'aps': {
         alert: 'foo',
-        badge: 'b',
+        badge: 99,
         sound: 's'
       },
       'expiry': 123,
@@ -332,7 +332,6 @@ describe('pusher/apn', function () {
 
   it('should configure notification via config', function (done) {
     config.apn.notificationOptions = {
-      badge: 'b',
       sound: 's',
       expiry: 123
     }
@@ -344,8 +343,6 @@ describe('pusher/apn', function () {
     }, token, payload, function () {
       const push = lib._getLatestPush()
       push.notification.alert.should.equal(payload.aps.alert)
-      push.notification.badge
-        .should.equal(config.apn.notificationOptions.badge)
       push.notification.sound
         .should.equal(config.apn.notificationOptions.sound)
       push.notification.expiry

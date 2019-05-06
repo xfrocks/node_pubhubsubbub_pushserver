@@ -30,9 +30,24 @@ describe('helper', function () {
       expect(f(null)).to.be.null
       expect(f({})).to.be.null
 
-      expect(f({ notification_html: '' })).to.be.null
+      expect(f({
+        notification_id: 0,
+        notification_html: 'text'
+      })).to.be.null
+
+      expect(f({
+        notification_id: 1,
+        notification_html: ''
+      })).to.be.null
 
       done()
+    })
+
+    it('should not prepare (invalid notification html)', () => {
+      expect(f({
+        notification_id: 1,
+        notification_html: '<br />'
+      })).to.be.null
     })
 
     it('should prepare alert (notification)', (done) => {
@@ -427,7 +442,7 @@ describe('helper', function () {
     })
 
     it('should prepare all', () => {
-      const reqBody = {
+      const params = {
         hub_uri: hubUri,
         hub_topic: hubTopic,
         oauth_client_id: oauthClientId,
@@ -437,10 +452,14 @@ describe('helper', function () {
         device_id: deviceId,
         extra_data: extraData
       }
-      const expectedData = _.clone(reqBody)
+      const expectedData = _.clone(params)
       expectedData.has_all_required_keys = true
 
-      expect(f(reqBody)).to.deep.equal(expectedData)
+      // from reqBody
+      expect(f(params)).to.deep.equal(expectedData)
+
+      // from reqQuery
+      expect(f(null, params)).to.deep.equal(expectedData)
     })
 
     describe('oauth_token', () => {
@@ -494,11 +513,11 @@ describe('helper', function () {
     })
 
     it('should find missing keys', () => {
-      expect(f({}, ['hub_uri']))
+      expect(f(null, null, ['hub_uri']))
         .to.have.property('has_all_required_keys')
         .that.is.false
 
-      expect(f({}, ['extra_data']))
+      expect(f(null, null, ['extra_data']))
         .to.have.property('has_all_required_keys')
         .that.is.true
     })
