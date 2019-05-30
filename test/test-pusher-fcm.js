@@ -17,7 +17,7 @@ const projectConfig = {
   private_key: 'pk'
 }
 const registrationToken = 'rt'
-const payload = { foo: 'bar' }
+const payload = { data: { foo: 'bar' } }
 
 describe('pusher/fcm', () => {
   beforeEach(done => {
@@ -65,20 +65,60 @@ describe('pusher/fcm', () => {
       credential._getProjectId().should.equal(projectId)
       push.payload.should.deep.equal(payload)
       push.registrationToken.should.equal(registrationToken)
+      push.options.should.deep.equal({})
 
       done()
     })
   })
 
+  it('should push notification', done => {
+    const payloadWithNotification = { notification: { body: 'body' } }
+    pusher.send(
+      projectId,
+      projectConfig,
+      registrationToken,
+      payloadWithNotification,
+      (err, result) => {
+        expect(err).to.be.undefined
+        result.sent.should.equal(1)
+
+        const push = lib._getLatestPush()
+        push.payload.should.deep.equal(payloadWithNotification)
+        push.options.should.deep.equal({})
+
+        done()
+      })
+  })
+
+  it('should push options', done => {
+    const options = { contentAvailable: true }
+    const payloadWithOptions = _.merge({}, options, payload)
+    pusher.send(
+      projectId,
+      projectConfig,
+      registrationToken,
+      payloadWithOptions,
+      (err, result) => {
+        expect(err).to.be.undefined
+        result.sent.should.equal(1)
+
+        const push = lib._getLatestPush()
+        push.payload.should.deep.equal(payload)
+        push.options.should.deep.equal(options)
+
+        done()
+      })
+  })
+
   it('should fail', done => {
-    const payloadWithError = _.merge({ error: 'something' }, payload)
+    const payloadWithError = _.merge({ data: { error: 'something' } }, payload)
     pusher.send(
       projectId,
       projectConfig,
       registrationToken,
       payloadWithError,
       (err, result) => {
-        err.should.equal(payloadWithError.error)
+        err.should.equal(payloadWithError.data.error)
         result.failed.should.equal(1)
         done()
       })

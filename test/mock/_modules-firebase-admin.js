@@ -33,15 +33,15 @@ firebaseAdmin.initializeApp = (options, name) => {
   }
 
   app.messaging = () => ({
-    sendToDevice: (registrationTokens, payload) => new Promise((resolve, reject) => {
+    sendToDevice: (registrationTokens, payload, options) => new Promise((resolve, reject) => {
       const response = {
         failureCount: 0,
         results: [],
         successCount: 0
       }
 
-      if (payload.error) {
-        return reject(payload.error)
+      if (payload.data && payload.data.error) {
+        return reject(payload.data.error)
       }
 
       registrationTokens.forEach(registrationToken => {
@@ -52,7 +52,7 @@ firebaseAdmin.initializeApp = (options, name) => {
           result.error = { code: registrationToken }
         } else {
           response.successCount++
-          latestPush = { app, payload, registrationToken }
+          latestPush = { app, payload, registrationToken, options }
           pushes.push(latestPush)
         }
 

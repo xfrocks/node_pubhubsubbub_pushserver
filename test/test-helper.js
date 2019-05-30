@@ -278,7 +278,7 @@ describe('helper', function () {
       f({
         user_unread_notification_count: 0
       }).should.deep.equal({
-        content_available: true,
+        contentAvailable: true,
         notification: {
           badge: '0'
         },
@@ -331,7 +331,7 @@ describe('helper', function () {
       })
 
       f({ key: 'value' }).should.deep.equal({
-        content_available: true,
+        contentAvailable: true,
         data: { key: 'value' }
       })
 
@@ -340,7 +340,7 @@ describe('helper', function () {
         notification_id: 0,
         notification_html: 'irrelevant'
       }).should.deep.equal({
-        content_available: true,
+        contentAvailable: true,
         data: { key: 'value' }
       })
     })
