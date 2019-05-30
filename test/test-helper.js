@@ -180,6 +180,14 @@ describe('helper', function () {
       })
 
       f({
+        user_unread_notification_count: 0
+      }).should.deep.equal({
+        data: {
+          user_unread_notification_count: '0'
+        }
+      })
+
+      f({
         notification_id: 0,
         notification_html: '',
         creator_username: 'foo',
@@ -264,6 +272,17 @@ describe('helper', function () {
         data: {
           notification_id: '1',
           user_unread_notification_count: '2'
+        }
+      })
+
+      f({
+        user_unread_notification_count: 0
+      }).should.deep.equal({
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_notification_count: '0'
         }
       })
 
