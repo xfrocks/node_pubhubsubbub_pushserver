@@ -302,7 +302,7 @@ describe('helper', function () {
         notification: {
           body: 'foo: hello world',
           tag: 'conversationId=1 messageId=1',
-          title: 'convo title',
+          title: 'convo title'
         },
         data: {
           'creator_username': 'foo',
