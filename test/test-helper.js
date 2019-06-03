@@ -266,8 +266,9 @@ describe('helper', function () {
         user_unread_notification_count: 2
       }).should.deep.equal({
         notification: {
+          badge: '2',
           body: 'text',
-          badge: '2'
+          tag: 'notificationId=1'
         },
         data: {
           notification_id: '1',
@@ -294,17 +295,20 @@ describe('helper', function () {
         message: {
           conversation_id: 1,
           message: 'hello world',
+          message_id: 1,
           title: 'convo title'
         }
       }).should.deep.equal({
         notification: {
           body: 'foo: hello world',
-          title: 'convo title'
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title',
         },
         data: {
           'creator_username': 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
+          'message.message_id': '1',
           'message.title': 'convo title'
         }
       })
@@ -314,8 +318,14 @@ describe('helper', function () {
         notification_html: 'text',
         body: 'body text override'
       }).should.deep.equal({
-        notification: { body: 'text' },
-        data: { body: 'body text override', notification_id: '1' }
+        notification: {
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          body: 'body text override',
+          notification_id: '1'
+        }
       })
 
       f({
@@ -323,7 +333,10 @@ describe('helper', function () {
         notification_html: 'text',
         something: 'else'
       }).should.deep.equal({
-        notification: { body: 'text' },
+        notification: {
+          body: 'text',
+          tag: 'notificationId=1'
+        },
         data: {
           notification_id: '1',
           something: 'else'
@@ -350,9 +363,17 @@ describe('helper', function () {
         {
           notification_id: 1,
           notification_html: 'text'
-        }, { notification: true, clickAction: 'CLICK_ACTION' }
+        },
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
       ).should.deep.equal({
-        notification: { body: 'text', clickAction: 'CLICK_ACTION' },
+        notification: {
+          clickAction: 'CLICK_ACTION',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
         data: { notification_id: '1' }
       })
     })
