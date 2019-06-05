@@ -376,6 +376,24 @@ describe('helper', function () {
         },
         data: { notification_id: '1' }
       })
+
+      helper.prepareFcmPayload(
+        {
+          user_unread_notification_count: 0
+        },
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
+      ).should.deep.equal({
+        contentAvailable: true,
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_notification_count: '0'
+        }
+      })
     })
   })
 
