@@ -176,13 +176,32 @@ describe('helper', function () {
         notification_id: 1,
         notification_html: 'text'
       }).should.deep.equal({
-        data: { body: 'text', notification_id: '1' }
+        data: {
+          body: 'text',
+          notification_id: '1'
+        }
       })
 
       f({
+        notification_id: 1,
+        notification_html: 'text',
+        user_unread_conversation_count: 3,
+        user_unread_notification_count: 2
+      }).should.deep.equal({
+        data: {
+          body: 'text',
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      f({
+        user_unread_conversation_count: 0,
         user_unread_notification_count: 0
       }).should.deep.equal({
         data: {
+          user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
         }
       })
@@ -262,21 +281,37 @@ describe('helper', function () {
 
       f({
         notification_id: 1,
+        notification_html: 'text'
+      }).should.deep.equal({
+        notification: {
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1'
+        }
+      })
+
+      f({
+        notification_id: 1,
         notification_html: 'text',
+        user_unread_conversation_count: 3,
         user_unread_notification_count: 2
       }).should.deep.equal({
         notification: {
-          badge: '2',
+          badge: '5',
           body: 'text',
           tag: 'notificationId=1'
         },
         data: {
           notification_id: '1',
+          user_unread_conversation_count: '3',
           user_unread_notification_count: '2'
         }
       })
 
       f({
+        user_unread_conversation_count: 0,
         user_unread_notification_count: 0
       }).should.deep.equal({
         contentAvailable: true,
@@ -284,6 +319,7 @@ describe('helper', function () {
           badge: '0'
         },
         data: {
+          user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
         }
       })
@@ -374,11 +410,39 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
-        data: { notification_id: '1' }
+        data: {
+          notification_id: '1'
+        }
       })
 
       helper.prepareFcmPayload(
         {
+          notification_id: 1,
+          notification_html: 'text',
+          user_unread_conversation_count: 3,
+          user_unread_notification_count: 2
+        },
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '5',
+          clickAction: 'CLICK_ACTION',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        {
+          user_unread_conversation_count: 0,
           user_unread_notification_count: 0
         },
         {
@@ -391,6 +455,7 @@ describe('helper', function () {
           badge: '0'
         },
         data: {
+          user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
         }
       })
