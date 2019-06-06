@@ -213,6 +213,7 @@ describe('helper', function () {
         message: {
           conversation_id: 1,
           message: 'hello world',
+          message_id: 1,
           title: 'convo title'
         }
       }).should.deep.equal({
@@ -220,7 +221,32 @@ describe('helper', function () {
           'creator_username': 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
+          'message.message_id': '1',
           'message.title': 'convo title'
+        }
+      })
+
+      f({
+        notification_id: 0,
+        notification_html: '',
+        creator_username: 'foo',
+        message: {
+          conversation_id: 1,
+          message: 'hello world',
+          message_id: 1,
+          title: 'convo title'
+        },
+        user_unread_conversation_count: '3',
+        user_unread_notification_count: '2'
+      }).should.deep.equal({
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
         }
       })
 
@@ -346,6 +372,36 @@ describe('helper', function () {
           'message.message': 'hello world',
           'message.message_id': '1',
           'message.title': 'convo title'
+        }
+      })
+
+      f({
+        notification_id: 0,
+        notification_html: '',
+        creator_username: 'foo',
+        message: {
+          conversation_id: 1,
+          message: 'hello world',
+          message_id: 1,
+          title: 'convo title'
+        },
+        user_unread_conversation_count: '3',
+        user_unread_notification_count: '2'
+      }).should.deep.equal({
+        notification: {
+          badge: '5',
+          body: 'foo: hello world',
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title'
+        },
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
         }
       })
 
