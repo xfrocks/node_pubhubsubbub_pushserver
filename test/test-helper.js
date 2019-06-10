@@ -287,7 +287,7 @@ describe('helper', function () {
 
       f(payloadNotification).should.deep.equal({
         notification: {
-          badge: '5',
+          badge: '2',
           body: 'text',
           tag: 'notificationId=1'
         },
@@ -311,7 +311,7 @@ describe('helper', function () {
 
       f(payloadConvo).should.deep.equal({
         notification: {
-          badge: '5',
+          badge: '2',
           body: 'foo: hello world',
           tag: 'conversationId=1 messageId=1',
           title: 'convo title'
@@ -355,6 +355,68 @@ describe('helper', function () {
       })
     })
 
+    it('should prepare badge with convo', () => {
+      helper.prepareFcmPayload(
+        payloadNotification,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '5',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadUnreadOnly,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        contentAvailable: true,
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_conversation_count: '0',
+          user_unread_notification_count: '0'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadConvo,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '5',
+          body: 'foo: hello world',
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title'
+        },
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+    })
+
     it('should prepare click action', () => {
       helper.prepareFcmPayload(
         payloadNotification,
@@ -364,7 +426,7 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         notification: {
-          badge: '5',
+          badge: '2',
           clickAction: 'CLICK_ACTION',
           body: 'text',
           tag: 'notificationId=1'
@@ -401,7 +463,7 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         notification: {
-          badge: '5',
+          badge: '2',
           body: 'foo: hello world',
           clickAction: 'CLICK_ACTION',
           tag: 'conversationId=1 messageId=1',
