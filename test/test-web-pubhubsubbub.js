@@ -550,7 +550,7 @@ describe('web/pubhubsubbub', function () {
       webApp
         .get('/callback')
         .query({
-          'client_id': oauthClientId,
+          client_id: oauthClientId,
           'hub.challenge': challenge,
           'hub.mode': 'subscribe',
           'hub.topic': hubTopic
@@ -574,7 +574,7 @@ describe('web/pubhubsubbub', function () {
     webApp
       .get('/callback')
       .query({
-        'client_id': oauthClientId,
+        client_id: oauthClientId,
         'hub.challenge': challenge,
         'hub.mode': 'unsubscribe',
         'hub.topic': hubTopic
@@ -593,7 +593,7 @@ describe('web/pubhubsubbub', function () {
     const seed = [
       {},
       { 'hub.topic': hubTopic },
-      { 'client_id': oauthClientId },
+      { client_id: oauthClientId },
       { 'hub.challenge': Math.random().toString() },
       { 'hub.mode': 'subscribe' }
     ]
@@ -635,7 +635,7 @@ describe('web/pubhubsubbub', function () {
     webApp
       .get('/callback')
       .query({
-        'client_id': oauthClientId,
+        client_id: oauthClientId,
         'hub.challenge': challenge,
         'hub.mode': 'subscribe',
         'hub.topic': hubTopic
