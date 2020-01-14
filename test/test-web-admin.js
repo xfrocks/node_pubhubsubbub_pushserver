@@ -51,44 +51,38 @@ describe('web/admin', function () {
       })
   })
 
-  it('should show apn form', function (done) {
-    webApp
-      .get('/admin/projects/apn')
-      .end(function (err, res) {
-        expect(err).to.be.null
-        res.should.have.status(200)
-        done()
-      })
-  })
+  describe('apn', () => {
+    const projectType = 'apn'
+    const projectUrl = `/admin/projects/${projectType}`
 
-  it('should save apn project', function (done) {
-    const test = function (extraData, assertCallback) {
-      const bundleId = 'bi'
-      const tokenKey = 'tk'
-      const tokenKeyId = 'tki'
-      const tokenTeamId = 'tti'
+    it('should show form', () => webApp
+      .get(projectUrl)
+      .then(res => res.should.have.status(200)))
 
-      const step1 = function () {
-        const data = _.merge({
-          bundle_id: bundleId,
-          token: {
-            key: tokenKey,
-            key_id: tokenKeyId,
-            team_id: tokenTeamId
-          }
-        }, extraData)
-        webApp
-          .post('/admin/projects/apn')
-          .send(data)
-          .end(function (err, res) {
+    it('should save project', done => {
+      const test = (extraData, assertCallback) => {
+        const bundleId = 'bi'
+        const tokenKey = 'tk'
+        const tokenKeyId = 'tki'
+        const tokenTeamId = 'tti'
+
+        const step1 = () => webApp
+          .post(projectUrl)
+          .send(_.merge({
+            bundle_id: bundleId,
+            token: {
+              key: tokenKey,
+              key_id: tokenKeyId,
+              team_id: tokenTeamId
+            }
+          }, extraData))
+          .end((err, res) => {
             expect(err).to.be.null
             res.should.have.status(202)
             step2()
           })
-      }
 
-      const step2 = function () {
-        db.projects.findConfig('apn', bundleId, function (projectConfig) {
+        const step2 = () => db.projects.findConfig(projectType, bundleId, (projectConfig) => {
           projectConfig.should.not.be.null
           projectConfig.token.should.be.a('object')
           projectConfig.token.key.should.equal(tokenKey)
@@ -97,318 +91,368 @@ describe('web/admin', function () {
 
           assertCallback(projectConfig)
         })
+
+        step1()
       }
 
-      step1()
-    }
-
-    const test1 = function () {
-      test({ production: 1 }, function (projectConfig) {
+      const test1 = () => test({ production: 1 }, (projectConfig) => {
         projectConfig.production.should.be.true
-
         test2()
       })
-    }
 
-    const test2 = function () {
-      test({ production: 0 }, function (projectConfig) {
+      const test2 = () => test({ production: 0 }, (projectConfig) => {
         projectConfig.production.should.be.false
-
         test3()
       })
-    }
 
-    const test3 = function () {
-      test({}, function (projectConfig) {
+      const test3 = () => test({}, (projectConfig) => {
         projectConfig.production.should.be.true
-
         done()
       })
-    }
 
-    test1()
-  })
+      test1()
+    })
 
-  it('should not save apn project', function (done) {
-    const bundleId = 'bi'
-    const tokenKey = 'tk'
-    const tokenKeyId = 'tki'
-    const tokenTeamId = 'tti'
+    it('should not save project', done => {
+      const bundleId = 'bi'
+      const tokenKey = 'tk'
+      const tokenKeyId = 'tki'
+      const tokenTeamId = 'tti'
 
-    const test = function (data, endCallback) {
-      webApp
-        .post('/admin/projects/apn')
+      const test = (data, endCallback) => webApp
+        .post(projectUrl)
         .send(data)
         .end(endCallback)
-    }
 
-    const test1 = function () {
-      test({
+      const test1 = () => test({
         token: {
           key: tokenKey,
           key_id: tokenKeyId,
           team_id: tokenTeamId
         }
-      }, function (err, res) {
+      }, (err, res) => {
         expect(err).to.be.null
         res.should.have.status(400)
         test2()
       })
-    }
 
-    const test2 = function () {
-      test({
+      const test2 = () => test({
         bundle_id: bundleId,
         token: {
           key_id: tokenKeyId,
           team_id: tokenTeamId
         }
-      }, function (err, res) {
+      }, (err, res) => {
         expect(err).to.be.null
         res.should.have.status(400)
         test3()
       })
-    }
 
-    const test3 = function () {
-      test({
+      const test3 = () => test({
         bundle_id: bundleId,
         token: {
           key: tokenKey,
           team_id: tokenTeamId
         }
-      }, function (err, res) {
+      }, (err, res) => {
         expect(err).to.be.null
         res.should.have.status(400)
         test4()
       })
-    }
 
-    const test4 = function () {
-      test({
+      const test4 = () => test({
         bundle_id: bundleId,
         token: {
           key: tokenKey,
           key_id: tokenKeyId
         }
-      }, function (err, res) {
+      }, (err, res) => {
         expect(err).to.be.null
         res.should.have.status(400)
         test5()
       })
-    }
 
-    const test5 = function () {
-      test({
+      const test5 = () => test({
         bundle_id: 'error',
         token: {
           key: tokenKey,
           key_id: tokenKeyId,
           team_id: tokenTeamId
         }
-      }, function (err, res) {
+      }, (err, res) => {
         expect(err).to.be.null
         res.should.have.status(500)
         done()
       })
-    }
 
-    test1()
+      test1()
+    })
   })
 
-  it('should show gcm form', function (done) {
-    webApp
-      .get('/admin/projects/gcm')
-      .end(function (err, res) {
-        expect(err).to.be.null
-        res.should.have.status(200)
-        done()
-      })
-  })
+  describe('fcm', () => {
+    const projectType = 'fcm'
+    const projectUrl = `/admin/projects/${projectType}`
 
-  it('should save gcm project', function (done) {
-    const packageId = 'pi'
-    const apiKey = 'ak'
+    it('should show form', () => webApp
+      .get(projectUrl)
+      .then(res => res.should.have.status(200)))
 
-    const step1 = function () {
-      webApp
-        .post('/admin/projects/gcm')
+    it('should save project', done => {
+      const projectId = 'pi'
+      const clientEmail = 'ce'
+      const privateKey = 'pk'
+
+      const step1 = () => webApp
+        .post(projectUrl)
         .send({
-          package_id: packageId,
-          api_key: apiKey
+          project_id: projectId,
+          client_email: clientEmail,
+          private_key: privateKey
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(202)
           step2()
         })
-    }
 
-    const step2 = function () {
-      db.projects.findConfig('gcm', packageId, function (projectConfig) {
+      const step2 = () => db.projects.findConfig(projectType, projectId, (projectConfig) => {
+        projectConfig.should.not.be.null
+        projectConfig.client_email.should.equal(clientEmail)
+        projectConfig.private_key.should.equal(privateKey)
+
+        done()
+      })
+
+      step1()
+    })
+
+    it('should not save project', done => {
+      const projectId = 'pi'
+      const clientEmail = 'ce'
+      const privateKey = 'pk'
+
+      const test1 = () => webApp
+        .post(projectUrl)
+        .send({
+          project_id: projectId,
+          client_email: clientEmail
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(400)
+          test2()
+        })
+
+      const test2 = () => webApp
+        .post(projectUrl)
+        .send({
+          project_id: projectId,
+          private_key: privateKey
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(400)
+          test3()
+        })
+
+      const test3 = () => webApp
+        .post(projectUrl)
+        .send({
+          client_email: clientEmail,
+          private_key: privateKey
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(400)
+          test4()
+        })
+
+      const test4 = () => webApp
+        .post(projectUrl)
+        .send({
+          project_id: 'error',
+          client_email: clientEmail,
+          private_key: privateKey
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(500)
+          done()
+        })
+
+      test1()
+    })
+  })
+
+  describe('gcm', () => {
+    const projectType = 'gcm'
+    const projectUrl = `/admin/projects/${projectType}`
+
+    it('should show form', () => webApp
+      .get(projectUrl)
+      .end(res => res.should.have.status(200)))
+
+    it('should save project', done => {
+      const packageId = 'pi'
+      const apiKey = 'ak'
+
+      const step1 = () => webApp
+        .post(projectUrl)
+        .send({
+          package_id: packageId,
+          api_key: apiKey
+        })
+        .end((err, res) => {
+          expect(err).to.be.null
+          res.should.have.status(202)
+          step2()
+        })
+
+      const step2 = () => db.projects.findConfig(projectType, packageId, (projectConfig) => {
         projectConfig.should.not.be.null
         projectConfig.api_key.should.equal(apiKey)
 
         done()
       })
-    }
 
-    step1()
-  })
+      step1()
+    })
 
-  it('should not save gcm project', function (done) {
-    const packageId = 'pi'
-    const apiKey = 'ak'
+    it('should not save project', done => {
+      const packageId = 'pi'
+      const apiKey = 'ak'
 
-    const test1 = function () {
-      webApp
-        .post('/admin/projects/gcm')
+      const test1 = () => webApp
+        .post(projectUrl)
         .send({
           api_key: apiKey
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(400)
           test2()
         })
-    }
 
-    const test2 = function () {
-      webApp
-        .post('/admin/projects/gcm')
+      const test2 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: packageId
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(400)
           test3()
         })
-    }
 
-    const test3 = function () {
-      webApp
-        .post('/admin/projects/gcm')
+      const test3 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: 'error',
           api_key: apiKey
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(500)
           done()
         })
-    }
 
-    test1()
+      test1()
+    })
   })
 
-  it('should show wns form', function (done) {
-    webApp
-      .get('/admin/projects/wns')
-      .end(function (err, res) {
-        expect(err).to.be.null
-        res.should.have.status(200)
-        done()
-      })
-  })
+  describe('wns', () => {
+    const projectType = 'wns'
+    const projectUrl = `/admin/projects/${projectType}`
 
-  it('should save wns project', function (done) {
-    const packageId = 'pi'
-    const clientId = 'ci'
-    const clientSecret = 'cs'
+    it('should show form', () => webApp
+      .get(projectUrl)
+      .end(res => res.should.have.status(200)))
 
-    const step1 = function () {
-      webApp
-        .post('/admin/projects/wns')
+    it('should save project', done => {
+      const packageId = 'pi'
+      const clientId = 'ci'
+      const clientSecret = 'cs'
+
+      const step1 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: packageId,
           client_id: clientId,
           client_secret: clientSecret
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(202)
           step2()
         })
-    }
 
-    const step2 = function () {
-      db.projects.findConfig('wns', packageId, function (projectConfig) {
+      const step2 = () => db.projects.findConfig(projectType, packageId, (projectConfig) => {
         projectConfig.should.not.be.null
         projectConfig.client_id.should.equal(clientId)
         projectConfig.client_secret.should.equal(clientSecret)
 
         done()
       })
-    }
 
-    step1()
-  })
+      step1()
+    })
 
-  it('should not save wns project', function (done) {
-    const packageId = 'pi'
-    const clientId = 'ci'
-    const clientSecret = 'cs'
+    it('should not save project', done => {
+      const packageId = 'pi'
+      const clientId = 'ci'
+      const clientSecret = 'cs'
 
-    const test1 = function () {
-      webApp
-        .post('/admin/projects/wns')
+      const test1 = () => webApp
+        .post(projectUrl)
         .send({
           client_id: clientId,
           client_secret: clientSecret
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(400)
           test2()
         })
-    }
 
-    const test2 = function () {
-      webApp
-        .post('/admin/projects/wns')
+      const test2 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: packageId,
           client_secret: clientSecret
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(400)
           test3()
         })
-    }
 
-    const test3 = function () {
-      webApp
-        .post('/admin/projects/wns')
+      const test3 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: packageId,
           client_id: clientId
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(400)
           test4()
         })
-    }
 
-    const test4 = function () {
-      webApp
-        .post('/admin/projects/wns')
+      const test4 = () => webApp
+        .post(projectUrl)
         .send({
           package_id: 'error',
           client_id: clientId,
           client_secret: clientSecret
         })
-        .end(function (err, res) {
+        .end((err, res) => {
           expect(err).to.be.null
           res.should.have.status(500)
           done()
         })
-    }
 
-    test1()
+      test1()
+    })
   })
 
   it('should respond with project info', function (done) {

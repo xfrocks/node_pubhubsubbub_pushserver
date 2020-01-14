@@ -114,6 +114,39 @@ describe('db/Project', function () {
     step1()
   })
 
+  it('should save fcm', function (done) {
+    const projectId = projectIdBase + '-fcm-pi'
+    const clientEmail = 'email@client.com'
+    const privateKey = 'pi'
+
+    const step1 = function () {
+      db.projects.saveFcm(projectId, clientEmail, privateKey, function (isSaved) {
+        isSaved.should.not.be.false
+        step2()
+      })
+    }
+
+    const step2 = function () {
+      db.projects._model.find({
+        project_type: 'fcm',
+        project_id: projectId
+      }, function (err, projects) {
+        expect(err).to.be.null
+        projects.should.be.a('array')
+        projects.length.should.equal(1)
+
+        const project = projects[0]
+        project.configuration.should.be.a('object')
+        project.configuration.client_email.should.equal(clientEmail)
+        project.configuration.private_key.should.equal(privateKey)
+
+        done()
+      })
+    }
+
+    step1()
+  })
+
   it('should save gcm', function (done) {
     const packageId = projectIdBase + '-gcm-pi'
     const apiKey = 'ak'

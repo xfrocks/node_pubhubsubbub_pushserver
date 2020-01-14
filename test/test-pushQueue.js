@@ -26,7 +26,7 @@ const generatePayload = function () {
 }
 
 describe('pushQueue', function () {
-  beforeEach(function (done) {
+  beforeEach(done => {
     config.gcm.defaultKeyId = 'key1'
     config.gcm.keys = {
       key1: 'key1',
@@ -46,467 +46,529 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should process android queue', function (done) {
+  describe('android', () => {
     const deviceType = 'android'
-    const deviceId = 'di'
-    const payload = generatePayload()
 
-    pushQueue.enqueue(deviceType, deviceId, payload)
+    it('should process queue', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
 
-    const latestPush = pusher._getLatestPush()
-    latestPush.type.should.equal('gcm')
-    latestPush.registrationIds.should.have.all.members([deviceId])
-    latestPush.data.notification_id.should.equal(payload.notification_id)
-    latestPush.data.notification.should.not.be.null
+      pushQueue.enqueue(deviceType, deviceId, payload)
 
-    done()
-  })
+      const latestPush = pusher._getLatestPush()
+      latestPush.type.should.equal('gcm')
+      latestPush.registrationIds.should.have.all.members([deviceId])
+      latestPush.data.notification_id.should.equal(payload.notification_id)
+      latestPush.data.notification.should.not.be.null
 
-  it('[android] batch request', function (done) {
-    const deviceType = 'android'
-    const deviceIds = ['di1', 'di2']
-    const payload = generatePayload()
+      done()
+    })
 
-    pushQueue.enqueue(deviceType, deviceIds, payload)
+    it('batch request', done => {
+      const deviceIds = ['di1', 'di2']
+      const payload = generatePayload()
 
-    const latestPush = pusher._getLatestPush()
-    latestPush.registrationIds.should.have.all.members(deviceIds)
+      pushQueue.enqueue(deviceType, deviceIds, payload)
 
-    done()
-  })
+      const latestPush = pusher._getLatestPush()
+      latestPush.registrationIds.should.have.all.members(deviceIds)
 
-  it('[android] default key', function (done) {
-    const deviceType = 'android'
-    const deviceId = 'di'
-    const payload = generatePayload()
+      done()
+    })
 
-    pushQueue.enqueue(deviceType, deviceId, payload)
+    it('default key', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
 
-    const latestPush = pusher._getLatestPush()
-    latestPush.senderOptions.apiKey
-      .should.equal(config.gcm.keys[config.gcm.defaultKeyId])
-
-    done()
-  })
-
-  it('[android] specific keys', function (done) {
-    const deviceType = 'android'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const extraData = { package: 'key1' }
-    const extraData2 = { package: 'key2' }
-
-    const test1 = function () {
-      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+      pushQueue.enqueue(deviceType, deviceId, payload)
 
       const latestPush = pusher._getLatestPush()
       latestPush.senderOptions.apiKey
-        .should.equal(config.gcm.keys[extraData.package])
-
-      test2()
-    }
-
-    const test2 = function () {
-      pushQueue.enqueue(deviceType, deviceId, payload, extraData2)
-
-      const latestPush = pusher._getLatestPush()
-      latestPush.senderOptions.apiKey
-        .should.equal(config.gcm.keys[extraData2.package])
+        .should.equal(config.gcm.keys[config.gcm.defaultKeyId])
 
       done()
-    }
+    })
 
-    test1()
-  })
+    it('specific keys', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const extraData = { package: 'key1' }
+      const extraData2 = { package: 'key2' }
 
-  it('[android] db key', function (done) {
-    const packageId = 'pi-db'
-    const apiKey = 'ak-db'
-    const deviceType = 'android'
-    const deviceId = 'di-db'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
-
-    const init = function () {
-      db.projects.saveGcm(packageId, apiKey, function () {
-        test()
-      })
-    }
-
-    const test = function () {
-      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
-
-      const latestPush = pusher._getLatestPush()
-      latestPush.senderOptions.apiKey.should.equal(apiKey)
-
-      done()
-    }
-
-    init()
-  })
-
-  it('[android] package missing', function (done) {
-    const deviceType = 'android'
-    const deviceId = 'di-package-missing'
-    const payload = generatePayload()
-
-    config.gcm.defaultKeyId = ''
-    pushQueue.enqueue(deviceType, deviceId, payload)
-
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
-    job.result.invalids.should.not.empty
-
-    done()
-  })
-
-  it('[android] project not found', function (done) {
-    const packageId = 'pi-project-not-found'
-    const deviceType = 'android'
-    const deviceId = 'di-project-not-found'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
-
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
-
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
-    job.result.invalids.should.not.empty
-
-    done()
-  })
-
-  it('[android] project config', function (done) {
-    const packageId = 'pi-project-config'
-    const deviceType = 'android'
-    const deviceId = 'di-project-config'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
-
-    const init = function () {
-      db.projects.saveGcm(packageId, '', function () {
-        test()
-      })
-    }
-
-    const test = function () {
-      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
-
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
-
-      done()
-    }
-
-    init()
-  })
-
-  it('should process ios queue', function (done) {
-    const deviceType = 'ios'
-    const deviceId = 'di'
-    const payload = generatePayload()
-
-    pushQueue.enqueue(deviceType, deviceId, payload)
-
-    const latestPush = pusher._getLatestPush()
-    latestPush.type.should.equal('apn')
-    latestPush.tokens.should.have.all.members([deviceId])
-    latestPush.payload.aps.alert.should.not.be.null
-
-    done()
-  })
-
-  it('[ios] batch request', function (done) {
-    const deviceType = 'ios'
-    const deviceIds = ['di1', 'di2']
-    const payload = generatePayload()
-
-    pushQueue.enqueue(deviceType, deviceIds, payload)
-
-    const latestPush = pusher._getLatestPush()
-    latestPush.tokens.should.have.all.members(deviceIds)
-
-    done()
-  })
-
-  it('[ios] payload', function (done) {
-    const deviceType = 'ios'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    payload.notification_html = ''
-
-    pushQueue.enqueue(deviceType, deviceId, payload)
-
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD)
-
-    done()
-  })
-
-  it('[ios] default client', function (done) {
-    const deviceType = 'ios'
-    const deviceId = 'di'
-    const payload = generatePayload()
-
-    pushQueue.enqueue(deviceType, deviceId, payload)
-
-    const latestPush = pusher._getLatestPush()
-    latestPush.connectionOptions.should.equal(config.apn.connectionOptions)
-
-    done()
-  })
-
-  it('[ios] db client', function (done) {
-    const bundleId = 'bi-db'
-    const tokenKeyData = 'tk-db'
-    const tokenKeyIdData = 'tki-db'
-    const tokenTeamIdData = 'tti-db'
-    const deviceType = 'ios'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const extraData = { package: bundleId }
-
-    const test = function (production, callback) {
-      const step1 = function () {
-        db.projects.saveApn(
-          bundleId,
-          tokenKeyData,
-          tokenKeyIdData,
-          tokenTeamIdData,
-          production,
-          function () {
-            step2()
-          }
-        )
-      }
-
-      const step2 = function () {
+      const test1 = function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
         const latestPush = pusher._getLatestPush()
-        latestPush.type.should.equal('apn')
+        latestPush.senderOptions.apiKey
+          .should.equal(config.gcm.keys[extraData.package])
 
-        const lpco = latestPush.connectionOptions
-        lpco.packageId.should.equal(bundleId)
-        lpco.token.key.should.equal(tokenKeyData)
-        lpco.token.keyId.should.equal(tokenKeyIdData)
-        lpco.token.teamId.should.equal(tokenTeamIdData)
-        lpco.production.should.equal(production)
-
-        callback()
+        test2()
       }
 
-      step1()
-    }
+      const test2 = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData2)
 
-    const test1 = function () {
-      test(true, test2)
-    }
+        const latestPush = pusher._getLatestPush()
+        latestPush.senderOptions.apiKey
+          .should.equal(config.gcm.keys[extraData2.package])
 
-    const test2 = function () {
-      test(false, done)
-    }
+        done()
+      }
 
-    test1()
-  })
+      test1()
+    })
 
-  it('[ios] package missing', function (done) {
-    const deviceType = 'ios'
-    const deviceId = 'di-package-missing'
-    const payload = generatePayload()
+    it('db key', done => {
+      const packageId = 'pi-db'
+      const apiKey = 'ak-db'
+      const deviceId = 'di-db'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
 
-    config.apn.connectionOptions = null
-    pushQueue.enqueue(deviceType, deviceId, payload)
+      const init = function () {
+        db.projects.saveGcm(packageId, apiKey, function () {
+          test()
+        })
+      }
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
-    job.result.invalids.should.not.empty
+      const test = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-    done()
-  })
+        const latestPush = pusher._getLatestPush()
+        latestPush.senderOptions.apiKey.should.equal(apiKey)
 
-  it('[ios] project not found', function (done) {
-    const packageId = 'pi-project-not-found'
-    const deviceType = 'ios'
-    const deviceId = 'di-project-not-found'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
+        done()
+      }
 
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+      init()
+    })
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
-    job.result.invalids.should.not.empty
+    it('package missing', done => {
+      const deviceId = 'di-package-missing'
+      const payload = generatePayload()
 
-    done()
-  })
+      config.gcm.defaultKeyId = ''
+      pushQueue.enqueue(deviceType, deviceId, payload)
 
-  it('[ios] project config', function (done) {
-    const packageId = 'pi-project-config'
-    const deviceType = 'ios'
-    const deviceId = 'di-project-config'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.result.invalids.should.not.empty
 
-    const init = function () {
-      db.projects.saveApn(packageId, '', '', '', true, () => {
-        test()
-      })
-    }
+      done()
+    })
 
-    const test = function () {
+    it('project not found', done => {
+      const packageId = 'pi-project-not-found'
+      const deviceId = 'di-project-not-found'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
+
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = pushKue._getLatestJob(config.pushQueue.queueId)
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.result.invalids.should.not.empty
 
       done()
-    }
+    })
 
-    init()
+    it('project config', done => {
+      const packageId = 'pi-project-config'
+      const deviceId = 'di-project-config'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
+
+      const init = function () {
+        db.projects.saveGcm(packageId, '', function () {
+          test()
+        })
+      }
+
+      const test = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+
+        done()
+      }
+
+      init()
+    })
   })
 
-  it('should process windows queue', function (done) {
-    const deviceType = 'windows'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { foo: 'bar', channel_uri: channelUri }
+  describe('firebase', () => {
+    const deviceType = 'firebase'
+    const extraData = { project: 'pi' }
 
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+    beforeEach(done => db.projects.saveFcm(extraData.project, 'ce', 'pk', () => done()))
 
-    const latestPush = pusher._getLatestPush()
-    latestPush.channelUri.should.equal(channelUri)
+    it('should process queue', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
 
-    const data = JSON.parse(latestPush.dataRaw)
-    _.omit(data, 'extra_data').should.deep.equal(payload)
-    data.extra_data.should.deep.equal(_.omit(extraData, 'channel_uri'))
-
-    done()
-  })
-
-  it('[windows] default client', function (done) {
-    const deviceType = 'windows'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { channel_uri: channelUri }
-
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
-
-    const latestPush = pusher._getLatestPush()
-    latestPush.clientId.should.equal(config.wns.client_id)
-    latestPush.clientSecret.should.equal(config.wns.client_secret)
-
-    done()
-  })
-
-  it('[windows] db client', function (done) {
-    const packageId = 'pi-db'
-    const clientId = 'ci-db'
-    const clientSecret = 'cs-db'
-    const deviceType = 'windows'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { channel_uri: channelUri, package: packageId }
-
-    const init = function () {
-      db.projects.saveWns(packageId, clientId, clientSecret, function () {
-        test()
-      })
-    }
-
-    const test = function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const latestPush = pusher._getLatestPush()
-      latestPush.clientId.should.equal(clientId)
-      latestPush.clientSecret.should.equal(clientSecret)
+      latestPush.type.should.equal('fcm')
+      latestPush.registrationTokens.should.have.all.members([deviceId])
+      latestPush.payload.data.notification_id.should.equal(payload.notification_id.toString())
 
       done()
-    }
+    })
 
-    init()
-  })
+    it('batch request', done => {
+      const deviceIds = ['di1', 'di2']
+      const payload = generatePayload()
 
-  it('[windows] channel_uri missing', function (done) {
-    const packageId = 'pi-channel_uri-missing'
-    const deviceType = 'windows'
-    const deviceId = 'di-channel_uri-missing'
-    const payload = generatePayload()
-    const extraData = { package: packageId }
+      pushQueue.enqueue(deviceType, deviceIds, payload, extraData)
 
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+      const latestPush = pusher._getLatestPush()
+      latestPush.registrationTokens.should.have.all.members(deviceIds)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal('channel_uri missing')
-    job.result.invalids.should.not.empty
+      done()
+    })
 
-    done()
-  })
+    it('extra_data missing', done => {
+      const deviceId = 'di-extra_data-project-missing'
+      const payload = generatePayload()
 
-  it('[windows] package missing', function (done) {
-    const deviceType = 'windows'
-    const deviceId = 'di-package-missing'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { channel_uri: channelUri }
+      pushQueue.enqueue(deviceType, deviceId, payload)
 
-    config.wns.client_id = ''
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
+      job.result.invalids.should.not.empty
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
-    job.result.invalids.should.not.empty
+      done()
+    })
 
-    done()
-  })
+    it('extra_data[project] missing', done => {
+      const deviceId = 'di-extra_data-project-missing'
+      const payload = generatePayload()
 
-  it('[windows] project not found', function (done) {
-    const packageId = 'pi-project-not-found'
-    const deviceType = 'windows'
-    const deviceId = 'di-project-not-found'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { channel_uri: channelUri, package: packageId }
+      pushQueue.enqueue(deviceType, deviceId, payload, {})
 
-    pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
+      job.result.invalids.should.not.empty
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
-    job.result.invalids.should.not.empty
+      done()
+    })
 
-    done()
-  })
+    it('project not found', done => {
+      const deviceId = 'di-project-not-found'
+      const payload = generatePayload()
+      const extraData = { project: 'pi-project-not-found' }
 
-  it('[windows] project config', function (done) {
-    const packageId = 'pi-project-config'
-    const deviceType = 'windows'
-    const deviceId = 'di'
-    const payload = generatePayload()
-    const channelUri = 'https://microsoft.com/wns/channel/uri'
-    const extraData = { channel_uri: channelUri, package: packageId }
-
-    const init = function () {
-      db.projects.saveWns(packageId, '', '', function () {
-        test()
-      })
-    }
-
-    const test = function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = pushKue._getLatestJob(config.pushQueue.queueId)
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.result.invalids.should.not.empty
 
       done()
-    }
-
-    init()
+    })
   })
 
-  it('should retry on text error', function (done) {
+  describe('ios', () => {
+    const deviceType = 'ios'
+
+    it('should process queue', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+
+      pushQueue.enqueue(deviceType, deviceId, payload)
+
+      const latestPush = pusher._getLatestPush()
+      latestPush.type.should.equal('apn')
+      latestPush.tokens.should.have.all.members([deviceId])
+      latestPush.payload.aps.alert.should.not.be.null
+
+      done()
+    })
+
+    it('batch request', done => {
+      const deviceIds = ['di1', 'di2']
+      const payload = generatePayload()
+
+      pushQueue.enqueue(deviceType, deviceIds, payload)
+
+      const latestPush = pusher._getLatestPush()
+      latestPush.tokens.should.have.all.members(deviceIds)
+
+      done()
+    })
+
+    it('payload', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+      payload.notification_html = ''
+
+      pushQueue.enqueue(deviceType, deviceId, payload)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD)
+
+      done()
+    })
+
+    it('default client', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+
+      pushQueue.enqueue(deviceType, deviceId, payload)
+
+      const latestPush = pusher._getLatestPush()
+      latestPush.connectionOptions.should.equal(config.apn.connectionOptions)
+
+      done()
+    })
+
+    it('db client', done => {
+      const bundleId = 'bi-db'
+      const tokenKeyData = 'tk-db'
+      const tokenKeyIdData = 'tki-db'
+      const tokenTeamIdData = 'tti-db'
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const extraData = { package: bundleId }
+
+      const test = function (production, callback) {
+        const step1 = function () {
+          db.projects.saveApn(
+            bundleId,
+            tokenKeyData,
+            tokenKeyIdData,
+            tokenTeamIdData,
+            production,
+            function () {
+              step2()
+            }
+          )
+        }
+
+        const step2 = function () {
+          pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+          const latestPush = pusher._getLatestPush()
+          latestPush.type.should.equal('apn')
+
+          const lpco = latestPush.connectionOptions
+          lpco.packageId.should.equal(bundleId)
+          lpco.token.key.should.equal(tokenKeyData)
+          lpco.token.keyId.should.equal(tokenKeyIdData)
+          lpco.token.teamId.should.equal(tokenTeamIdData)
+          lpco.production.should.equal(production)
+
+          callback()
+        }
+
+        step1()
+      }
+
+      const test1 = function () {
+        test(true, test2)
+      }
+
+      const test2 = function () {
+        test(false, done)
+      }
+
+      test1()
+    })
+
+    it('package missing', done => {
+      const deviceId = 'di-package-missing'
+      const payload = generatePayload()
+
+      config.apn.connectionOptions = null
+      pushQueue.enqueue(deviceType, deviceId, payload)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('project not found', done => {
+      const packageId = 'pi-project-not-found'
+      const deviceId = 'di-project-not-found'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
+
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('project config', done => {
+      const packageId = 'pi-project-config'
+      const deviceId = 'di-project-config'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
+
+      const init = function () {
+        db.projects.saveApn(packageId, '', '', '', true, () => {
+          test()
+        })
+      }
+
+      const test = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+
+        done()
+      }
+
+      init()
+    })
+  })
+
+  describe('window', () => {
+    const deviceType = 'windows'
+
+    it('should process queue', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { foo: 'bar', channel_uri: channelUri }
+
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const latestPush = pusher._getLatestPush()
+      latestPush.channelUri.should.equal(channelUri)
+
+      const data = JSON.parse(latestPush.dataRaw)
+      _.omit(data, 'extra_data').should.deep.equal(payload)
+      data.extra_data.should.deep.equal(_.omit(extraData, 'channel_uri'))
+
+      done()
+    })
+
+    it('default client', done => {
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { channel_uri: channelUri }
+
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const latestPush = pusher._getLatestPush()
+      latestPush.clientId.should.equal(config.wns.client_id)
+      latestPush.clientSecret.should.equal(config.wns.client_secret)
+
+      done()
+    })
+
+    it('db client', done => {
+      const packageId = 'pi-db'
+      const clientId = 'ci-db'
+      const clientSecret = 'cs-db'
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { channel_uri: channelUri, package: packageId }
+
+      const init = function () {
+        db.projects.saveWns(packageId, clientId, clientSecret, function () {
+          test()
+        })
+      }
+
+      const test = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+        const latestPush = pusher._getLatestPush()
+        latestPush.clientId.should.equal(clientId)
+        latestPush.clientSecret.should.equal(clientSecret)
+
+        done()
+      }
+
+      init()
+    })
+
+    it('channel_uri missing', done => {
+      const packageId = 'pi-channel_uri-missing'
+      const deviceId = 'di-channel_uri-missing'
+      const payload = generatePayload()
+      const extraData = { package: packageId }
+
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal('channel_uri missing')
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('package missing', done => {
+      const deviceId = 'di-package-missing'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { channel_uri: channelUri }
+
+      config.wns.client_id = ''
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('project not found', done => {
+      const packageId = 'pi-project-not-found'
+      const deviceId = 'di-project-not-found'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { channel_uri: channelUri, package: packageId }
+
+      pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.result.invalids.should.not.empty
+
+      done()
+    })
+
+    it('project config', done => {
+      const packageId = 'pi-project-config'
+      const deviceId = 'di'
+      const payload = generatePayload()
+      const channelUri = 'https://microsoft.com/wns/channel/uri'
+      const extraData = { channel_uri: channelUri, package: packageId }
+
+      const init = function () {
+        db.projects.saveWns(packageId, '', '', function () {
+          test()
+        })
+      }
+
+      const test = function () {
+        pushQueue.enqueue(deviceType, deviceId, payload, extraData)
+
+        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+
+        done()
+      }
+
+      init()
+    })
+  })
+
+  it('should retry on text error', done => {
     const deviceType = 'android'
     const deviceId = 'error'
     const payload = generatePayload()
@@ -523,7 +585,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should retry on Error', function (done) {
+  it('should retry on Error', done => {
     const deviceType = 'android'
     const deviceId = 'Error'
     const payload = generatePayload()
@@ -541,7 +603,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should retry on array error', function (done) {
+  it('should retry on array error', done => {
     const deviceType = 'android'
     const deviceId = 'Array'
     const payload = generatePayload()
@@ -558,7 +620,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should retry only once', function (done) {
+  it('should retry only once', done => {
     const deviceType = 'android'
     const deviceId = 'retry1'
     const payload = generatePayload()
@@ -572,7 +634,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should retry with delay', function (done) {
+  it('should retry with delay', done => {
     const deviceType = 'android'
     const deviceId = 'retry1'
     const payload = generatePayload()
@@ -585,7 +647,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should retry with exponential delays', function (done) {
+  it('should retry with exponential delays', done => {
     const deviceType = 'android'
     const deviceId = 'error'
     const payload = generatePayload()
@@ -606,7 +668,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should delete devices', function (done) {
+  it('should delete devices', done => {
     const deviceType = 'android'
     const deviceId = 'invalid'
     const deviceId2 = 'invalid2'
@@ -649,7 +711,7 @@ describe('pushQueue', function () {
     init1()
   })
 
-  it('should encounter job.save error', function (done) {
+  it('should encounter job.save error', done => {
     const deviceType = 'save'
     const deviceId = 'error'
     const payload = generatePayload()
@@ -662,7 +724,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should handle unrecognized device type', function (done) {
+  it('should handle unrecognized device type', done => {
     pushQueue.enqueue('unrecognized', 'di', generatePayload())
 
     const jobs = pushKue._getJobs(config.pushQueue.queueId)
@@ -674,7 +736,7 @@ describe('pushQueue', function () {
     done()
   })
 
-  it('should handle pusher exception', function (done) {
+  it('should handle pusher exception', done => {
     const deviceType = 'android'
     const deviceId = 'Exception'
     const payload = generatePayload()

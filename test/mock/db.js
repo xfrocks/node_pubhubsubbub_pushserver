@@ -92,7 +92,7 @@ db.devices = {
           }
 
           if (oauthClientId &&
-                  device.oauth_client_id !== oauthClientId) {
+            device.oauth_client_id !== oauthClientId) {
             // keep this device
             return true
           }
@@ -104,8 +104,8 @@ db.devices = {
         // update device
         _.forEach(devices, function (device, key) {
           if (device.device_type === deviceType &&
-                  device.device_id === deviceId &&
-                  device.oauth_client_id === oauthClientId) {
+            device.device_id === deviceId &&
+            device.oauth_client_id === oauthClientId) {
             device.hub_topic = _.without(device.hub_topic, hubTopic)
             result = 'updated'
           }
@@ -198,6 +198,18 @@ db.projects = {
     return this.save('apn', bundleId, configuration, callback)
   },
 
+  saveFcm: function (projectId, clientEmail, privateKey, callback) {
+    return this.save(
+      'fcm',
+      projectId,
+      {
+        client_email: clientEmail,
+        private_key: privateKey
+      },
+      callback
+    )
+  },
+
   saveGcm: function (packageId, apiKey, callback) {
     return this.save('gcm', packageId, { api_key: apiKey }, callback)
   },
@@ -249,7 +261,7 @@ db.projects = {
 
     _.forEach(projects, function (project) {
       if (project.project_type === projectType &&
-                project.project_id === projectId) {
+        project.project_id === projectId) {
         found = project
         return false
       }

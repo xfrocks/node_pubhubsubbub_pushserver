@@ -38,6 +38,23 @@ Project configuration at `/admin/projects/apn`:
  * `device_id` = APN Device Token
  * `extra_data[package]` = Bundle ID
 
+### Firebase Cloud Messaging
+via [firebase-admin](https://github.com/firebase/firebase-admin-node) (the official SDK)
+
+Project configuration at `/admin/projects/fcm`, parameters:
+ * `project_id` (__required__): The Google project ID
+ * `client_email` (__required__)
+ * `private_key` (__required__)
+
+`App` that wants to receive via FCM must include these parameters during subscription:
+ * `device_type` = `firebase`
+ * `device_id` = FCM Registration Token
+ * `extra_data[project]` = Project ID
+
+By default, the server will push data messages...
+ * `extra_data[notification]` if specified, [notification messages](https://firebase.google.com/docs/cloud-messaging/concept-options#notifications_and_data_messages) will be pushed instead
+ * `extra_data[click_action]` the action associated with a user click on the notification. Corresponds to `category` in the APNs payload.
+
 ### Google Cloud Messaging
 via [ToothlessGear/node-gcm](https://github.com/ToothlessGear/node-gcm)
 

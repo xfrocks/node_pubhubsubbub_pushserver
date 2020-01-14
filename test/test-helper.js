@@ -164,6 +164,324 @@ describe('helper', function () {
     done()
   })
 
+  describe('prepareFcmPayload', () => {
+    const payloadNotification = {
+      notification_id: 1,
+      notification_html: 'text',
+      user_unread_conversation_count: 3,
+      user_unread_notification_count: 2
+    }
+    const payloadConvo = {
+      notification_id: 0,
+      notification_html: '',
+      creator_username: 'foo',
+      message: {
+        conversation_id: 1,
+        message: 'hello world',
+        message_id: 1,
+        title: 'convo title'
+      },
+      user_unread_conversation_count: '3',
+      user_unread_notification_count: '2'
+    }
+    const payloadUnreadOnly = {
+      user_unread_conversation_count: 0,
+      user_unread_notification_count: 0
+    }
+
+    const payloadBodyTextOverride = {
+      notification_id: 1,
+      notification_html: 'text',
+      body: 'body text override'
+    }
+
+    const payloadNotificationWithSomethingElse = {
+      notification_id: 1,
+      notification_html: 'text',
+      something: 'else'
+    }
+
+    const payloadKeyValue = {
+      key: 'value',
+      notification_id: 0,
+      notification_html: 'irrelevant'
+    }
+
+    const payloadKeyNested = {
+      links: {
+        one: 1,
+        two: 2,
+        nested: {
+          three: 3
+        }
+      }
+    }
+
+    it('should prepare empty object', () => {
+      helper.prepareFcmPayload({}).should.deep.equal({})
+    })
+
+    it('should prepare data', () => {
+      const f = helper.prepareFcmPayload
+
+      f(payloadNotification).should.deep.equal({
+        data: {
+          body: 'text',
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      f(payloadUnreadOnly).should.deep.equal({
+        data: {
+          user_unread_conversation_count: '0',
+          user_unread_notification_count: '0'
+        }
+      })
+
+      f(payloadConvo).should.deep.equal({
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      f(payloadBodyTextOverride).should.deep.equal({
+        data: { body: 'body text override', notification_id: '1' }
+      })
+
+      f(payloadNotificationWithSomethingElse).should.deep.equal({
+        data: {
+          body: 'text',
+          notification_id: '1',
+          something: 'else'
+        }
+      })
+
+      f(payloadKeyValue).should.deep.equal({ data: { key: 'value' } })
+
+      f(payloadKeyNested).should.deep.equal({
+        data: {
+          'links.one': '1',
+          'links.two': '2',
+          'links.nested.three': '3'
+        }
+      })
+
+      f({
+        key: 'value',
+        from: 'should be ignored',
+        'google.xxx': 'should be ignored too',
+        'google.document': 'https://firebase.google.com/docs/reference/admin/node/admin.messaging.DataMessagePayload'
+      }).should.deep.equal({ data: { key: 'value' } })
+    })
+
+    it('should prepare notification', () => {
+      const f = d => helper.prepareFcmPayload(d, { notification: true })
+
+      f(payloadNotification).should.deep.equal({
+        notification: {
+          badge: '2',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      f(payloadUnreadOnly).should.deep.equal({
+        contentAvailable: true,
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_conversation_count: '0',
+          user_unread_notification_count: '0'
+        }
+      })
+
+      f(payloadConvo).should.deep.equal({
+        notification: {
+          badge: '2',
+          body: 'foo: hello world',
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title'
+        },
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      f(payloadBodyTextOverride).should.deep.equal({
+        notification: {
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          body: 'body text override',
+          notification_id: '1'
+        }
+      })
+
+      f(payloadNotificationWithSomethingElse).should.deep.equal({
+        notification: {
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          something: 'else'
+        }
+      })
+
+      f(payloadKeyValue).should.deep.equal({
+        contentAvailable: true,
+        data: { key: 'value' }
+      })
+    })
+
+    it('should prepare badge with convo', () => {
+      helper.prepareFcmPayload(
+        payloadNotification,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '5',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadUnreadOnly,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        contentAvailable: true,
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_conversation_count: '0',
+          user_unread_notification_count: '0'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadConvo,
+        {
+          notification: true,
+          badgeWithConvo: true
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '5',
+          body: 'foo: hello world',
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title'
+        },
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+    })
+
+    it('should prepare click action', () => {
+      helper.prepareFcmPayload(
+        payloadNotification,
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '2',
+          clickAction: 'CLICK_ACTION',
+          body: 'text',
+          tag: 'notificationId=1'
+        },
+        data: {
+          notification_id: '1',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadUnreadOnly,
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
+      ).should.deep.equal({
+        contentAvailable: true,
+        notification: {
+          badge: '0'
+        },
+        data: {
+          user_unread_conversation_count: '0',
+          user_unread_notification_count: '0'
+        }
+      })
+
+      helper.prepareFcmPayload(
+        payloadConvo,
+        {
+          notification: true,
+          clickAction: 'CLICK_ACTION'
+        }
+      ).should.deep.equal({
+        notification: {
+          badge: '2',
+          body: 'foo: hello world',
+          clickAction: 'CLICK_ACTION',
+          tag: 'conversationId=1 messageId=1',
+          title: 'convo title'
+        },
+        data: {
+          'creator_username': 'foo',
+          'message.conversation_id': '1',
+          'message.message': 'hello world',
+          'message.message_id': '1',
+          'message.title': 'convo title',
+          user_unread_conversation_count: '3',
+          user_unread_notification_count: '2'
+        }
+      })
+    })
+  })
+
   it('should prepare gcm payload', function (done) {
     const f = helper.prepareGcmPayload
     f().should.deep.equal({})
@@ -352,6 +670,22 @@ describe('helper', function () {
       expect(f(null, null, ['extra_data']))
         .to.have.property('has_all_required_keys')
         .that.is.true
+    })
+  })
+
+  describe('isPositive', () => {
+    it('should return true', () => {
+      helper.isPositive(true).should.be.true
+      helper.isPositive('1').should.be.true
+      helper.isPositive('yes').should.be.true
+    })
+
+    it('should return false', () => {
+      helper.isPositive(false).should.be.false
+      helper.isPositive('').should.be.false
+      helper.isPositive(null).should.be.false
+      helper.isPositive(undefined).should.be.false
+      helper.isPositive({}).should.be.false
     })
   })
 
