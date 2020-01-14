@@ -59,6 +59,15 @@ describe('web/admin', function () {
       .get(projectUrl)
       .then(res => res.should.have.status(200)))
 
+    it('should show form with values', () => webApp
+      .get(projectUrl + '?bundle_id=bi&token[key]=tk&token[key_id]=tki&token[team_id]=tti')
+      .then(res => {
+        res.text.should.contain('value="bi"')
+        res.text.should.contain('>tk</textarea>')
+        res.text.should.contain('value="tki"')
+        res.text.should.contain('value="tti"')
+      }))
+
     it('should save project', done => {
       const test = (extraData, assertCallback) => {
         const bundleId = 'bi'
@@ -197,6 +206,14 @@ describe('web/admin', function () {
       .get(projectUrl)
       .then(res => res.should.have.status(200)))
 
+    it('should show form with values', () => webApp
+      .get(projectUrl + '?project_id=pi&client_email=ce&private_key=pk')
+      .then(res => {
+        res.text.should.contain('value="pi"')
+        res.text.should.contain('value="ce"')
+        res.text.should.contain('>pk</textarea>')
+      }))
+
     it('should save project', done => {
       const projectId = 'pi'
       const clientEmail = 'ce'
@@ -292,6 +309,13 @@ describe('web/admin', function () {
       .get(projectUrl)
       .end(res => res.should.have.status(200)))
 
+    it('should show form with values', () => webApp
+      .get(projectUrl + '?package_id=pi&api_key=ak')
+      .then(res => {
+        res.text.should.contain('value="pi"')
+        res.text.should.contain('value="ak"')
+      }))
+
     it('should save project', done => {
       const packageId = 'pi'
       const apiKey = 'ak'
@@ -367,6 +391,14 @@ describe('web/admin', function () {
     it('should show form', () => webApp
       .get(projectUrl)
       .end(res => res.should.have.status(200)))
+
+    it('should show form with values', () => webApp
+      .get(projectUrl + '?package_id=pi&client_id=ci&client_secret=cs')
+      .then(res => {
+        res.text.should.contain('value="pi"')
+        res.text.should.contain('value="ci"')
+        res.text.should.contain('value="cs"')
+      }))
 
     it('should save project', done => {
       const packageId = 'pi'
@@ -541,15 +573,15 @@ describe('web/admin', function () {
   it('should setup sections', function (done) {
     const adminPrefix = '/admin-sections'
     const sections = {
-      'one': function (req, res, next) {
+      one: function (req, res, next) {
         res.send({ section: 1 })
         next()
       },
-      'two2': function (req, res, next) {
+      two2: function (req, res, next) {
         res.send({ section: 2 })
         next()
       },
-      'three_': function (req, res, next) {
+      three_: function (req, res, next) {
         res.send({ section: 3 })
         next()
       },
@@ -557,7 +589,7 @@ describe('web/admin', function () {
         res.send({ section: 'invalid' })
         next()
       },
-      'five': null
+      five: null
     }
 
     admin.setup(web.app(),

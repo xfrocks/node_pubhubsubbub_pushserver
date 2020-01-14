@@ -1,4 +1,4 @@
-FROM node:10.18.1-alpine3.11
+FROM node:12.14.1-alpine3.11
 
 COPY *.json /app/
 WORKDIR /app

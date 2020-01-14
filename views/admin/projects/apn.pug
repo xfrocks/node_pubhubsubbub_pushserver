@@ -9,22 +9,22 @@ block content
   form(action=prefix + "/projects/apn", method="POST")
     div.form-group
       label(for="ctrl_app_id") Bundle ID
-      input.form-control#ctrl_app_id(type="text", name="bundle_id", placeholder="com.domain.app_name", value=query.bundle_id)
+      input.form-control#ctrl_app_id(type="text", name="bundle_id", placeholder="com.domain.app_name", value=searchParams.get("bundle_id"))
     div.form-group
       label(for="ctrl_token_key")
         a(href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html", tabindex="-1", target="_blank")
           | Provider Authentication Token
-        |  Key
-      textarea.form-control#ctrl_cert(name="token[key]", placeholder="Contents of APNsAuthKey_ABC123DEFG.p8", rows="5")= query["token[key]"]
+        | Key
+      textarea.form-control#ctrl_cert(name="token[key]", placeholder="Contents of APNsAuthKey_ABC123DEFG.p8", rows="5")=searchParams.get("token[key]")
     div.form-group
       label(for="ctrl_token_key_id") Key ID
-      input.form-control#ctrl_key(name="token[key_id]", placeholder="ABC123DEFG", value=query["token[key_id]"])
+      input.form-control#ctrl_key(name="token[key_id]", placeholder="ABC123DEFG", value=searchParams.get("token[key_id]"))
       div.form-group
         label(for="ctrl_token_team_id") Team ID
-        input.form-control#ctrl_key(name="token[team_id]", placeholder="DEF123GHIJ", value= query["token[team_id]"])
+        input.form-control#ctrl_key(name="token[team_id]", placeholder="DEF123GHIJ", value= searchParams.get("token[team_id]"))
     div.form-check
       input.form-check-input#ctrl_production(type="checkbox", name="production", value="0",
-        checked=(query["production"] === "0") ? "checked" : undefined)
+        checked=(searchParams.get("production") === "0") ? "checked" : undefined)
       label.form-check-label(for="ctrl_production")
         | Use Sandbox Gateway
 

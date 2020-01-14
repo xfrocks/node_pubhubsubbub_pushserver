@@ -305,13 +305,13 @@ describe('pusher/apn', function () {
 
   it('should configure notification directly', function (done) {
     const payload = {
-      'aps': {
+      aps: {
         alert: 'foo',
         badge: 99,
         sound: 's'
       },
-      'expiry': 123,
-      'data': {
+      expiry: 123,
+      data: {
         foo: 'bar'
       }
     }

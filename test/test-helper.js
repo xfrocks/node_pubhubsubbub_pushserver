@@ -242,7 +242,7 @@ describe('helper', function () {
 
       f(payloadConvo).should.deep.equal({
         data: {
-          'creator_username': 'foo',
+          creator_username: 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
           'message.message_id': '1',
@@ -317,7 +317,7 @@ describe('helper', function () {
           title: 'convo title'
         },
         data: {
-          'creator_username': 'foo',
+          creator_username: 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
           'message.message_id': '1',
@@ -406,7 +406,7 @@ describe('helper', function () {
           title: 'convo title'
         },
         data: {
-          'creator_username': 'foo',
+          creator_username: 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
           'message.message_id': '1',
@@ -470,7 +470,7 @@ describe('helper', function () {
           title: 'convo title'
         },
         data: {
-          'creator_username': 'foo',
+          creator_username: 'foo',
           'message.conversation_id': '1',
           'message.message': 'hello world',
           'message.message_id': '1',

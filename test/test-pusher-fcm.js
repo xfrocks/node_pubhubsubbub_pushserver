@@ -138,7 +138,7 @@ describe('pusher/fcm', () => {
         })
     )
 
-    let promises = []
+    const promises = []
     Object.keys(lib._errorCodes).forEach(error => {
       if (lib._errorCodes[error] !== 'noop') return
       promises.push(test(error))
@@ -161,7 +161,7 @@ describe('pusher/fcm', () => {
         })
     )
 
-    let promises = []
+    const promises = []
     Object.keys(lib._errorCodes).forEach(error => {
       if (lib._errorCodes[error] !== 'retry') return
       promises.push(test(error))
@@ -184,7 +184,7 @@ describe('pusher/fcm', () => {
         })
     )
 
-    let promises = []
+    const promises = []
     Object.keys(lib._errorCodes).forEach(error => {
       if (lib._errorCodes[error] !== 'invalid') return
       promises.push(test(error))
