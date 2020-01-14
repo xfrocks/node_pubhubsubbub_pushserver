@@ -10,7 +10,7 @@ services:
 
   app:
     build:
-      context: docker/node
+      context: .
     environment:
       - CONFIG_WEB_USERNAME=u
       - CONFIG_WEB_PASSWORD=p
@@ -22,8 +22,6 @@ services:
       - redis
     ports:
       - "18080:18080"
-    volumes:
-      - .:/app
 
   mongo:
     image: mongo:4.0.2

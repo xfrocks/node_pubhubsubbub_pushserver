@@ -1,3 +1,7 @@
 #!/bin/sh
 
-exec ./docker/run-app.sh run bash
+set -e
+
+docker-compose build
+
+exec docker-compose run --rm -v "$PWD:/app" app run bash
