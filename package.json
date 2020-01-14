@@ -34,11 +34,11 @@
   },
   "scripts": {
     "bash": "/bin/sh",
-    "coverage": "NODE_ENV=coverage ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha",
-    "lint": "./node_modules/.bin/standard",
-    "develop": "./node_modules/.bin/nodemon --watch bin --watch lib",
+    "coverage": "NODE_ENV=coverage istanbul cover ./node_modules/mocha/bin/_mocha",
+    "lint": "standard",
+    "develop": "nodemon --watch bin --watch lib",
     "start": "node bin/pushserver",
-    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha"
+    "test": "NODE_ENV=test mocha"
   },
   "repository": {
     "type": "git",
