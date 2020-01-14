@@ -63,7 +63,7 @@ describe('config', function () {
   it('should handle REDISCLOUD_URL', function (done) {
     const port = '12345'
     const host = 'rediscloud.server'
-    const auth = 'rediscloud'
+    const auth = 'password'
     process.env.REDISCLOUD_URL = 'redis://rediscloud:' +
             auth + '@' + host + ':' + port
     config._reload()
@@ -78,7 +78,7 @@ describe('config', function () {
   it('should handle REDISTOGO_URL', function (done) {
     const port = '12345'
     const host = 'redistogo.server'
-    const auth = 'redistogo'
+    const auth = 'password'
     process.env.REDISTOGO_URL = 'redis://redistogo:' +
             auth + '@' + host + ':' + port
     config._reload()
