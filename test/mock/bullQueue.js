@@ -14,11 +14,10 @@ bullQueue._getLatestJob = () => _.last(jobs)
 
 bullQueue._getJobs = () => [...jobs]
 
-bullQueue.add = (name, data, opts) => {
+bullQueue.add = (data, opts) => {
   let done = false
   const job = {
     data,
-    name,
     opts,
 
     error: null,
