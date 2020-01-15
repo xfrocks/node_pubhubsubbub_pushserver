@@ -1,7 +1,7 @@
 # WebSub Push Server
 [![Build Status](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver.svg?branch=master)](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver)
 [![Coverage Status](https://coveralls.io/repos/github/xfrocks/node_pubhubsubbub_pushserver/badge.svg?branch=master)](https://coveralls.io/github/xfrocks/node_pubhubsubbub_pushserver?branch=master)
-[![](https://images.microbadger.com/badges/version/xfrocks/pushserver.svg)](https://microbadger.com/images/xfrocks/pushserver)
+[![](https://images.microbadger.com/badges/version/xfrocks/pushserver.svg)](https://hub.docker.com/r/xfrocks/pushserver/)
 
 Node.js push notification server which is compatible with WebSub protocol.
 
