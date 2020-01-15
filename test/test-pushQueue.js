@@ -431,7 +431,7 @@ describe('pushQueue', function () {
     })
   })
 
-  describe('window', () => {
+  describe('windows', () => {
     const deviceType = 'windows'
 
     it('should process queue', done => {
