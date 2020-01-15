@@ -1,12 +1,38 @@
 # WebSub Push Server
 [![Build Status](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver.svg?branch=master)](https://travis-ci.org/xfrocks/node_pubhubsubbub_pushserver)
 [![Coverage Status](https://coveralls.io/repos/github/xfrocks/node_pubhubsubbub_pushserver/badge.svg?branch=master)](https://coveralls.io/github/xfrocks/node_pubhubsubbub_pushserver?branch=master)
+[![](https://images.microbadger.com/badges/version/xfrocks/pushserver.svg)](https://microbadger.com/images/xfrocks/pushserver)
 
 Node.js push notification server which is compatible with WebSub protocol.
 
  1. Mobile application (`App`) that wants to receive push notifications from WebSub Publisher (`Publisher`) may register itself with this Push Server (`Server`).
  2. `Server` will subscribe on behalf of `App` with `Publisher`.
  3. When `Publisher` publishes something, `Server` will forward the information to `App` via one of the supported push services.
+
+## Deployment
+
+### Docker Compose
+
+```yaml
+  app:
+    image: xfrocks/pushserver
+    environment:
+      - CONFIG_WEB_USERNAME=admin
+      - CONFIG_WEB_PASSWORD=123456
+      - MONGO_URI=mongodb://mongo/pushserver
+      - REDIS_URL=http://redis:6379
+    depends_on:
+      - mongo
+      - redis
+    ports:
+      - "80:18080"
+```
+
+See [docker-compose.yml](docker-compose.yml) file for full example. Please note that the yml is for development purposes, it is **not** secure.
+
+### Heroku
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ## Usage
 
