@@ -11,6 +11,12 @@ Node.js push notification server which is compatible with WebSub protocol.
 
 ## Deployment
 
+Notes:
+
+- By default, there'll be 1 worker to push notifications by `npm start`.
+It is possible to have multiple separated instances of workers by using `npm run worker`.
+In that case, it's recommended to disable the default one by setting env var `CONFIG_PUSH_QUEUE_WORKER=false`.
+
 ### Docker Compose
 
 ```yaml

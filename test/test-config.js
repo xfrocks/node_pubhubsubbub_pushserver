@@ -152,6 +152,22 @@ describe('config', function () {
     done()
   })
 
+  it('should handle CONFIG_PUSH_QUEUE_WORKER=true', function (done) {
+    process.env.CONFIG_PUSH_QUEUE_WORKER = 'true'
+    config._reload()
+    config.pushQueue.worker.should.be.true
+
+    done()
+  })
+
+  it('should handle CONFIG_PUSH_QUEUE_WORKER=false', function (done) {
+    process.env.CONFIG_PUSH_QUEUE_WORKER = 'false'
+    config._reload()
+    config.pushQueue.worker.should.be.false
+
+    done()
+  })
+
   it('should handle CONFIG_APN_CERT/KEY', function (done) {
     process.env.CONFIG_APN_CERT = 'cac'
     process.env.CONFIG_APN_KEY = 'cak'

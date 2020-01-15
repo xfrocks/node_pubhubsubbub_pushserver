@@ -38,8 +38,9 @@
     "coverage": "NODE_ENV=coverage istanbul cover ./node_modules/mocha/bin/_mocha",
     "lint": "standard",
     "develop": "nodemon --watch bin --watch lib",
-    "start": "node bin/pushserver",
-    "test": "NODE_ENV=test mocha"
+    "start": "./bin/pushserver",
+    "test": "NODE_ENV=test mocha",
+    "worker": "./bin/worker"
   },
   "repository": {
     "type": "git",
