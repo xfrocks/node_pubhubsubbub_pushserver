@@ -151,7 +151,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
       done()
@@ -166,7 +166,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
       done()
@@ -188,7 +188,7 @@ describe('pushQueue', function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
         const job = bullQueue._getLatestJob()
-        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+        job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
       }
@@ -236,7 +236,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
       job.result.invalids.should.not.empty
 
       done()
@@ -249,7 +249,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, {})
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
       job.result.invalids.should.not.empty
 
       done()
@@ -263,7 +263,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
       done()
@@ -307,7 +307,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD)
 
       done()
     })
@@ -385,7 +385,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
       done()
@@ -400,7 +400,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
       done()
@@ -422,7 +422,7 @@ describe('pushQueue', function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
         const job = bullQueue._getLatestJob()
-        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+        job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
       }
@@ -504,7 +504,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal('channel_uri missing')
+      job.error.message.should.equal('channel_uri missing')
       job.result.invalids.should.not.empty
 
       done()
@@ -520,7 +520,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
       done()
@@ -536,7 +536,7 @@ describe('pushQueue', function () {
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
       const job = bullQueue._getLatestJob()
-      job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
+      job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
       done()
@@ -559,7 +559,7 @@ describe('pushQueue', function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
         const job = bullQueue._getLatestJob()
-        job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
+        job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
       }
@@ -576,7 +576,7 @@ describe('pushQueue', function () {
     pushQueue.enqueue(deviceType, deviceId, payload)
 
     const job = bullQueue._getLatestJob()
-    job.error.should.equal('Error')
+    job.error.message.should.equal('Error')
 
     const pushes = pusher._getPushes()
     config.pushQueue.attempts.should.be.above(2)
@@ -593,7 +593,6 @@ describe('pushQueue', function () {
     pushQueue.enqueue(deviceType, deviceId, payload)
 
     const job = bullQueue._getLatestJob()
-    job.error.should.be.a('Error')
     job.error.message.should.equal('Message')
 
     const pushes = pusher._getPushes()
@@ -611,7 +610,7 @@ describe('pushQueue', function () {
     pushQueue.enqueue(deviceType, deviceId, payload)
 
     const job = bullQueue._getLatestJob()
-    job.error.should.equal('["error"]')
+    job.error.message.should.equal('["error"]')
 
     const pushes = pusher._getPushes()
     config.pushQueue.attempts.should.be.above(2)
@@ -731,7 +730,7 @@ describe('pushQueue', function () {
     pushQueue.enqueue(deviceType, deviceId, payload)
 
     const job = bullQueue._getLatestJob()
-    job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PUSHER)
+    job.error.message.should.equal(pushQueue.MESSAGES.JOB_ERROR_PUSHER)
 
     done()
   })
