@@ -10,7 +10,7 @@ const _ = require('lodash')
 chai.should()
 
 // setup push queue
-const pushKue = require('./mock/pushKue')
+const bullQueue = require('./mock/bullQueue')
 const pusher = require('./mock/pusher')
 const db = require('./mock/db')
 
@@ -36,12 +36,12 @@ describe('pushQueue', function () {
     config.wns.client_secret = 'wns_cs'
     config.pushQueue.attempts = 3
 
-    pushKue._reset()
+    bullQueue._reset()
     pusher._reset()
     db.projects._reset()
     db.devices._reset()
 
-    pushQueue.setup(pushKue, pusher, db)
+    pushQueue.setup(bullQueue, pusher, db)
 
     done()
   })
@@ -150,7 +150,7 @@ describe('pushQueue', function () {
       config.gcm.defaultKeyId = ''
       pushQueue.enqueue(deviceType, deviceId, payload)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
@@ -165,7 +165,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
@@ -187,7 +187,7 @@ describe('pushQueue', function () {
       const test = function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        const job = bullQueue._getLatestJob()
         job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
@@ -235,7 +235,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
       job.result.invalids.should.not.empty
 
@@ -248,7 +248,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, {})
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_EXTRA_DATA_MISSING)
       job.result.invalids.should.not.empty
 
@@ -262,7 +262,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
@@ -306,7 +306,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PAYLOAD)
 
       done()
@@ -384,7 +384,7 @@ describe('pushQueue', function () {
       config.apn.connectionOptions = null
       pushQueue.enqueue(deviceType, deviceId, payload)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
@@ -399,7 +399,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
@@ -421,7 +421,7 @@ describe('pushQueue', function () {
       const test = function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        const job = bullQueue._getLatestJob()
         job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
@@ -503,7 +503,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal('channel_uri missing')
       job.result.invalids.should.not.empty
 
@@ -519,7 +519,7 @@ describe('pushQueue', function () {
       config.wns.client_id = ''
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PACKAGE_MISSING)
       job.result.invalids.should.not.empty
 
@@ -535,7 +535,7 @@ describe('pushQueue', function () {
 
       pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-      const job = pushKue._getLatestJob(config.pushQueue.queueId)
+      const job = bullQueue._getLatestJob()
       job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_NOT_FOUND)
       job.result.invalids.should.not.empty
 
@@ -558,7 +558,7 @@ describe('pushQueue', function () {
       const test = function () {
         pushQueue.enqueue(deviceType, deviceId, payload, extraData)
 
-        const job = pushKue._getLatestJob(config.pushQueue.queueId)
+        const job = bullQueue._getLatestJob()
         job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PROJECT_CONFIG)
 
         done()
@@ -575,7 +575,7 @@ describe('pushQueue', function () {
 
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
+    const job = bullQueue._getLatestJob()
     job.error.should.equal('Error')
 
     const pushes = pusher._getPushes()
@@ -592,7 +592,7 @@ describe('pushQueue', function () {
 
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
+    const job = bullQueue._getLatestJob()
     job.error.should.be.a('Error')
     job.error.message.should.equal('Message')
 
@@ -610,7 +610,7 @@ describe('pushQueue', function () {
 
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
+    const job = bullQueue._getLatestJob()
     job.error.should.equal('["error"]')
 
     const pushes = pusher._getPushes()
@@ -641,8 +641,8 @@ describe('pushQueue', function () {
 
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
-    job.delay.should.equal(config.pushQueue.delayInMs)
+    const job = bullQueue._getLatestJob()
+    job.opts.delay.should.equal(config.pushQueue.delayInMs)
 
     done()
   })
@@ -655,14 +655,14 @@ describe('pushQueue', function () {
     config.pushQueue.attempts = 10
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const jobs = pushKue._getJobs(config.pushQueue.queueId)
+    const jobs = bullQueue._getJobs()
     jobs.length.should.equal(config.pushQueue.attempts)
     _.forEach(jobs, function (job, i) {
       let delay = config.pushQueue.delayInMs * Math.pow(2, i - 1)
       if (i === 0) {
         delay = 0
       }
-      job.delay.should.equal(delay)
+      job.opts.delay.should.equal(delay)
     })
 
     done()
@@ -711,23 +711,10 @@ describe('pushQueue', function () {
     init1()
   })
 
-  it('should encounter job.save error', done => {
-    const deviceType = 'save'
-    const deviceId = 'error'
-    const payload = generatePayload()
-
-    pushQueue.enqueue(deviceType, deviceId, payload)
-
-    const jobs = pushKue._getJobs(config.pushQueue.queueId)
-    jobs.length.should.equal(0)
-
-    done()
-  })
-
   it('should handle unrecognized device type', done => {
     pushQueue.enqueue('unrecognized', 'di', generatePayload())
 
-    const jobs = pushKue._getJobs(config.pushQueue.queueId)
+    const jobs = bullQueue._getJobs()
     jobs.length.should.equal(1)
 
     const pushes = pusher._getPushes()
@@ -743,7 +730,7 @@ describe('pushQueue', function () {
 
     pushQueue.enqueue(deviceType, deviceId, payload)
 
-    const job = pushKue._getLatestJob(config.pushQueue.queueId)
+    const job = bullQueue._getLatestJob()
     job.error.should.equal(pushQueue.MESSAGES.JOB_ERROR_PUSHER)
 
     done()

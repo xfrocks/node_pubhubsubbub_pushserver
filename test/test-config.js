@@ -50,12 +50,12 @@ describe('config', function () {
   it('should handle REDIS_URL', function (done) {
     const port = '12345'
     const host = 'redis.server'
-    process.env.REDISCLOUD_URL = 'redis://' + host + ':' + port
+    process.env.REDISCLOUD_URL = `redis://${host}:${port}`
     config._reload()
 
     config.redis.port.should.equal(port)
     config.redis.host.should.equal(host)
-    expect(config.redis.auth).to.be.null
+    expect(config.redis.password).to.be.null
 
     done()
   })
@@ -63,14 +63,13 @@ describe('config', function () {
   it('should handle REDISCLOUD_URL', function (done) {
     const port = '12345'
     const host = 'rediscloud.server'
-    const auth = 'password'
-    process.env.REDISCLOUD_URL = 'redis://rediscloud:' +
-            auth + '@' + host + ':' + port
+    const password = 'password'
+    process.env.REDISCLOUD_URL = `redis://rediscloud:${password}@${host}:${port}`
     config._reload()
 
     config.redis.port.should.equal(port)
     config.redis.host.should.equal(host)
-    config.redis.auth.should.equal(auth)
+    config.redis.password.should.equal(password)
 
     done()
   })
@@ -78,14 +77,13 @@ describe('config', function () {
   it('should handle REDISTOGO_URL', function (done) {
     const port = '12345'
     const host = 'redistogo.server'
-    const auth = 'password'
-    process.env.REDISTOGO_URL = 'redis://redistogo:' +
-            auth + '@' + host + ':' + port
+    const password = 'password'
+    process.env.REDISTOGO_URL = `redis://redistogo:${password}@${host}:${port}`
     config._reload()
 
     config.redis.port.should.equal(port)
     config.redis.host.should.equal(host)
-    config.redis.auth.should.equal(auth)
+    config.redis.password.should.equal(password)
 
     done()
   })
@@ -145,11 +143,11 @@ describe('config', function () {
     done()
   })
 
-  it('should handle CONFIG_PUSH_QUEUE_ID', function (done) {
-    process.env.CONFIG_PUSH_QUEUE_ID = 'cpqi'
+  it('should handle CONFIG_PUSH_QUEUE_NAME', function (done) {
+    process.env.CONFIG_PUSH_QUEUE_NAME = 'cpqn'
     config._reload()
-    config.pushQueue.queueId
-      .should.equal(process.env.CONFIG_PUSH_QUEUE_ID)
+    config.pushQueue.name
+      .should.equal(process.env.CONFIG_PUSH_QUEUE_NAME)
 
     done()
   })

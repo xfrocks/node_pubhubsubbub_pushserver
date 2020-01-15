@@ -13,8 +13,8 @@ const nock = require('nock')
 chai.should()
 chai.use(require('chai-http'))
 const expect = chai.expect
+const bullQueue = require('./mock/bullQueue')
 const db = require('./mock/db')
-const pushKue = require('./mock/pushKue')
 
 let server = null
 let webApp = null
@@ -72,7 +72,7 @@ describe('app', function () {
     db.projects._reset()
     web._reset()
 
-    pushQueue.setup(pushKue, pusher.setupDefault(), db)
+    pushQueue.setup(bullQueue, pusher.setupDefault(), db)
     server = web.start(db, pushQueue)
     webApp = chai.request(server).keepOpen()
 
