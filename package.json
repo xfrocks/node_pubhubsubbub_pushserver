@@ -1,6 +1,6 @@
 {
   "name": "node_pushserver",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "WebSub-compatible push server for Apple, Google and Microsoft services.",
   "dependencies": {
     "apn": "^2.2.0",
