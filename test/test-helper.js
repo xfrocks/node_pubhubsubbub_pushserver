@@ -300,9 +300,6 @@ describe('helper', function () {
 
       f(payloadUnreadOnly).should.deep.equal({
         contentAvailable: true,
-        notification: {
-          badge: '0'
-        },
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
@@ -383,9 +380,6 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         contentAvailable: true,
-        notification: {
-          badge: '0'
-        },
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
@@ -446,9 +440,6 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         contentAvailable: true,
-        notification: {
-          badge: '0'
-        },
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
