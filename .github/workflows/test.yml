@@ -1,0 +1,63 @@
+name: Test
+on: push
+jobs:
+  unit_test:
+    name: Unit test
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [10, 12, 14]
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node_version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('npm-shrinkwrap.json') }}
+          restore-keys: |
+            npm-
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run coverage
+
+      - name: Run coveralls
+        uses: coverallsapp/github-action@master
+        env:
+          COVERALLS_FLAG_NAME: node-${{ matrix.node_version }}
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel: true
+
+      - name: Upload npm logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: npm-logs
+          path: "~/.npm/_logs/**/*"
+
+  finish:
+    name: Clean up
+
+    needs: unit_test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Mark coveralls finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
