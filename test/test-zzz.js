@@ -87,3 +87,42 @@ describe('full app', function () {
       })
   })
 })
+
+describe('without-worker app', function () {
+  // eslint-disable-next-line no-invalid-this
+  this.timeout(20000)
+
+  before(function (done) {
+    process.env = _.merge({}, originalProcessEnv)
+    process.env.CONFIG_WEB_USERNAME = adminUsername
+    process.env.CONFIG_WEB_PASSWORD = adminPassword
+    process.env.CONFIG_PUSH_QUEUE_WORKER = 'false'
+    config._reload()
+
+    web._reset()
+    server = web.start()
+    webApp = chai.request(server).keepOpen()
+
+    done()
+  })
+
+  after(function (done) {
+    server.close()
+    web._reset(done)
+  })
+
+  it('should do stats', function (done) {
+    webApp
+      .get('/admin/stats')
+      .auth(adminUsername, adminPassword)
+      .end(function (err, res) {
+        expect(err).to.be.null
+        res.should.have.status(200)
+
+        const stats = res.body
+        stats.should.have.all.keys(['uptime', 'db', 'pushQueue', 'web'])
+
+        done()
+      })
+  })
+})
