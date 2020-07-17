@@ -1,6 +1,9 @@
+name: Test
 on: push
 jobs:
-  deploy:
+  unit_test:
+    name: Unit test
+
     runs-on: ubuntu-latest
     strategy:
       matrix:
