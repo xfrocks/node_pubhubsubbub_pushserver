@@ -1,0 +1,41 @@
+on: push
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12]
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('npm-shrinkwrap.json') }}
+          restore-keys: |
+            npm-
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run coverage
+      - name: Run coveralls
+        run: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+
+      - name: Upload npm logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: npm-logs
+          path: "~/.npm/_logs/**/*"
