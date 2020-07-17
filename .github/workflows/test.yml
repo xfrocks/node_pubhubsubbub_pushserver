@@ -33,8 +33,13 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run coverage
+
       - name: Run coveralls
-        run: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.node }}
+          parallel: true
 
       - name: Upload npm logs
         if: ${{ always() }}
@@ -42,3 +47,13 @@ jobs:
         with:
           name: npm-logs
           path: "~/.npm/_logs/**/*"
+
+  finish:
+    needs: unit_test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Mark coveralls finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
