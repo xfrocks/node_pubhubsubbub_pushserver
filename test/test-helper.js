@@ -291,6 +291,7 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
+        mutableContent: true,
         data: {
           notification_id: '1',
           user_unread_conversation_count: '3',
@@ -300,6 +301,7 @@ describe('helper', function () {
 
       f(payloadUnreadOnly).should.deep.equal({
         contentAvailable: true,
+        mutableContent: true,
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
@@ -313,6 +315,7 @@ describe('helper', function () {
           tag: 'conversationId=1 messageId=1',
           title: 'convo title'
         },
+        mutableContent: true,
         data: {
           creator_username: 'foo',
           'message.conversation_id': '1',
@@ -329,6 +332,7 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
+        mutableContent: true,
         data: {
           body: 'body text override',
           notification_id: '1'
@@ -340,6 +344,7 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
+        mutableContent: true,
         data: {
           notification_id: '1',
           something: 'else'
@@ -348,6 +353,7 @@ describe('helper', function () {
 
       f(payloadKeyValue).should.deep.equal({
         contentAvailable: true,
+        mutableContent: true,
         data: { key: 'value' }
       })
     })
@@ -365,6 +371,7 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
+        mutableContent: true,
         data: {
           notification_id: '1',
           user_unread_conversation_count: '3',
@@ -380,6 +387,7 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         contentAvailable: true,
+        mutableContent: true,
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
@@ -399,6 +407,7 @@ describe('helper', function () {
           tag: 'conversationId=1 messageId=1',
           title: 'convo title'
         },
+        mutableContent: true,
         data: {
           creator_username: 'foo',
           'message.conversation_id': '1',
@@ -425,6 +434,7 @@ describe('helper', function () {
           body: 'text',
           tag: 'notificationId=1'
         },
+        mutableContent: true,
         data: {
           notification_id: '1',
           user_unread_conversation_count: '3',
@@ -440,6 +450,7 @@ describe('helper', function () {
         }
       ).should.deep.equal({
         contentAvailable: true,
+        mutableContent: true,
         data: {
           user_unread_conversation_count: '0',
           user_unread_notification_count: '0'
@@ -460,6 +471,7 @@ describe('helper', function () {
           tag: 'conversationId=1 messageId=1',
           title: 'convo title'
         },
+        mutableContent: true,
         data: {
           creator_username: 'foo',
           'message.conversation_id': '1',
