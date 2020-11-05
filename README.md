@@ -99,6 +99,23 @@ Project configuration at `/admin/projects/gcm`, parameters:
  * `device_id` = GCM Registration Token
  * `extra_data[package]` = Package ID
 
+### Huawei Push Kit
+
+Project configuration at `/admin/projects/hms`, parameters:
+ * `app_id` (__required__)
+ * `app_secret` (__required__)
+
+`App` that wants to receive via FCM must include these parameters during subscription:
+ * `device_type` = `huawei`
+ * `device_id` = HMS Token
+ * `extra_data[app]` = App ID
+
+Optional `extra_data` params:
+ * `badge_class`, `badge_with_convo`: control whether to include badge in pushes
+ * `click_action`: `android.notification.click_action.action` will be set to this value (type=1)
+ * `intent_prefix`: `android.notification.click_action.intent` will be set with this prefix and `content_type`, `convo_id` or `notification_id` (if available)
+ * `notification_default_title`: required to receive notification for XenForo alert because HMS requires notification title
+
 ### Windows Push Notification
 via [tjanczuk/wns](https://github.com/tjanczuk/wns)
 
