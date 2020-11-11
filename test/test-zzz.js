@@ -74,7 +74,7 @@ describe('full app', function () {
           ['count', 'inserted', 'updated', 'apn', 'gcm', 'wns'])
 
         stats.pusher.should.have.all.keys(
-          ['apn', 'fcm', 'gcm', 'wns'])
+          ['apn', 'fcm', 'gcm', 'hms', 'wns'])
         stats.pushQueue.should.have.all.keys(
           ['queued', 'processed'])
 

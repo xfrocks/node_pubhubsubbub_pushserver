@@ -1,0 +1,17 @@
+extends ../../layout/default.pug
+
+block title
+  title New HMS Project
+
+block content
+  h1 #{prefix}/projects/hms
+
+  form(action=prefix + "/projects/hms", method="POST")
+    div.form-group
+      label(for="ctrl_app_id") App ID
+      input.form-control#ctrl_app_id(type="text", name="app_id", placeholder="123456", value=searchParams.get("app_id"))
+    div.form-group
+      label(for="ctrl_app_id") App Secret
+      input.form-control#ctrl_app_secret(type="text", name="app_secret", placeholder="abc", value=searchParams.get("app_secret"))
+
+    button.btn.btn-primary(type="submit") Submit
