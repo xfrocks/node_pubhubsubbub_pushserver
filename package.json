@@ -18,7 +18,7 @@
     "mongo-uri": "^0.1.2",
     "mongoose": "^5.8.7",
     "node-gcm": "^1.0.2",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "querystring": "^0.2.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.8",
